@@ -19,9 +19,9 @@
 # Change the file extension to match the format (.xml for XML, etc...)
 #
 ###
-title: "TODO - Your title"
-abbrev: "TODO - Abbreviation"
-category: info
+title: "An ARPA Parent for IPN Addresses"
+abbrev: "IPN dot ARPA"
+category: std
 
 docname: draft-todo-yourname-protocol-latest
 submissiontype: IETF  # also: "independent", "editorial", "IAB", or "IRTF"
@@ -29,25 +29,26 @@ number:
 date:
 consensus: true
 v: 3
-area: AREA
-workgroup: WG Working Group
+area: Internet
+workgroup: DTN Working Group
 keyword:
- - next generation
- - unicorn
- - sparkling distributed ledger
+ - DTN
+ - BP
+ - IPN
+ - DNS
 venue:
-  group: WG
+  group: DTN
   type: Working Group
-  mail: WG@example.com
-  arch: https://example.com/WG
-  github: USER/REPO
-  latest: https://example.com/LATEST
+  mail: dtn@ietf.org
+  arch: https://ietf.org/wg/dtn
+  github: ekline/draft-dtn-ipn-arpa
+  # latest: https://ietf.org/LATEST
 
 author:
  -
-    fullname: Your Name Here
-    organization: Your Organization Here
-    email: your.email@example.com
+    fullname: Erik Kline
+    organization: Aalyria Technologies, LLC
+    email: ek.ietf@gmail.com
 
 normative:
 
@@ -56,8 +57,11 @@ informative:
 
 --- abstract
 
-TODO Abstract
-
+This document requests a DNS parent for IPN addresses, discusses
+the registration procedures and management of the DNS zone, as
+well as some operational recommendations.  IPN addresses have a
+DNS representation of the form 1.978879.ipn.arpa, for IPN node 1
+under IPN Allocator 978879.
 
 --- middle
 
