@@ -9,20 +9,20 @@ number:
 date:
 consensus: true
 v: 3
-area: Internet
-workgroup: DTN Working Group
+area: ""
+workgroup: "Delay/Disruption Tolerant Networking"
 keyword:
  - DTN
  - BP
  - IPN
  - DNS
 venue:
-  group: DTN
-  type: Working Group
-  mail: dtn@ietf.org
-  arch: https://ietf.org/wg/dtn
-  github: ekline/draft-dtn-ipn-arpa
-  # latest: https://ietf.org/LATEST
+  group: "Delay/Disruption Tolerant Networking"
+  type: ""
+  mail: "dtn@ietf.org"
+  arch: "https://mailarchive.ietf.org/arch/browse/dtn/"
+  github: "ekline/draft-dtn-ipn-arpa"
+  latest: "https://ekline.github.io/draft-dtn-ipn-arpa/draft-ek-dtn-ipn-arpa.html"
 
 author:
  -
