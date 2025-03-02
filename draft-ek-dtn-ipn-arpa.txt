@@ -2,34 +2,37 @@
 
 
 
-WG Working Group                                              Y. N. Here
-Internet-Draft                                    Your Organization Here
-Intended status: Informational                              2 March 2025
+DTN Working Group                                               E. Kline
+Internet-Draft                                 Aalyria Technologies, LLC
+Intended status: Standards Track                            2 March 2025
 Expires: 3 September 2025
 
 
-                           TODO - Your title
+                    An ARPA Parent for IPN Addresses
                   draft-todo-yourname-protocol-latest
 
 Abstract
 
-   TODO Abstract
+   This document requests a DNS parent for IPN addresses, discusses the
+   registration procedures and management of the DNS zone, as well as
+   some operational recommendations.  IPN addresses have a DNS
+   representation of the form 1.978879.ipn.arpa, for IPN node 1 under
+   IPN Allocator 978879.
 
 About This Document
 
    This note is to be removed before publishing as an RFC.
 
-   The latest revision of this draft can be found at
-   https://example.com/LATEST.  Status information for this document may
-   be found at https://datatracker.ietf.org/doc/draft-todo-yourname-
-   protocol/.
+   Status information for this document may be found at
+   https://datatracker.ietf.org/doc/draft-todo-yourname-protocol/.
 
-   Discussion of this document takes place on the WG Working Group
-   mailing list (mailto:WG@example.com), which is archived at
-   https://example.com/WG.
+   Discussion of this document takes place on the DTN Working Group
+   mailing list (mailto:dtn@ietf.org), which is archived at
+   https://ietf.org/wg/dtn.  Subscribe at
+   https://www.ietf.org/mailman/listinfo/dtn/.
 
    Source for this draft and an issue tracker can be found at
-   https://github.com/USER/REPO.
+   https://github.com/ekline/draft-dtn-ipn-arpa.
 
 Status of This Memo
 
@@ -109,6 +112,6 @@ Acknowledgments
 
 Author's Address
 
-   Your Name Here
-   Your Organization Here
-   Email: your.email@example.com
+   Erik Kline
+   Aalyria Technologies, LLC
+   Email: ek.ietf@gmail.com
