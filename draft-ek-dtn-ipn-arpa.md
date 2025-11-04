@@ -3,7 +3,7 @@ title: "The ipn.arpa Zone and IPN DNS Operations"
 abbrev: "IPN dot ARPA"
 category: info
 
-docname: draft-ek-dtn-ipn-arpa-00
+docname: draft-ek-dtn-ipn-arpa-latest
 submissiontype: IETF  # also: "independent", "editorial", "IAB", or "IRTF"
 number:
 date:
