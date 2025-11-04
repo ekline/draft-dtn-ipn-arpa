@@ -34,6 +34,8 @@ normative:
 
 informative:
   RFC9758:
+  TCPCL: RFC9174
+  UDPCL: RFC7122
 
 
 --- abstract
@@ -59,6 +61,7 @@ TODO Introduction
 
 {::boilerplate bcp14-tagged}
 
+TODO
 
 # Concept of Operations
 
@@ -104,21 +107,28 @@ _dtn-bundle._udp.research-department IN SRV 1 1 4556 cloud-service.space-agency.
 A BP Agent, perhaps collocated at a landing station, which had received
 a Bundle destined for `ipn:978879.500.345` could determine the proper
 TCP and UDP CL IP addresses and ports by:
-  * querying for a PTR record associated with `500.978879.ipn.arpa`
-  * (receiving `research-department.space-agency.example`)
-  * querying for an SRV record associated with `_dtn-bundle._tcp.research-department.space-agency.example` (ditto for `._udp`)
-  * (receiving port 4556 and hostname `cloud-service.space-agency.example.`)
-  * querying for A and AAAA records for `cloud-service.space-agency.example`.
-  * (receiving `192.0.2.5` and `2001:db8::5`)
 
-The BP Agent at the landing could then attempt to initiated a TCPCL
-or UDPCL connection to `[2001:db8::5]:4556`, for example, and attempt
-to deliver the given Bundle.
+* querying for a PTR record associated with `500.978879.ipn.arpa`
+
+* (receiving `research-department.space-agency.example`)
+
+* querying for an SRV record associated with `_dtn-bundle._tcp.research-department.space-agency.example` (ditto for `._udp`)
+
+* (receiving port 4556 and hostname `cloud-service.space-agency.example.`)
+
+* querying for A and AAAA records for `cloud-service.space-agency.example`.
+
+* (receiving `192.0.2.5` and `2001:db8::5`)
+
+The BP Agent at the landing station could then attempt to initiated a
+{{TCPCL}} or {{UDPCL}} connection to `[2001:db8::5]:4556`,
+for example, and attempt to deliver the given Bundle.
 
 Similarly, a researcher attempting to send a Bundle payload to
 `mars-orbiter2.space-agency.example` could use a BP Agent capable
-of querying DNS and learning about the UDPCL endpoint at `192.0.2.1:4556`.
-Once the Bundle had been forwarded to `antenna-relay.space-agency.example`,
+of querying DNS and learning about the {{UDPCL}} endpoint at
+`192.0.2.1:4556`. Once the Bundle had been forwarded to
+`antenna-relay.space-agency.example`,
 it would be the `antenna-relay`'s responsibility to forward it to the
 spacecraft.
 
