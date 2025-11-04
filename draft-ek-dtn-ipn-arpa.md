@@ -132,6 +132,21 @@ of querying DNS and learning about the {{UDPCL}} endpoint at
 it would be the `antenna-relay`'s responsibility to forward it to the
 spacecraft.
 
+Any future CLs that define DNS records (e.g. `SVCB` records, etc) may
+be added to the `space-agency.example` zone and, though the use of
+PTR records in the `978879.ipn.arpa` zone, be discovered by
+appropriately capable BP agents.
+
+# Operational Considerations
+
+TODO Operational
+
+Note that use of DNS may not be appropriate for all network
+environments. Any deployments where querying DNS might not align
+with reliability or performance requirements are recommended to
+obtain BP FIB information by other mechanisms (out of scope of
+this document).
+
 # Security Considerations
 
 TODO Security
