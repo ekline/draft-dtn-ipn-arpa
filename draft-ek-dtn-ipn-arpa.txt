@@ -173,7 +173,7 @@ Table of Contents
    responsibility to forward it to the spacecraft.
 
    Any future CLs that define DNS records (e.g. SVCB records, etc) may
-   be added to the space-agency.example zone and, though the use of PTR
+   be added to the space-agency.example zone and, through the use of PTR
    records in the 978879.ipn.arpa zone, be discovered by appropriately
    capable BP agents.
 
