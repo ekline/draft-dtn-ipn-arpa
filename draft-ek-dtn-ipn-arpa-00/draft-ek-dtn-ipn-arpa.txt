@@ -1,0 +1,258 @@
+
+
+
+
+Delay/Disruption Tolerant Networking                            E. Kline
+Internet-Draft                                 Aalyria Technologies, LLC
+Intended status: Informational                           4 November 2025
+Expires: 8 May 2026
+
+
+                The ipn.arpa Zone and IPN DNS Operations
+                      draft-ek-dtn-ipn-arpa-latest
+
+Abstract
+
+   This document requests a DNS parent for IPN addresses, discusses the
+   registration procedures and management of the DNS zone, as well as
+   some operational recommendations.  This document specifies that IPN
+   addresses may have a DNS representation of the form
+   1.978879.ipn.arpa, for IPN node 1 under IPN Allocator 978879.
+
+   This document also describes how this DNS structure can be useful in
+   locating the Bundle Protocol (BP) Convergence Layer (CL) endpoint(s)
+   of the BP Agent responsible for a given IPN address.
+
+About This Document
+
+   This note is to be removed before publishing as an RFC.
+
+   The latest revision of this draft can be found at
+   https://ekline.github.io/draft-dtn-ipn-arpa/draft-ek-dtn-ipn-
+   arpa.html.  Status information for this document may be found at
+   https://datatracker.ietf.org/doc/draft-ek-dtn-ipn-arpa/.
+
+   Discussion of this document takes place on the Delay/Disruption
+   Tolerant Networking mailing list (mailto:dtn@ietf.org), which is
+   archived at https://mailarchive.ietf.org/arch/browse/dtn/.  Subscribe
+   at https://www.ietf.org/mailman/listinfo/dtn/.
+
+   Source for this draft and an issue tracker can be found at
+   https://github.com/ekline/draft-dtn-ipn-arpa.
+
+Status of This Memo
+
+   This Internet-Draft is submitted in full conformance with the
+   provisions of BCP 78 and BCP 79.
+
+   Internet-Drafts are working documents of the Internet Engineering
+   Task Force (IETF).  Note that other groups may also distribute
+   working documents as Internet-Drafts.  The list of current Internet-
+   Drafts is at https://datatracker.ietf.org/drafts/current/.
+
+   Internet-Drafts are draft documents valid for a maximum of six months
+   and may be updated, replaced, or obsoleted by other documents at any
+   time.  It is inappropriate to use Internet-Drafts as reference
+   material or to cite them other than as "work in progress."
+
+   This Internet-Draft will expire on 8 May 2026.
+
+Copyright Notice
+
+   Copyright (c) 2025 IETF Trust and the persons identified as the
+   document authors.  All rights reserved.
+
+   This document is subject to BCP 78 and the IETF Trust's Legal
+   Provisions Relating to IETF Documents (https://trustee.ietf.org/
+   license-info) in effect on the date of publication of this document.
+   Please review these documents carefully, as they describe your rights
+   and restrictions with respect to this document.  Code Components
+   extracted from this document must include Revised BSD License text as
+   described in Section 4.e of the Trust Legal Provisions and are
+   provided without warranty as described in the Revised BSD License.
+
+Table of Contents
+
+   1.  Introduction
+   2.  Conventions and Definitions
+   3.  Concept of Operations
+   4.  Operational Considerations
+   5.  Security Considerations
+   6.  IAB Considerations
+   7.  IANA Considerations
+     7.1.  'ipn' Allocator Registry List of Nameservers
+     7.2.  Guidance to Designate Experts
+   8.  References
+     8.1.  Normative References
+     8.2.  Informative References
+   Acknowledgments
+   Author's Address
+
+1.  Introduction
+
+   TODO Introduction
+
+2.  Conventions and Definitions
+
+   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+   "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and
+   "OPTIONAL" in this document are to be interpreted as described in
+   BCP 14 [RFC2119] [RFC8174] when, and only when, they appear in all
+   capitals, as shown here.
+
+   TODO
+
+3.  Concept of Operations
+
+   The Forwarding Information Base (FIB) of a BP Agent may be populated
+   from a variety of sources.  Typically, explicit (manual)
+   configuration is given to associate BP destination endpoints with the
+   Convergence Layer parameters required to establish communication with
+   a responsible receiving BP Agent.
+
+   A BP Agent may also dynamically create a FIB entry by querying for
+   DNS Resource Records as follows.
+
+   Consider a space agency with a registered IPN Allocator ID of 978879
+   that published the following two DNS zones:
+
+   ; zone 978879.ipn.arpa.
+   @   IN SOA ns1.space-agency.example ...
+   1   IN PTR lunar-orbiter1.space-agency.example.
+   2   IN PTR mars-orbiter2.space-agency.example.
+   500 IN PTR research-department.space-agency.example.
+
+
+   ; zone space-agency.example.
+   @ IN SOA ns1.space-agency.example ...
+
+   antenna-relay IN A 192.0.2.1
+   antenna-relay IN AAAA 2001:db8::1
+
+   lunar-orbiter1 IN TXT "{'norad-id': '81111'}}"
+   _dtn-bundle._tcp.2 IN SRV 1 1 4556 antenna-relay.space-agency.example.
+
+   mars-orbiter2 IN TXT "{'norad-id': '82222'}}"
+   _dtn-bundle._udp.2 IN SRV 1 1 4556 antenna-relay.space-agency.example.
+
+   cloud-service IN A 192.0.2.5
+   cloud-service IN AAAA 2001:db8::5
+
+   _dtn-bundle._tcp.research-department IN SRV 1 1 4556 cloud-service.space-agency.example.
+   _dtn-bundle._udp.research-department IN SRV 1 1 4556 cloud-service.space-agency.example.
+
+   A BP Agent, perhaps collocated at a landing station, which had
+   received a Bundle destined for ipn:978879.500.345 could determine the
+   proper TCP and UDP CL IP addresses and ports by:
+
+   *  querying for a PTR record associated with 500.978879.ipn.arpa
+
+   *  (receiving research-department.space-agency.example)
+
+   *  querying for an SRV record associated with _dtn-
+      bundle._tcp.research-department.space-agency.example (ditto for
+      ._udp)
+
+   *  (receiving port 4556 and hostname cloud-service.space-
+      agency.example.)
+
+   *  querying for A and AAAA records for cloud-service.space-
+      agency.example.
+
+   *  (receiving 192.0.2.5 and 2001:db8::5)
+
+   The BP Agent at the landing station could then attempt to initiated a
+   [TCPCL] or [UDPCL] connection to [2001:db8::5]:4556, for example, and
+   attempt to deliver the given Bundle.
+
+   Similarly, a researcher attempting to send a Bundle payload to mars-
+   orbiter2.space-agency.example could use a BP Agent capable of
+   querying DNS and learning about the [UDPCL] endpoint at
+   192.0.2.1:4556.  Once the Bundle had been forwarded to antenna-
+   relay.space-agency.example, it would be the antenna-relay's
+   responsibility to forward it to the spacecraft.
+
+   Any future CLs that define DNS records (e.g. SVCB records, etc) may
+   be added to the space-agency.example zone and, through the use of PTR
+   records in the 978879.ipn.arpa zone, be discovered by appropriately
+   capable BP agents.
+
+4.  Operational Considerations
+
+   TODO Operational
+
+   Note that use of DNS may not be appropriate for all network
+   environments.  Any deployments where querying DNS might not align
+   with reliability or performance requirements are recommended to
+   obtain BP FIB information by other mechanisms (out of scope of this
+   document).
+
+5.  Security Considerations
+
+   TODO Security
+
+6.  IAB Considerations
+
+   The IAB is requested to approve the zone "ipn.arpa" as parent for IPN
+   addresses, similar to in-addr.arpa and ip6.arpa "reverse DNS" for
+   IPv4 and IPv6 addresses (respectively).
+
+   Per [RFC9758], IPN addresses have an Allocator identifier and an
+   allocator-specific identifier (both 32-bit unsigned integers).
+
+7.  IANA Considerations
+
+7.1.  'ipn' Allocator Registry List of Nameservers
+
+   IANA is requested to augment its registration procedures for entries
+   in the 'ipn' Scheme URI Allocator Identifiers Registry with a column
+   for "Authoritative Nameservers".  Requesters of an Allocator or
+   Allocator range MAY provide the IP addresses of DNS nameservers that
+   will be considered authoritative for the .ipn.arpa zone for each
+   requested Allocator.
+
+7.2.  Guidance to Designate Experts
+
+   TBD: things like make sure there are at least two nameserver IP
+   addresses and both IPv4 and IPv6 addresses are given, etc.
+
+8.  References
+
+8.1.  Normative References
+
+   [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
+              Requirement Levels", BCP 14, RFC 2119,
+              DOI 10.17487/RFC2119, March 1997,
+              <https://www.rfc-editor.org/rfc/rfc2119>.
+
+   [RFC8174]  Leiba, B., "Ambiguity of Uppercase vs Lowercase in RFC
+              2119 Key Words", BCP 14, RFC 8174, DOI 10.17487/RFC8174,
+              May 2017, <https://www.rfc-editor.org/rfc/rfc8174>.
+
+8.2.  Informative References
+
+   [RFC9758]  Taylor, R. and E. Birrane III, "Updates to the 'ipn' URI
+              Scheme", RFC 9758, DOI 10.17487/RFC9758, May 2025,
+              <https://www.rfc-editor.org/rfc/rfc9758>.
+
+   [TCPCL]    Sipos, B., Demmer, M., Ott, J., and S. Perreault, "Delay-
+              Tolerant Networking TCP Convergence-Layer Protocol Version
+              4", RFC 9174, DOI 10.17487/RFC9174, January 2022,
+              <https://www.rfc-editor.org/rfc/rfc9174>.
+
+   [UDPCL]    Kruse, H., Jero, S., and S. Ostermann, "Datagram
+              Convergence Layers for the Delay- and Disruption-Tolerant
+              Networking (DTN) Bundle Protocol and Licklider
+              Transmission Protocol (LTP)", RFC 7122,
+              DOI 10.17487/RFC7122, March 2014,
+              <https://www.rfc-editor.org/rfc/rfc7122>.
+
+Acknowledgments
+
+   TODO acknowledge.
+
+Author's Address
+
+   Erik Kline
+   Aalyria Technologies, LLC
+   Email: ek.ietf@gmail.com
