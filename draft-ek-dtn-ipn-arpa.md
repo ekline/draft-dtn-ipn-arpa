@@ -3,7 +3,7 @@ title: "The ipn.arpa Zone and IPN DNS Operations"
 abbrev: "IPN dot ARPA"
 category: info
 
-docname: draft-ek-dtn-ipn-arpa-latest
+docname: draft-ek-dtn-ipn-arpa-00
 submissiontype: IETF  # also: "independent", "editorial", "IAB", or "IRTF"
 number:
 date:
@@ -133,7 +133,7 @@ it would be the `antenna-relay`'s responsibility to forward it to the
 spacecraft.
 
 Any future CLs that define DNS records (e.g. `SVCB` records, etc) may
-be added to the `space-agency.example` zone and, though the use of
+be added to the `space-agency.example` zone and, through the use of
 PTR records in the `978879.ipn.arpa` zone, be discovered by
 appropriately capable BP agents.
 
