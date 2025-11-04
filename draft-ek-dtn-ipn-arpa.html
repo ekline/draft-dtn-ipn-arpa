@@ -1225,6 +1225,7 @@ the BP Agent responsible for a given IPN address.<a href="#section-abstract-2" c
 "<span class="bcp14">MAY</span>", and "<span class="bcp14">OPTIONAL</span>" in this document are to be interpreted as
 described in BCP 14 <span>[<a href="#RFC2119" class="cite xref">RFC2119</a>]</span> <span>[<a href="#RFC8174" class="cite xref">RFC8174</a>]</span> when, and only when, they
 appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶</a></p>
+<p id="section-2-2">TODO<a href="#section-2-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="concept-of-operations">
@@ -1271,22 +1272,37 @@ _dtn-bundle._udp.research-department IN SRV 1 1 4556 cloud-service.space-agency.
 </div>
 <p id="section-3-5">A BP Agent, perhaps collocated at a landing station, which had received
 a Bundle destined for <code>ipn:978879.500.345</code> could determine the proper
-TCP and UDP CL IP addresses and ports by:
-  * querying for a PTR record associated with <code>500.978879.ipn.arpa</code>
-  * (receiving <code>research-department.space-agency.example</code>)
-  * querying for an SRV record associated with <code>_dtn-bundle._tcp.research-department.space-agency.example</code> (ditto for <code>._udp</code>)
-  * (receiving port 4556 and hostname <code>cloud-service.space-agency.example.</code>)
-  * querying for A and AAAA records for <code>cloud-service.space-agency.example</code>.
-  * (receiving <code>192.0.2.5</code> and <code>2001:db8::5</code>)<a href="#section-3-5" class="pilcrow">¶</a></p>
-<p id="section-3-6">The BP Agent at the landing could then attempt to initiated a TCPCL
-or UDPCL connection to <code>[2001:db8::5]:4556</code>, for example, and attempt
-to deliver the given Bundle.<a href="#section-3-6" class="pilcrow">¶</a></p>
-<p id="section-3-7">Similarly, a researcher attempting to send a Bundle payload to
+TCP and UDP CL IP addresses and ports by:<a href="#section-3-5" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-3-6.1">
+          <p id="section-3-6.1.1">querying for a PTR record associated with <code>500.978879.ipn.arpa</code><a href="#section-3-6.1.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-3-6.2">
+          <p id="section-3-6.2.1">(receiving <code>research-department.space-agency.example</code>)<a href="#section-3-6.2.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-3-6.3">
+          <p id="section-3-6.3.1">querying for an SRV record associated with <code>_dtn-bundle._tcp.research-department.space-agency.example</code> (ditto for <code>._udp</code>)<a href="#section-3-6.3.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-3-6.4">
+          <p id="section-3-6.4.1">(receiving port 4556 and hostname <code>cloud-service.space-agency.example.</code>)<a href="#section-3-6.4.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-3-6.5">
+          <p id="section-3-6.5.1">querying for A and AAAA records for <code>cloud-service.space-agency.example</code>.<a href="#section-3-6.5.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-3-6.6">
+          <p id="section-3-6.6.1">(receiving <code>192.0.2.5</code> and <code>2001:db8::5</code>)<a href="#section-3-6.6.1" class="pilcrow">¶</a></p>
+</li>
+      </ul>
+<p id="section-3-7">The BP Agent at the landing station could then attempt to initiated a
+<span>[<a href="#TCPCL" class="cite xref">TCPCL</a>]</span> or <span>[<a href="#UDPCL" class="cite xref">UDPCL</a>]</span> connection to <code>[2001:db8::5]:4556</code>,
+for example, and attempt to deliver the given Bundle.<a href="#section-3-7" class="pilcrow">¶</a></p>
+<p id="section-3-8">Similarly, a researcher attempting to send a Bundle payload to
 <code>mars-orbiter2.space-agency.example</code> could use a BP Agent capable
-of querying DNS and learning about the UDPCL endpoint at <code>192.0.2.1:4556</code>.
-Once the Bundle had been forwarded to <code>antenna-relay.space-agency.example</code>,
+of querying DNS and learning about the <span>[<a href="#UDPCL" class="cite xref">UDPCL</a>]</span> endpoint at
+<code>192.0.2.1:4556</code>. Once the Bundle had been forwarded to
+<code>antenna-relay.space-agency.example</code>,
 it would be the <code>antenna-relay</code>'s responsibility to forward it to the
-spacecraft.<a href="#section-3-7" class="pilcrow">¶</a></p>
+spacecraft.<a href="#section-3-8" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="security-considerations">
@@ -1367,8 +1383,16 @@ and both IPv4 and IPv6 addresses are given, etc.<a href="#section-6.2-1" class="
         </h3>
 <dl class="references">
 <dt id="RFC9758">[RFC9758]</dt>
-      <dd>
+        <dd>
 <span class="refAuthor">Taylor, R.</span> and <span class="refAuthor">E. Birrane III</span>, <span class="refTitle">"Updates to the 'ipn' URI Scheme"</span>, <span class="seriesInfo">RFC 9758</span>, <span class="seriesInfo">DOI 10.17487/RFC9758</span>, <time datetime="2025-05" class="refDate">May 2025</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9758">https://www.rfc-editor.org/rfc/rfc9758</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="TCPCL">[TCPCL]</dt>
+        <dd>
+<span class="refAuthor">Sipos, B.</span>, <span class="refAuthor">Demmer, M.</span>, <span class="refAuthor">Ott, J.</span>, and <span class="refAuthor">S. Perreault</span>, <span class="refTitle">"Delay-Tolerant Networking TCP Convergence-Layer Protocol Version 4"</span>, <span class="seriesInfo">RFC 9174</span>, <span class="seriesInfo">DOI 10.17487/RFC9174</span>, <time datetime="2022-01" class="refDate">January 2022</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9174">https://www.rfc-editor.org/rfc/rfc9174</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="UDPCL">[UDPCL]</dt>
+      <dd>
+<span class="refAuthor">Kruse, H.</span>, <span class="refAuthor">Jero, S.</span>, and <span class="refAuthor">S. Ostermann</span>, <span class="refTitle">"Datagram Convergence Layers for the Delay- and Disruption-Tolerant Networking (DTN) Bundle Protocol and Licklider Transmission Protocol (LTP)"</span>, <span class="seriesInfo">RFC 7122</span>, <span class="seriesInfo">DOI 10.17487/RFC7122</span>, <time datetime="2014-03" class="refDate">March 2014</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc7122">https://www.rfc-editor.org/rfc/rfc7122</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 </dl>
 </section>
