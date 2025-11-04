@@ -76,14 +76,15 @@ Table of Contents
    1.  Introduction
    2.  Conventions and Definitions
    3.  Concept of Operations
-   4.  Security Considerations
-   5.  IAB Considerations
-   6.  IANA Considerations
-     6.1.  'ipn' Allocator Registry List of Nameservers
-     6.2.  Guidance to Designate Experts
-   7.  References
-     7.1.  Normative References
-     7.2.  Informative References
+   4.  Operational Considerations
+   5.  Security Considerations
+   6.  IAB Considerations
+   7.  IANA Considerations
+     7.1.  'ipn' Allocator Registry List of Nameservers
+     7.2.  Guidance to Designate Experts
+   8.  References
+     8.1.  Normative References
+     8.2.  Informative References
    Acknowledgments
    Author's Address
 
@@ -171,11 +172,26 @@ Table of Contents
    relay.space-agency.example, it would be the antenna-relay's
    responsibility to forward it to the spacecraft.
 
-4.  Security Considerations
+   Any future CLs that define DNS records (e.g. SVCB records, etc) may
+   be added to the space-agency.example zone and, though the use of PTR
+   records in the 978879.ipn.arpa zone, be discovered by appropriately
+   capable BP agents.
+
+4.  Operational Considerations
+
+   TODO Operational
+
+   Note that use of DNS may not be appropriate for all network
+   environments.  Any deployments where querying DNS might not align
+   with reliability or performance requirements are recommended to
+   obtain BP FIB information by other mechanisms (out of scope of this
+   document).
+
+5.  Security Considerations
 
    TODO Security
 
-5.  IAB Considerations
+6.  IAB Considerations
 
    The IAB is requested to approve the zone "ipn.arpa" as parent for IPN
    addresses, similar to in-addr.arpa and ip6.arpa "reverse DNS" for
@@ -184,9 +200,9 @@ Table of Contents
    Per [RFC9758], IPN addresses have an Allocator identifier and an
    allocator-specific identifier (both 32-bit unsigned integers).
 
-6.  IANA Considerations
+7.  IANA Considerations
 
-6.1.  'ipn' Allocator Registry List of Nameservers
+7.1.  'ipn' Allocator Registry List of Nameservers
 
    IANA is requested to augment its registration procedures for entries
    in the 'ipn' Scheme URI Allocator Identifiers Registry with a column
@@ -195,14 +211,14 @@ Table of Contents
    will be considered authoritative for the .ipn.arpa zone for each
    requested Allocator.
 
-6.2.  Guidance to Designate Experts
+7.2.  Guidance to Designate Experts
 
    TBD: things like make sure there are at least two nameserver IP
    addresses and both IPv4 and IPv6 addresses are given, etc.
 
-7.  References
+8.  References
 
-7.1.  Normative References
+8.1.  Normative References
 
    [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
               Requirement Levels", BCP 14, RFC 2119,
@@ -213,7 +229,7 @@ Table of Contents
               2119 Key Words", BCP 14, RFC 8174, DOI 10.17487/RFC8174,
               May 2017, <https://www.rfc-editor.org/rfc/rfc8174>.
 
-7.2.  Informative References
+8.2.  Informative References
 
    [RFC9758]  Taylor, R. and E. Birrane III, "Updates to the 'ipn' URI
               Scheme", RFC 9758, DOI 10.17487/RFC9758, May 2025,
