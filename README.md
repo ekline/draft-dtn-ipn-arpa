@@ -1,6 +1,8 @@
-# An ARPA Parent for IPN Addresses
+<!-- regenerate: on (set to off if you edit this file) -->
 
-This is the working area for the individual Internet-Draft, "An ARPA Parent for IPN Addresses".
+# The ipn.arpa Zone and IPN DNS Operations
+
+This is the working area for the individual Internet-Draft, "The ipn.arpa Zone and IPN DNS Operations".
 
 * [Editor's Copy](https://ekline.github.io/draft-dtn-ipn-arpa/#go.draft-ek-dtn-ipn-arpa.html)
 * [Datatracker Page](https://datatracker.ietf.org/doc/draft-ek-dtn-ipn-arpa)
@@ -13,9 +15,8 @@ This is the working area for the individual Internet-Draft, "An ARPA Parent for 
 See the
 [guidelines for contributions](https://github.com/ekline/draft-dtn-ipn-arpa/blob/main/CONTRIBUTING.md).
 
-Contributions can be made by creating pull requests.
-The GitHub interface supports creating pull requests using the Edit (✏) button.
-
+The contributing file also has tips on how to make contributions, if you
+don't already know how to do that.
 
 ## Command Line Usage
 
