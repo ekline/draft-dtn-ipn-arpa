@@ -4,8 +4,8 @@
 
 Delay/Disruption Tolerant Networking                            E. Kline
 Internet-Draft                                 Aalyria Technologies, LLC
-Intended status: Informational                           4 November 2025
-Expires: 8 May 2026
+Intended status: Informational                             16 March 2026
+Expires: 17 September 2026
 
 
                 The ipn.arpa Zone and IPN DNS Operations
@@ -55,11 +55,11 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 8 May 2026.
+   This Internet-Draft will expire on 17 September 2026.
 
 Copyright Notice
 
-   Copyright (c) 2025 IETF Trust and the persons identified as the
+   Copyright (c) 2026 IETF Trust and the persons identified as the
    document authors.  All rights reserved.
 
    This document is subject to BCP 78 and the IETF Trust's Legal
