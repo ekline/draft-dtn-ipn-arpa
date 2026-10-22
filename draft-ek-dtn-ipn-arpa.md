@@ -34,10 +34,13 @@ normative:
   RFC1034:
   RFC2782:
   RFC3172:
+  RFC9758:
 
 informative:
+  RFC1918:
   RFC6116:
-  RFC9758:
+  RFC6303:
+  RFC8375:
   TCPCL: RFC9174
 
 
@@ -64,7 +67,44 @@ TODO Introduction
 
 {::boilerplate bcp14-tagged}
 
-TODO
+This document uses the following terms as defined in {{RFC9758}}:
+
+Allocator Identifier:
+: A 32-bit unsigned integer identifying the Allocator that assigned a
+  Node Number ({{Section 3.2 of RFC9758}}).
+
+Node Number:
+: A 32-bit unsigned integer identifying a node in the context of an
+  Allocator ({{Section 3.3 of RFC9758}}).
+
+Fully Qualified Node Number (FQNN):
+: The combination of an Allocator Identifier and a Node Number, which
+  uniquely identifies a node ({{Section 3.3.1 of RFC9758}}).  As in
+  {{RFC9758}}, an FQNN is written as (Allocator Identifier, Node
+  Number); for example, (978879,2).
+
+Service Number:
+: An unsigned integer identifying a service on a node
+  ({{Section 3.5 of RFC9758}}).
+
+ipn URI:
+: A URI using the 'ipn' URI scheme.  An ipn URI comprises an Allocator
+  Identifier, a Node Number, and a Service Number; that is, an FQNN
+  plus a Service Number ({{Section 3 of RFC9758}}).  An ipn URI used
+  as a Bundle Protocol Endpoint Identifier (EID) is termed an "ipn
+  EID" ({{Section 5 of RFC9758}}).
+
+This document defines the following terms:
+
+DNS base name:
+: The DNS name beneath ipn.arpa that represents an FQNN, constructed
+  as specified in {{discovery-model}}.
+
+CL-specific query name:
+: A DNS name, defined by a CL specification relative to a DNS base
+  name, at which a BP Agent queries for the records needed to reach
+  the node using that CL.  For example, the TCPCLv4 query name is
+  formed by prepending `_dtn-bundle._tcp` to the DNS base name.
 
 # Concept of Operations {#concept-of-operations}
 
@@ -77,38 +117,98 @@ receiving BP Agent.
 A BP Agent may also dynamically create a FIB entry by querying for
 DNS Resource Records as described in this section.
 
-## Discovery Model
+## Discovery Model {#discovery-model}
 
 The ipn.arpa zone is an infrastructure namespace derived from IPN
-identifiers.  For an IPN address with Allocator Identifier A and Node
-Number N {{RFC9758}}, the derived DNS name is `N.A.ipn.arpa.`, where
-N and A are each expressed as a decimal label.  For example, for
-Allocator Identifier 978879 and Node Number 2, the derived DNS name is:
+identifiers.  Discovery is keyed on the FQNN of the destination node.
+
+Before constructing a DNS name, a BP Agent MUST parse and interpret
+the destination ipn URI or ipn EID according to {{RFC9758}}, yielding
+numeric values for its Allocator Identifier, Node Number, and Service
+Number.  This includes the text syntax rules of
+{{Section 4 of RFC9758}} and the CBOR decoding rules of
+{{Section 6.2 of RFC9758}}.  In particular, an Allocator Identifier
+omitted from the text representation means zero, the Default
+Allocator ({{Section 3.2.2 of RFC9758}}).  An omitted Allocator
+Identifier does not cause the allocator label to be omitted from the
+DNS name.
+
+For Allocator Identifier A and Node Number N, the DNS base name MUST
+be:
 
 ~~~
-2.978879.ipn.arpa.
+N.A.ipn.arpa.
 ~~~
 
-A BP Agent discovers the CL endpoint(s) for a node by querying
-directly for service records beneath this derived name.  For example,
-a BP Agent discovering TCPCLv4 {{TCPCL}} service for this node queries
-for SRV records {{RFC2782}} at:
+Each of N and A MUST be represented as a single label containing its
+unsigned decimal value, using ASCII digits without leading zeroes.
+The value zero is represented by the single digit "0".  The labels
+are not padded to a fixed width and are not split into individual
+digits.
+
+The Service Number does not participate in construction.  All ipn
+URIs that share an FQNN map to the same DNS base name.
+
+| ipn URI | DNS base name |
+|---|---|
+| `ipn:978879.2.345` | `2.978879.ipn.arpa.` |
+| `ipn:978879.2.0` | `2.978879.ipn.arpa.` |
+| `ipn:16384.345` | `16384.0.ipn.arpa.` |
+| `ipn:0.16384.345` | `16384.0.ipn.arpa.` |
+{: title="Example DNS Base Names"}
+
+Because the DNS base name is constructed from the parsed numeric
+components rather than from the text of the URI, equivalent
+representations of the same FQNN produce the same DNS base name.  For
+example, `ipn:16384.345` and `ipn:0.16384.345` both identify the FQNN
+(0,16384).  Likewise, the two-element and three-element CBOR encodings
+of an ipn EID ({{Section 6.4 of RFC9758}}) produce the same DNS base
+name.
+
+The DNS base name is distinct from the CL-specific query name at
+which a BP Agent queries for records.  For example, a BP Agent
+discovering TCPCLv4 {{TCPCL}} service for the FQNN (978879,2)
+prepends `_dtn-bundle._tcp` to the DNS base name and queries for SRV
+records {{RFC2782}} at:
 
 ~~~
 _dtn-bundle._tcp.2.978879.ipn.arpa.
 ~~~
 
-The query name is constructed solely from the Allocator Identifier
-and Node Number.  The IPN Service Number does not participate in this
-lookup; all services of a node share the same discovery name.  No
-preliminary PTR query is required, and this discovery procedure
+No preliminary PTR query is required, and this discovery procedure
 requires no PTR records.
 
 This differs from the conventional use of in-addr.arpa and ip6.arpa,
 in which a PTR record maps an address to a hostname that is then used
 for further lookups.  The discovery procedure in this document
-publishes service records directly beneath the IPN-derived name; no
+publishes service records directly beneath the DNS base name; no
 IPN-to-hostname mapping step is involved.
+
+The Null ipn URI ({{Section 3.1 of RFC9758}}) and LocalNode ipn URIs
+({{Section 3.4.2 of RFC9758}}) are recognized after the interpretation
+described above.  For example, an ipn URI with a zero Allocator
+Identifier, a zero Node Number, and a non-zero Service Number is
+treated as the Null ipn URI ({{Section 3.4.1 of RFC9758}}), and
+`ipn:!.7` is a LocalNode ipn URI.  Neither identifies a remote
+destination for this procedure: the Null endpoint has no members, and
+a bundle destined for a LocalNode ipn EID is not allowed to leave the
+local node ({{Section 5.4 of RFC9758}}).  A BP Agent MUST NOT perform
+DNS discovery for the Null ipn URI or for a LocalNode ipn URI.  In
+addition,
+{{Section 5.4 of RFC9758}} prohibits publishing LocalNode ipn EIDs in
+any node identification directory, such as a DNS registration.
+
+These cases are identified by the complete FQNN: (0,0) for the Null
+ipn URI and (0,4294967295) for LocalNode ipn URIs.  This document
+does not reserve Node Number 0 or Node Number 4294967295 under any
+other Allocator Identifier.  For example, the FQNNs (978879,0) and
+(978879,4294967295) are processed like any other FQNN.
+
+TODO: Specify the treatment of Private Use identities
+({{Section 3.4.3 of RFC9758}} and {{Section 5.5 of RFC9758}}),
+including resolution within a locally scoped namespace and prevention
+of inappropriate queries for such names in the public DNS.  This
+policy will be addressed separately.
 
 ## Examples
 
@@ -220,8 +320,8 @@ The following DNS behaviors apply to the configurations above:
 
 Each CL specification that uses DNS for discovery defines its own
 service query names and record types (e.g., SRV or SVCB records)
-beneath the IPN-derived name.  Appropriately capable BP Agents query
-for those records using the same derived name.
+relative to the DNS base name.  Appropriately capable BP Agents query
+for those records using the same DNS base name.
 
 # Operational Considerations
 
@@ -252,18 +352,38 @@ This follows the precedent of e164.arpa {{RFC6116}}, in which names
 are derived from E.164 telephone numbers and queried directly for
 service records (NAPTR).
 
-Per {{RFC9758}}, IPN addresses have an Allocator identifier and an
-allocator-specific identifier (both 32-bit unsigned integers).
+Per {{Section 3.3.1 of RFC9758}}, the FQNN of a node comprises a
+32-bit Allocator Identifier and a 32-bit Node Number.  Those two
+components determine the DNS base name (see {{discovery-model}}).
 
 # IANA Considerations
 
-## Creation of ipn.arpa
+## Creation of ipn.arpa {#creation-of-ipn-arpa}
 
 Following approval by the IAB in accordance with
 {{Section 3 of RFC3172}}, IANA is requested to add "ipn.arpa" to the
 ".arpa" domain.  This namespace supports DNS names derived from IPN
 Allocator Identifiers and Node Numbers, as specified in this document
 (see {{concept-of-operations}}).
+
+"0.ipn.arpa" corresponds to Allocator Identifier zero, the Default
+Allocator ({{Section 3.2.2 of RFC9758}}).  It is treated like the
+IN-ADDR.ARPA zones for the private address space of {{RFC1918}}
+({{Section 4.1 of RFC6303}}): it has only local significance.  A
+"0.ipn.arpa" zone MAY exist in local DNS resolvers or servers that
+serve it authoritatively as a locally served zone {{RFC6303}}, but a
+populated "0.ipn.arpa" zone MUST NOT ever be published in the global
+DNS.
+
+TODO: Specify how "0.ipn.arpa" is represented in the global DNS so
+that locally served answers can still be validated.  If ipn.arpa is
+signed, an authenticated denial of existence for "0.ipn.arpa" would
+cause validating resolvers to reject locally served data; locally
+served zones need an insecure delegation or must be within an insecure
+zone ({{Section 7 of RFC6303}}).  Compare the unsigned delegation of
+home.arpa to black-hole servers ({{Section 7 of RFC8375}}).  Also
+consider adding "0.ipn.arpa" to the IANA "Locally-Served DNS Zones"
+registry ({{Section 6 of RFC6303}}).
 
 ## 'ipn' Allocator Registry List of Nameservers
 
@@ -273,6 +393,9 @@ for "Authoritative Nameservers".  Requesters of an Allocator or
 Allocator range MAY provide the IP addresses of DNS nameservers that
 will be considered authoritative for the .ipn.arpa zone for each requested
 Allocator.
+
+TODO: Discuss the procedures for delegating the corresponding child
+zones of ipn.arpa to the allocator agency.
 
 ## Guidance to Designate Experts
 
