@@ -31,11 +31,13 @@ author:
     email: ek.ietf@gmail.com
 
 normative:
+  RFC1034:
+  RFC2782:
 
 informative:
+  RFC6116:
   RFC9758:
   TCPCL: RFC9174
-  UDPCL: RFC7122
 
 
 --- abstract
@@ -63,7 +65,7 @@ TODO Introduction
 
 TODO
 
-# Concept of Operations
+# Concept of Operations {#concept-of-operations}
 
 The Forwarding Information Base (FIB) of a BP Agent may be populated
 from a variety of sources.  Typically, explicit (manual) configuration
@@ -72,70 +74,153 @@ Layer parameters required to establish communication with a responsible
 receiving BP Agent.
 
 A BP Agent may also dynamically create a FIB entry by querying for
-DNS Resource Records as follows.
+DNS Resource Records as described in this section.
 
-Consider a space agency with a registered IPN Allocator ID of 978879
-that published the following two DNS zones:
+## Discovery Model
 
-~~~ zone
-; zone 978879.ipn.arpa.
-@   IN SOA ns1.space-agency.example ...
-1   IN PTR lunar-orbiter1.space-agency.example.
-2   IN PTR mars-orbiter2.space-agency.example.
-500 IN PTR research-department.space-agency.example.
+The ipn.arpa zone is an infrastructure namespace derived from IPN
+identifiers.  For an IPN address with Allocator Identifier A and Node
+Number N {{RFC9758}}, the derived DNS name is `N.A.ipn.arpa.`, where
+N and A are each expressed as a decimal label.  For example, for
+Allocator Identifier 978879 and Node Number 2, the derived DNS name is:
 
-
-; zone space-agency.example.
-@ IN SOA ns1.space-agency.example ...
-
-antenna-relay IN A 192.0.2.1
-antenna-relay IN AAAA 2001:db8::1
-
-lunar-orbiter1 IN TXT "{'norad-id': '81111'}}"
-_dtn-bundle._tcp.2 IN SRV 1 1 4556 antenna-relay.space-agency.example.
-
-mars-orbiter2 IN TXT "{'norad-id': '82222'}}"
-_dtn-bundle._udp.2 IN SRV 1 1 4556 antenna-relay.space-agency.example.
-
-cloud-service IN A 192.0.2.5
-cloud-service IN AAAA 2001:db8::5
-
-_dtn-bundle._tcp.research-department IN SRV 1 1 4556 cloud-service.space-agency.example.
-_dtn-bundle._udp.research-department IN SRV 1 1 4556 cloud-service.space-agency.example.
+~~~
+2.978879.ipn.arpa.
 ~~~
 
-A BP Agent, perhaps collocated at a landing station, which had received
-a Bundle destined for `ipn:978879.500.345` could determine the proper
-TCP and UDP CL IP addresses and ports by:
+A BP Agent discovers the CL endpoint(s) for a node by querying
+directly for service records beneath this derived name.  For example,
+a BP Agent discovering TCPCLv4 {{TCPCL}} service for this node queries
+for SRV records {{RFC2782}} at:
 
-* querying for a PTR record associated with `500.978879.ipn.arpa`
+~~~
+_dtn-bundle._tcp.2.978879.ipn.arpa.
+~~~
 
-* (receiving `research-department.space-agency.example`)
+The query name is constructed solely from the Allocator Identifier
+and Node Number.  The IPN Service Number does not participate in this
+lookup; all services of a node share the same discovery name.  No
+preliminary PTR query is required, and this discovery procedure
+requires no PTR records.
 
-* querying for an SRV record associated with `_dtn-bundle._tcp.research-department.space-agency.example` (ditto for `._udp`)
+This differs from the conventional use of in-addr.arpa and ip6.arpa,
+in which a PTR record maps an address to a hostname that is then used
+for further lookups.  The discovery procedure in this document
+publishes service records directly beneath the IPN-derived name; no
+IPN-to-hostname mapping step is involved.
 
-* (receiving port 4556 and hostname `cloud-service.space-agency.example.`)
+## Examples
 
-* querying for A and AAAA records for `cloud-service.space-agency.example`.
+The two examples in this section show alternative DNS configurations
+for the same node.  In both, a BP Agent (perhaps collocated at a
+ground station) has received a Bundle destined for
+`ipn:978879.2.345` and uses TCPCLv4 {{TCPCL}}.  An operator publishes
+either the configuration of Example A or the configuration of
+Example B, not both: the SRV RRset of Example A and the CNAME of
+Example B must not be published together at the same owner name
+(see {{dns-constraints}}).
 
-* (receiving `192.0.2.5` and `2001:db8::5`)
+The records shown are zone excerpts; routine SOA and NS records are
+omitted.
 
-The BP Agent at the landing station could then attempt to initiated a
-{{TCPCL}} or {{UDPCL}} connection to `[2001:db8::5]:4556`,
-for example, and attempt to deliver the given Bundle.
+### Example A: Service Records in the Allocator's Zone
 
-Similarly, a researcher attempting to send a Bundle payload to
-`mars-orbiter2.space-agency.example` could use a BP Agent capable
-of querying DNS and learning about the {{UDPCL}} endpoint at
-`192.0.2.1:4556`. Once the Bundle had been forwarded to
-`antenna-relay.space-agency.example`,
-it would be the `antenna-relay`'s responsibility to forward it to the
-spacecraft.
+In this configuration, the SRV records are published directly in the
+allocator's zone.
 
-Any future CLs that define DNS records (e.g. `SVCB` records, etc) may
-be added to the `space-agency.example` zone and, through the use of
-PTR records in the `978879.ipn.arpa` zone, be discovered by
-appropriately capable BP agents.
+~~~ dns
+; Relevant records in 978879.ipn.arpa.
+$ORIGIN 978879.ipn.arpa.
+_dtn-bundle._tcp.2  3600 IN SRV 0 0 4556 antenna-relay.space-agency.example.
+
+; Relevant records in space-agency.example.
+$ORIGIN space-agency.example.
+antenna-relay  3600 IN A    192.0.2.1
+antenna-relay  3600 IN AAAA 2001:db8::1
+~~~
+
+The BP Agent:
+
+1. constructs the query name `_dtn-bundle._tcp.2.978879.ipn.arpa.`
+   from Allocator Identifier 978879 and Node Number 2 of the
+   destination `ipn:978879.2.345`;
+
+2. queries for SRV records at `_dtn-bundle._tcp.2.978879.ipn.arpa.`,
+   receiving an SRV record with port 4556 and target
+   `antenna-relay.space-agency.example.`;
+
+3. queries for A and AAAA records at
+   `antenna-relay.space-agency.example.`, receiving `192.0.2.1` and
+   `2001:db8::1`; and
+
+4. attempts a TCPCLv4 connection to `[2001:db8::1]:4556` or
+   `192.0.2.1:4556` and, once a session is established, transfers
+   the Bundle.
+
+### Example B: Service Lookup Redirected through a CNAME
+
+In this configuration, the allocator's zone contains a CNAME that
+redirects the service lookup to a name in the service operator's zone,
+where the SRV records are published.
+
+~~~ dns
+; Relevant records in 978879.ipn.arpa.
+$ORIGIN 978879.ipn.arpa.
+_dtn-bundle._tcp.2  3600 IN CNAME _dtn-bundle._tcp.mars-orbiter2.space-agency.example.
+
+; Relevant records in space-agency.example.
+$ORIGIN space-agency.example.
+_dtn-bundle._tcp.mars-orbiter2  3600 IN SRV 0 0 4556 antenna-relay.space-agency.example.
+antenna-relay  3600 IN A    192.0.2.1
+antenna-relay  3600 IN AAAA 2001:db8::1
+~~~
+
+The BP Agent starts with the same query as in Example A: it queries
+for SRV records at `_dtn-bundle._tcp.2.978879.ipn.arpa.`.  Ordinary
+DNS resolution follows the CNAME at that name to
+`_dtn-bundle._tcp.mars-orbiter2.space-agency.example.` and returns the
+SRV RRset found there, with port 4556 and target
+`antenna-relay.space-agency.example.`.  There is no separate
+preliminary CNAME query.  Resolution of the A and AAAA records at
+`antenna-relay.space-agency.example.` and establishment of the
+TCPCLv4 connection then proceed as in Example A.
+
+This configuration divides administrative responsibility: the
+allocator's zone maintains only the alias, while the service operator
+maintains the SRV records in its own zone and can change them without
+further changes to the allocator's zone.
+
+### Onward Forwarding
+
+In these examples, `antenna-relay.space-agency.example.` is configured
+to accept Bundles for onward forwarding to node 2.  Establishing a
+TCPCLv4 connection to that relay does not change the Bundle's
+destination EID, which remains `ipn:978879.2.345`, and does not imply
+that the spacecraft is currently reachable.  Forwarding the Bundle
+toward node 2 is the relay's responsibility.
+
+## DNS Constraints {#dns-constraints}
+
+The following DNS behaviors apply to the configurations above:
+
+* A CNAME aliases only its own owner name {{Section 3.6.2 of RFC1034}}.
+  To redirect the service lookup, the CNAME is placed at the complete
+  service owner name (e.g., `_dtn-bundle._tcp.2.978879.ipn.arpa.`).
+  A CNAME at the bare node name (e.g., `2.978879.ipn.arpa.`) does not
+  alias its descendants and so does not redirect the service lookup.
+
+* A name that owns a CNAME cannot also own other data, including an
+  SRV RRset {{Section 3.6.2 of RFC1034}}.
+
+* The Target of the SRV record eventually obtained must have one or
+  more address records and must not be an alias {{RFC2782}}.
+
+## Other Convergence Layers
+
+Each CL specification that uses DNS for discovery defines its own
+service query names and record types (e.g., SRV or SVCB records)
+beneath the IPN-derived name.  Appropriately capable BP Agents query
+for those records using the same derived name.
 
 # Operational Considerations
 
@@ -154,9 +239,16 @@ TODO Security
 
 # IAB Considerations
 
-The IAB is requested to approve the zone "ipn.arpa" as parent for IPN
-addresses, similar to in-addr.arpa and ip6.arpa "reverse DNS" for IPv4
-and IPv6 addresses (respectively).
+The IAB is requested to approve the zone "ipn.arpa" as an
+infrastructure namespace derived from IPN identifiers.  Names in this
+zone are constructed from IPN Allocator Identifiers and Node Numbers
+and are usable for service discovery, such as locating the CL
+endpoint(s) of the BP Agent responsible for a given IPN node (see
+{{concept-of-operations}}).
+
+This follows the precedent of e164.arpa {{RFC6116}}, in which names
+are derived from E.164 telephone numbers and queried directly for
+service records (NAPTR).
 
 Per {{RFC9758}}, IPN addresses have an Allocator identifier and an
 allocator-specific identifier (both 32-bit unsigned integers).
