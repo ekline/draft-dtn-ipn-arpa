@@ -1254,7 +1254,61 @@ the BP Agent responsible for a given IPN address.<a href="#section-abstract-2" c
 "<span class="bcp14">MAY</span>", and "<span class="bcp14">OPTIONAL</span>" in this document are to be interpreted as
 described in BCP 14 <span>[<a href="#RFC2119" class="cite xref">RFC2119</a>]</span> <span>[<a href="#RFC8174" class="cite xref">RFC8174</a>]</span> when, and only when, they
 appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶</a></p>
-<p id="section-2-2">TODO<a href="#section-2-2" class="pilcrow">¶</a></p>
+<p id="section-2-2">This document uses the following terms as defined in <span>[<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>:<a href="#section-2-2" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-2-3">
+        <dt id="section-2-3.1">Allocator Identifier:</dt>
+        <dd style="margin-left: 1.5em" id="section-2-3.2">
+          <p id="section-2-3.2.1">A 32-bit unsigned integer identifying the Allocator that assigned a
+Node Number (<span><a href="https://rfc-editor.org/rfc/rfc9758#section-3.2" class="relref">Section 3.2</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>).<a href="#section-2-3.2.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-2-3.3">Node Number:</dt>
+        <dd style="margin-left: 1.5em" id="section-2-3.4">
+          <p id="section-2-3.4.1">A 32-bit unsigned integer identifying a node in the context of an
+Allocator (<span><a href="https://rfc-editor.org/rfc/rfc9758#section-3.3" class="relref">Section 3.3</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>).<a href="#section-2-3.4.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-2-3.5">Fully Qualified Node Number (FQNN):</dt>
+        <dd style="margin-left: 1.5em" id="section-2-3.6">
+          <p id="section-2-3.6.1">The combination of an Allocator Identifier and a Node Number, which
+uniquely identifies a node (<span><a href="https://rfc-editor.org/rfc/rfc9758#section-3.3.1" class="relref">Section 3.3.1</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>).  As in
+<span>[<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>, an FQNN is written as (Allocator Identifier, Node
+Number); for example, (978879,2).<a href="#section-2-3.6.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-2-3.7">Service Number:</dt>
+        <dd style="margin-left: 1.5em" id="section-2-3.8">
+          <p id="section-2-3.8.1">An unsigned integer identifying a service on a node
+(<span><a href="https://rfc-editor.org/rfc/rfc9758#section-3.5" class="relref">Section 3.5</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>).<a href="#section-2-3.8.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-2-3.9">ipn URI:</dt>
+        <dd style="margin-left: 1.5em" id="section-2-3.10">
+          <p id="section-2-3.10.1">A URI using the 'ipn' URI scheme.  An ipn URI comprises an Allocator
+Identifier, a Node Number, and a Service Number; that is, an FQNN
+plus a Service Number (<span><a href="https://rfc-editor.org/rfc/rfc9758#section-3" class="relref">Section 3</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>).  An ipn URI used
+as a Bundle Protocol Endpoint Identifier (EID) is termed an "ipn
+EID" (<span><a href="https://rfc-editor.org/rfc/rfc9758#section-5" class="relref">Section 5</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>).<a href="#section-2-3.10.1" class="pilcrow">¶</a></p>
+</dd>
+      <dd class="break"></dd>
+</dl>
+<p id="section-2-4">This document defines the following terms:<a href="#section-2-4" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-2-5">
+        <dt id="section-2-5.1">DNS base name:</dt>
+        <dd style="margin-left: 1.5em" id="section-2-5.2">
+          <p id="section-2-5.2.1">The DNS name beneath ipn.arpa that represents an FQNN, constructed
+as specified in <a href="#discovery-model" class="auto internal xref">Section 3.1</a>.<a href="#section-2-5.2.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-2-5.3">CL-specific query name:</dt>
+        <dd style="margin-left: 1.5em" id="section-2-5.4">
+          <p id="section-2-5.4.1">A DNS name, defined by a CL specification relative to a DNS base
+name, at which a BP Agent queries for the records needed to reach
+the node using that CL.  For example, the TCPCLv4 query name is
+formed by prepending <code>_dtn-bundle._tcp</code> to the DNS base name.<a href="#section-2-5.4.1" class="pilcrow">¶</a></p>
+</dd>
+      <dd class="break"></dd>
+</dl>
 </section>
 </div>
 <div id="concept-of-operations">
@@ -1275,34 +1329,124 @@ DNS Resource Records as described in this section.<a href="#section-3-2" class="
 <a href="#section-3.1" class="section-number selfRef">3.1. </a><a href="#name-discovery-model" class="section-name selfRef">Discovery Model</a>
         </h3>
 <p id="section-3.1-1">The ipn.arpa zone is an infrastructure namespace derived from IPN
-identifiers.  For an IPN address with Allocator Identifier A and Node
-Number N <span>[<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>, the derived DNS name is <code>N.A.ipn.arpa.</code>, where
-N and A are each expressed as a decimal label.  For example, for
-Allocator Identifier 978879 and Node Number 2, the derived DNS name is:<a href="#section-3.1-1" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-3.1-2">
-<pre>
-2.978879.ipn.arpa.
-</pre><a href="#section-3.1-2" class="pilcrow">¶</a>
-</div>
-<p id="section-3.1-3">A BP Agent discovers the CL endpoint(s) for a node by querying
-directly for service records beneath this derived name.  For example,
-a BP Agent discovering TCPCLv4 <span>[<a href="#TCPCL" class="cite xref">TCPCL</a>]</span> service for this node queries
-for SRV records <span>[<a href="#RFC2782" class="cite xref">RFC2782</a>]</span> at:<a href="#section-3.1-3" class="pilcrow">¶</a></p>
+identifiers.  Discovery is keyed on the FQNN of the destination node.<a href="#section-3.1-1" class="pilcrow">¶</a></p>
+<p id="section-3.1-2">Before constructing a DNS name, a BP Agent <span class="bcp14">MUST</span> parse and interpret
+the destination ipn URI or ipn EID according to <span>[<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>, yielding
+numeric values for its Allocator Identifier, Node Number, and Service
+Number.  This includes the text syntax rules of
+<span><a href="https://rfc-editor.org/rfc/rfc9758#section-4" class="relref">Section 4</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span> and the CBOR decoding rules of
+<span><a href="https://rfc-editor.org/rfc/rfc9758#section-6.2" class="relref">Section 6.2</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>.  In particular, an Allocator Identifier
+omitted from the text representation means zero, the Default
+Allocator (<span><a href="https://rfc-editor.org/rfc/rfc9758#section-3.2.2" class="relref">Section 3.2.2</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>).  An omitted Allocator
+Identifier does not cause the allocator label to be omitted from the
+DNS name.<a href="#section-3.1-2" class="pilcrow">¶</a></p>
+<p id="section-3.1-3">For Allocator Identifier A and Node Number N, the DNS base name <span class="bcp14">MUST</span>
+be:<a href="#section-3.1-3" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-3.1-4">
 <pre>
-_dtn-bundle._tcp.2.978879.ipn.arpa.
+N.A.ipn.arpa.
 </pre><a href="#section-3.1-4" class="pilcrow">¶</a>
 </div>
-<p id="section-3.1-5">The query name is constructed solely from the Allocator Identifier
-and Node Number.  The IPN Service Number does not participate in this
-lookup; all services of a node share the same discovery name.  No
-preliminary PTR query is required, and this discovery procedure
-requires no PTR records.<a href="#section-3.1-5" class="pilcrow">¶</a></p>
-<p id="section-3.1-6">This differs from the conventional use of in-addr.arpa and ip6.arpa,
+<p id="section-3.1-5">Each of N and A <span class="bcp14">MUST</span> be represented as a single label containing its
+unsigned decimal value, using ASCII digits without leading zeroes.
+The value zero is represented by the single digit "0".  The labels
+are not padded to a fixed width and are not split into individual
+digits.<a href="#section-3.1-5" class="pilcrow">¶</a></p>
+<p id="section-3.1-6">The Service Number does not participate in construction.  All ipn
+URIs that share an FQNN map to the same DNS base name.<a href="#section-3.1-6" class="pilcrow">¶</a></p>
+<span id="name-example-dns-base-names"></span><table class="center" id="table-1">
+          <caption>
+<a href="#table-1" class="selfRef">Table 1</a>:
+<a href="#name-example-dns-base-names" class="selfRef">Example DNS Base Names</a>
+          </caption>
+<thead>
+            <tr>
+              <th class="text-left" rowspan="1" colspan="1">ipn URI</th>
+              <th class="text-left" rowspan="1" colspan="1">DNS base name</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>ipn:978879.2.345</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>2.978879.ipn.arpa.</code>
+</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>ipn:978879.2.0</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>2.978879.ipn.arpa.</code>
+</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>ipn:16384.345</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>16384.0.ipn.arpa.</code>
+</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>ipn:0.16384.345</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>16384.0.ipn.arpa.</code>
+</td>
+            </tr>
+          </tbody>
+        </table>
+<p id="section-3.1-8">Because the DNS base name is constructed from the parsed numeric
+components rather than from the text of the URI, equivalent
+representations of the same FQNN produce the same DNS base name.  For
+example, <code>ipn:16384.345</code> and <code>ipn:0.16384.345</code> both identify the FQNN
+(0,16384).  Likewise, the two-element and three-element CBOR encodings
+of an ipn EID (<span><a href="https://rfc-editor.org/rfc/rfc9758#section-6.4" class="relref">Section 6.4</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>) produce the same DNS base
+name.<a href="#section-3.1-8" class="pilcrow">¶</a></p>
+<p id="section-3.1-9">The DNS base name is distinct from the CL-specific query name at
+which a BP Agent queries for records.  For example, a BP Agent
+discovering TCPCLv4 <span>[<a href="#TCPCL" class="cite xref">TCPCL</a>]</span> service for the FQNN (978879,2)
+prepends <code>_dtn-bundle._tcp</code> to the DNS base name and queries for SRV
+records <span>[<a href="#RFC2782" class="cite xref">RFC2782</a>]</span> at:<a href="#section-3.1-9" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-3.1-10">
+<pre>
+_dtn-bundle._tcp.2.978879.ipn.arpa.
+</pre><a href="#section-3.1-10" class="pilcrow">¶</a>
+</div>
+<p id="section-3.1-11">No preliminary PTR query is required, and this discovery procedure
+requires no PTR records.<a href="#section-3.1-11" class="pilcrow">¶</a></p>
+<p id="section-3.1-12">This differs from the conventional use of in-addr.arpa and ip6.arpa,
 in which a PTR record maps an address to a hostname that is then used
 for further lookups.  The discovery procedure in this document
-publishes service records directly beneath the IPN-derived name; no
-IPN-to-hostname mapping step is involved.<a href="#section-3.1-6" class="pilcrow">¶</a></p>
+publishes service records directly beneath the DNS base name; no
+IPN-to-hostname mapping step is involved.<a href="#section-3.1-12" class="pilcrow">¶</a></p>
+<p id="section-3.1-13">The Null ipn URI (<span><a href="https://rfc-editor.org/rfc/rfc9758#section-3.1" class="relref">Section 3.1</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>) and LocalNode ipn URIs
+(<span><a href="https://rfc-editor.org/rfc/rfc9758#section-3.4.2" class="relref">Section 3.4.2</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>) are recognized after the interpretation
+described above.  For example, an ipn URI with a zero Allocator
+Identifier, a zero Node Number, and a non-zero Service Number is
+treated as the Null ipn URI (<span><a href="https://rfc-editor.org/rfc/rfc9758#section-3.4.1" class="relref">Section 3.4.1</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>), and
+<code>ipn:!.7</code> is a LocalNode ipn URI.  Neither identifies a remote
+destination for this procedure: the Null endpoint has no members, and
+a bundle destined for a LocalNode ipn EID is not allowed to leave the
+local node (<span><a href="https://rfc-editor.org/rfc/rfc9758#section-5.4" class="relref">Section 5.4</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>).  A BP Agent <span class="bcp14">MUST NOT</span> perform
+DNS discovery for the Null ipn URI or for a LocalNode ipn URI.  In
+addition,
+<span><a href="https://rfc-editor.org/rfc/rfc9758#section-5.4" class="relref">Section 5.4</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span> prohibits publishing LocalNode ipn EIDs in
+any node identification directory, such as a DNS registration.<a href="#section-3.1-13" class="pilcrow">¶</a></p>
+<p id="section-3.1-14">These cases are identified by the complete FQNN: (0,0) for the Null
+ipn URI and (0,4294967295) for LocalNode ipn URIs.  This document
+does not reserve Node Number 0 or Node Number 4294967295 under any
+other Allocator Identifier.  For example, the FQNNs (978879,0) and
+(978879,4294967295) are processed like any other FQNN.<a href="#section-3.1-14" class="pilcrow">¶</a></p>
+<p id="section-3.1-15">TODO: Specify the treatment of Private Use identities
+(<span><a href="https://rfc-editor.org/rfc/rfc9758#section-3.4.3" class="relref">Section 3.4.3</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span> and <span><a href="https://rfc-editor.org/rfc/rfc9758#section-5.5" class="relref">Section 5.5</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>),
+including resolution within a locally scoped namespace and prevention
+of inappropriate queries for such names in the public DNS.  This
+policy will be addressed separately.<a href="#section-3.1-15" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="examples">
@@ -1447,8 +1591,8 @@ more address records and must not be an alias <span>[<a href="#RFC2782" class="c
         </h3>
 <p id="section-3.4-1">Each CL specification that uses DNS for discovery defines its own
 service query names and record types (e.g., SRV or SVCB records)
-beneath the IPN-derived name.  Appropriately capable BP Agents query
-for those records using the same derived name.<a href="#section-3.4-1" class="pilcrow">¶</a></p>
+relative to the DNS base name.  Appropriately capable BP Agents query
+for those records using the same DNS base name.<a href="#section-3.4-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -1489,8 +1633,9 @@ endpoint(s) of the BP Agent responsible for a given IPN node (see
 <p id="section-6-2">This follows the precedent of e164.arpa <span>[<a href="#RFC6116" class="cite xref">RFC6116</a>]</span>, in which names
 are derived from E.164 telephone numbers and queried directly for
 service records (NAPTR).<a href="#section-6-2" class="pilcrow">¶</a></p>
-<p id="section-6-3">Per <span>[<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>, IPN addresses have an Allocator identifier and an
-allocator-specific identifier (both 32-bit unsigned integers).<a href="#section-6-3" class="pilcrow">¶</a></p>
+<p id="section-6-3">Per <span><a href="https://rfc-editor.org/rfc/rfc9758#section-3.3.1" class="relref">Section 3.3.1</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>, the FQNN of a node comprises a
+32-bit Allocator Identifier and a 32-bit Node Number.  Those two
+components determine the DNS base name (see <a href="#discovery-model" class="auto internal xref">Section 3.1</a>).<a href="#section-6-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="iana-considerations">
@@ -1498,7 +1643,7 @@ allocator-specific identifier (both 32-bit unsigned integers).<a href="#section-
       <h2 id="name-iana-considerations">
 <a href="#section-7" class="section-number selfRef">7. </a><a href="#name-iana-considerations" class="section-name selfRef">IANA Considerations</a>
       </h2>
-<div id="creation-of-ipnarpa">
+<div id="creation-of-ipn-arpa">
 <section id="section-7.1">
         <h3 id="name-creation-of-ipnarpa">
 <a href="#section-7.1" class="section-number selfRef">7.1. </a><a href="#name-creation-of-ipnarpa" class="section-name selfRef">Creation of ipn.arpa</a>
@@ -1508,6 +1653,23 @@ allocator-specific identifier (both 32-bit unsigned integers).<a href="#section-
 ".arpa" domain.  This namespace supports DNS names derived from IPN
 Allocator Identifiers and Node Numbers, as specified in this document
 (see <a href="#concept-of-operations" class="auto internal xref">Section 3</a>).<a href="#section-7.1-1" class="pilcrow">¶</a></p>
+<p id="section-7.1-2">"0.ipn.arpa" corresponds to Allocator Identifier zero, the Default
+Allocator (<span><a href="https://rfc-editor.org/rfc/rfc9758#section-3.2.2" class="relref">Section 3.2.2</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>).  It is treated like the
+IN-ADDR.ARPA zones for the private address space of <span>[<a href="#RFC1918" class="cite xref">RFC1918</a>]</span>
+(<span><a href="https://rfc-editor.org/rfc/rfc6303#section-4.1" class="relref">Section 4.1</a> of [<a href="#RFC6303" class="cite xref">RFC6303</a>]</span>): it has only local significance.  A
+"0.ipn.arpa" zone <span class="bcp14">MAY</span> exist in local DNS resolvers or servers that
+serve it authoritatively as a locally served zone <span>[<a href="#RFC6303" class="cite xref">RFC6303</a>]</span>, but a
+populated "0.ipn.arpa" zone <span class="bcp14">MUST NOT</span> ever be published in the global
+DNS.<a href="#section-7.1-2" class="pilcrow">¶</a></p>
+<p id="section-7.1-3">TODO: Specify how "0.ipn.arpa" is represented in the global DNS so
+that locally served answers can still be validated.  If ipn.arpa is
+signed, an authenticated denial of existence for "0.ipn.arpa" would
+cause validating resolvers to reject locally served data; locally
+served zones need an insecure delegation or must be within an insecure
+zone (<span><a href="https://rfc-editor.org/rfc/rfc6303#section-7" class="relref">Section 7</a> of [<a href="#RFC6303" class="cite xref">RFC6303</a>]</span>).  Compare the unsigned delegation of
+home.arpa to black-hole servers (<span><a href="https://rfc-editor.org/rfc/rfc8375#section-7" class="relref">Section 7</a> of [<a href="#RFC8375" class="cite xref">RFC8375</a>]</span>).  Also
+consider adding "0.ipn.arpa" to the IANA "Locally-Served DNS Zones"
+registry (<span><a href="https://rfc-editor.org/rfc/rfc6303#section-6" class="relref">Section 6</a> of [<a href="#RFC6303" class="cite xref">RFC6303</a>]</span>).<a href="#section-7.1-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="ipn-allocator-registry-list-of-nameservers">
@@ -1521,6 +1683,8 @@ for "Authoritative Nameservers".  Requesters of an Allocator or
 Allocator range <span class="bcp14">MAY</span> provide the IP addresses of DNS nameservers that
 will be considered authoritative for the .ipn.arpa zone for each requested
 Allocator.<a href="#section-7.2-1" class="pilcrow">¶</a></p>
+<p id="section-7.2-2">TODO: Discuss the procedures for delegating the corresponding child
+zones of ipn.arpa to the allocator agency.<a href="#section-7.2-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="guidance-to-designate-experts">
@@ -1562,8 +1726,12 @@ and both IPv4 and IPv6 addresses are given, etc.<a href="#section-7.3-1" class="
 <span class="refAuthor">Huston, G., Ed.</span>, <span class="refTitle">"Management Guidelines &amp; Operational Requirements for the Address and Routing Parameter Area Domain ("arpa")"</span>, <span class="seriesInfo">BCP 52</span>, <span class="seriesInfo">RFC 3172</span>, <span class="seriesInfo">DOI 10.17487/RFC3172</span>, <time datetime="2001-09" class="refDate">September 2001</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc3172">https://www.rfc-editor.org/rfc/rfc3172</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="RFC8174">[RFC8174]</dt>
-      <dd>
+        <dd>
 <span class="refAuthor">Leiba, B.</span>, <span class="refTitle">"Ambiguity of Uppercase vs Lowercase in RFC 2119 Key Words"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 8174</span>, <span class="seriesInfo">DOI 10.17487/RFC8174</span>, <time datetime="2017-05" class="refDate">May 2017</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8174">https://www.rfc-editor.org/rfc/rfc8174</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC9758">[RFC9758]</dt>
+      <dd>
+<span class="refAuthor">Taylor, R.</span> and <span class="refAuthor">E. Birrane III</span>, <span class="refTitle">"Updates to the 'ipn' URI Scheme"</span>, <span class="seriesInfo">RFC 9758</span>, <span class="seriesInfo">DOI 10.17487/RFC9758</span>, <time datetime="2025-05" class="refDate">May 2025</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9758">https://www.rfc-editor.org/rfc/rfc9758</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 </dl>
 </section>
@@ -1574,13 +1742,21 @@ and both IPv4 and IPv6 addresses are given, etc.<a href="#section-7.3-1" class="
 <a href="#section-8.2" class="section-number selfRef">8.2. </a><a href="#name-informative-references" class="section-name selfRef">Informative References</a>
         </h3>
 <dl class="references">
+<dt id="RFC1918">[RFC1918]</dt>
+        <dd>
+<span class="refAuthor">Rekhter, Y.</span>, <span class="refAuthor">Moskowitz, B.</span>, <span class="refAuthor">Karrenberg, D.</span>, <span class="refAuthor">de Groot, G. J.</span>, and <span class="refAuthor">E. Lear</span>, <span class="refTitle">"Address Allocation for Private Internets"</span>, <span class="seriesInfo">BCP 5</span>, <span class="seriesInfo">RFC 1918</span>, <span class="seriesInfo">DOI 10.17487/RFC1918</span>, <time datetime="1996-02" class="refDate">February 1996</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc1918">https://www.rfc-editor.org/rfc/rfc1918</a>&gt;</span>. </dd>
+<dd class="break"></dd>
 <dt id="RFC6116">[RFC6116]</dt>
         <dd>
 <span class="refAuthor">Bradner, S.</span>, <span class="refAuthor">Conroy, L.</span>, and <span class="refAuthor">K. Fujiwara</span>, <span class="refTitle">"The E.164 to Uniform Resource Identifiers (URI) Dynamic Delegation Discovery System (DDDS) Application (ENUM)"</span>, <span class="seriesInfo">RFC 6116</span>, <span class="seriesInfo">DOI 10.17487/RFC6116</span>, <time datetime="2011-03" class="refDate">March 2011</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc6116">https://www.rfc-editor.org/rfc/rfc6116</a>&gt;</span>. </dd>
 <dd class="break"></dd>
-<dt id="RFC9758">[RFC9758]</dt>
+<dt id="RFC6303">[RFC6303]</dt>
         <dd>
-<span class="refAuthor">Taylor, R.</span> and <span class="refAuthor">E. Birrane III</span>, <span class="refTitle">"Updates to the 'ipn' URI Scheme"</span>, <span class="seriesInfo">RFC 9758</span>, <span class="seriesInfo">DOI 10.17487/RFC9758</span>, <time datetime="2025-05" class="refDate">May 2025</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9758">https://www.rfc-editor.org/rfc/rfc9758</a>&gt;</span>. </dd>
+<span class="refAuthor">Andrews, M.</span>, <span class="refTitle">"Locally Served DNS Zones"</span>, <span class="seriesInfo">BCP 163</span>, <span class="seriesInfo">RFC 6303</span>, <span class="seriesInfo">DOI 10.17487/RFC6303</span>, <time datetime="2011-07" class="refDate">July 2011</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc6303">https://www.rfc-editor.org/rfc/rfc6303</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC8375">[RFC8375]</dt>
+        <dd>
+<span class="refAuthor">Pfister, P.</span> and <span class="refAuthor">T. Lemon</span>, <span class="refTitle">"Special-Use Domain 'home.arpa.'"</span>, <span class="seriesInfo">RFC 8375</span>, <span class="seriesInfo">DOI 10.17487/RFC8375</span>, <time datetime="2018-05" class="refDate">May 2018</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8375">https://www.rfc-editor.org/rfc/rfc8375</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="TCPCL">[TCPCL]</dt>
       <dd>
