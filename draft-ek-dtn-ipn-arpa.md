@@ -34,6 +34,7 @@ normative:
   RFC1034:
   RFC2782:
   RFC3172:
+  RFC6672:
   RFC9758:
 
 informative:
@@ -42,6 +43,12 @@ informative:
   RFC6303:
   RFC8375:
   TCPCL: RFC9174
+  BIND-ARM:
+    title: "BIND 9 Administrator Reference Manual"
+    author:
+      - org: Internet Systems Consortium
+    date: false
+    target: https://bind9.readthedocs.io/en/latest/chapter3.html
 
 
 --- abstract
@@ -333,6 +340,126 @@ with reliability or performance requirements are recommended to
 obtain BP FIB information by other mechanisms (out of scope of
 this document).
 
+## Managing Allocator Ranges {#managing-allocator-ranges}
+
+An Allocator may hold a range of Allocator Identifiers
+({{Section 3.2.1 of RFC9758}}).  Numeric allocation ranges do not
+automatically correspond to DNS subtrees.  With the decimal-label
+layout specified in {{discovery-model}}, each Allocator Identifier A
+has its own name, `A.ipn.arpa.`, directly beneath ipn.arpa.  The
+identifiers in a range are siblings, not descendants of a common name.
+
+An operator responsible for several Allocator Identifiers can serve an
+individually delegated zone for each one.  Alternatively, DNAME
+records {{RFC6672}} can redirect each allocator subtree into a common
+operator-managed zone.
+
+The following example uses Allocator Identifiers 974848 and 974849,
+from the example range in {{Section 9.1 of RFC9758}}.  It assumes that
+the organization is authorized to administer both Allocator
+Identifiers.  The records are zone excerpts; routine SOA and NS
+records are omitted.
+
+~~~ dns
+; Relevant records in ipn.arpa.
+$ORIGIN ipn.arpa.
+974848 3600 IN DNAME 974848.allocators.operator.example.
+974849 3600 IN DNAME 974849.allocators.operator.example.
+
+; Relevant records in the single zone operator.example.
+$ORIGIN operator.example.
+_dtn-bundle._tcp.2.974848.allocators 3600 IN SRV 0 0 4556 relay-a.operator.example.
+_dtn-bundle._tcp.2.974849.allocators 3600 IN SRV 0 0 4556 relay-b.operator.example.
+relay-a 3600 IN A    192.0.2.1
+relay-a 3600 IN AAAA 2001:db8::1
+relay-b 3600 IN A    192.0.2.2
+relay-b 3600 IN AAAA 2001:db8::2
+~~~
+
+A BP Agent discovering TCPCLv4 service for `ipn:974848.2.345`
+constructs its initial query from the standard DNS base name, exactly
+as in {{discovery-model}}, and queries for SRV records at:
+
+~~~
+_dtn-bundle._tcp.2.974848.ipn.arpa.
+~~~
+
+The DNAME at `974848.ipn.arpa.` redirects this query to:
+
+~~~
+_dtn-bundle._tcp.2.974848.allocators.operator.example.
+~~~
+
+There the BP Agent finds an SRV record with port 4556 and target
+`relay-a.operator.example.`, whose addresses are 192.0.2.1 and
+2001:db8::1.  Ordinary DNS processing performs the redirection
+({{Section 3 of RFC6672}}).  The BP Agent does not construct any name
+in the operator's zone itself.
+
+The example retains the Allocator Identifier in each target subtree.
+As a result, node 2 under Allocator 974848
+(`2.974848.allocators.operator.example.`) remains distinct from node 2
+under Allocator 974849 (`2.974849.allocators.operator.example.`).
+Pointing both DNAMEs at the same target would merge their
+corresponding lookup names: queries for the FQNNs (974848,2) and
+(974849,2) would then reach the same records.  Distinct target
+subtrees need to be preserved whenever the allocator namespaces must
+remain distinct.  Retaining the decimal allocator label in the target
+is a convenient convention, not a DNS requirement.
+
+One operator-managed zone can contain all of these subtrees.  One
+DNAME is still required in ipn.arpa for each redirected Allocator
+Identifier.  The technique reduces the number of separately
+administered child zones, not the number of allocator entries in the
+parent.
+
+The following constraints apply:
+
+* A DNAME redirects the descendants of its owner name, not the owner
+  name itself ({{Section 2.3 of RFC6672}}).
+
+* Records cannot be published beneath the DNAME owner in the source
+  zone ({{Section 2.4 of RFC6672}}).  Once `974848.ipn.arpa.` owns a
+  DNAME, all data for that allocator is published in the target
+  subtree.
+
+* DNAME redirection is distinct from NS delegation.  An NS delegation
+  creates a zone cut and transfers authority for the child zone to
+  its own servers.  A DNAME instead rewrites names beneath its owner
+  into the target namespace.  A parent-side DNAME cannot coexist with
+  a delegation NS RRset at the same owner name
+  ({{Section 2.3 of RFC6672}}).  An allocator zone that is already
+  delegated can instead publish a DNAME at its own apex, keeping its
+  SOA and NS records.  That arrangement retains the separate
+  child-zone administration.
+
+See {{RFC6672}} for processing details and DNSSEC considerations
+({{Section 5.3 of RFC6672}}).
+
+The same technique can redirect service subtrees beneath individual
+node names in 0.ipn.arpa (for example, with a DNAME at
+`N.0.ipn.arpa.`), subject to authorization by the administrator of
+that namespace.  Because 0.ipn.arpa is served only locally (see
+{{creation-of-ipn-arpa}}), such DNAMEs exist only in locally served
+instances of that zone.
+
+### Provisioning Tools
+
+Some DNS implementations provide implementation-specific facilities,
+such as the `$GENERATE` directive of BIND {{BIND-ARM}}, as
+conveniences for producing repetitive records.  For example, the two
+parent-side DNAME records above can be expressed in BIND syntax as:
+
+~~~ dns
+$ORIGIN ipn.arpa.
+$GENERATE 974848-974849 $ 3600 IN DNAME $.allocators.operator.example.
+~~~
+
+Such a directive expands into ordinary records in the zone.  It
+introduces no numeric-range matching in DNS, and resolvers need no
+support for it.  Similar tooling can generate NS records or other
+repetitive data.  Use of these facilities is optional.
+
 # Security Considerations
 
 TODO Security
@@ -396,6 +523,11 @@ Allocator.
 
 TODO: Discuss the procedures for delegating the corresponding child
 zones of ipn.arpa to the allocator agency.
+
+TODO: In the forthcoming administration-policy pass, address the
+authorization, creation, and maintenance of DNAME redirections in
+ipn.arpa (see {{managing-allocator-ranges}}) alongside NS delegation
+requests.
 
 ## Guidance to Designate Experts
 
