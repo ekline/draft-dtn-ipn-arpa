@@ -1,7 +1,7 @@
 ---
 title: "The ipn.arpa Zone and IPN DNS Operations"
 abbrev: "IPN dot ARPA"
-category: info
+category: std
 
 docname: draft-ek-dtn-ipn-arpa-latest
 submissiontype: IETF  # also: "independent", "editorial", "IAB", or "IRTF"
@@ -33,6 +33,7 @@ author:
 normative:
   RFC1034:
   RFC2782:
+  RFC3172:
 
 informative:
   RFC6116:
@@ -209,8 +210,8 @@ The following DNS behaviors apply to the configurations above:
   A CNAME at the bare node name (e.g., `2.978879.ipn.arpa.`) does not
   alias its descendants and so does not redirect the service lookup.
 
-* A name that owns a CNAME cannot also own other data, including an
-  SRV RRset {{Section 3.6.2 of RFC1034}}.
+* A CNAME record and an SRV RRset cannot coexist at the same owner
+  name {{Section 3.6.2 of RFC1034}}.
 
 * The Target of the SRV record eventually obtained must have one or
   more address records and must not be an alias {{RFC2782}}.
@@ -239,8 +240,9 @@ TODO Security
 
 # IAB Considerations
 
-The IAB is requested to approve the zone "ipn.arpa" as an
-infrastructure namespace derived from IPN identifiers.  Names in this
+In accordance with the procedure in {{Section 3 of RFC3172}}, the IAB
+is requested to approve the zone "ipn.arpa" as an infrastructure
+namespace derived from IPN identifiers.  Names in this
 zone are constructed from IPN Allocator Identifiers and Node Numbers
 and are usable for service discovery, such as locating the CL
 endpoint(s) of the BP Agent responsible for a given IPN node (see
@@ -254,6 +256,14 @@ Per {{RFC9758}}, IPN addresses have an Allocator identifier and an
 allocator-specific identifier (both 32-bit unsigned integers).
 
 # IANA Considerations
+
+## Creation of ipn.arpa
+
+Following approval by the IAB in accordance with
+{{Section 3 of RFC3172}}, IANA is requested to add "ipn.arpa" to the
+".arpa" domain.  This namespace supports DNS names derived from IPN
+Allocator Identifiers and Node Numbers, as specified in this document
+(see {{concept-of-operations}}).
 
 ## 'ipn' Allocator Registry List of Nameservers
 
