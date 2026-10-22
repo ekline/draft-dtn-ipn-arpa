@@ -1071,7 +1071,7 @@ svg {
 <time datetime="2026-10-22" class="published">22 October 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
-<dd class="intended-status">Informational</dd>
+<dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
 <dd class="expires"><time datetime="2027-04-25">25 April 2027</time></dd>
 <dt class="label-authors">Author:</dt>
@@ -1206,10 +1206,13 @@ the BP Agent responsible for a given IPN address.<a href="#section-abstract-2" c
             <p id="section-toc.1-1.7.1"><a href="#section-7" class="auto internal xref">7</a>.  <a href="#name-iana-considerations" class="internal xref">IANA Considerations</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.1">
-                <p id="section-toc.1-1.7.2.1.1"><a href="#section-7.1" class="auto internal xref">7.1</a>.  <a href="#name-ipn-allocator-registry-list" class="internal xref">'ipn' Allocator Registry List of Nameservers</a></p>
+                <p id="section-toc.1-1.7.2.1.1"><a href="#section-7.1" class="auto internal xref">7.1</a>.  <a href="#name-creation-of-ipnarpa" class="internal xref">Creation of ipn.arpa</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.2">
-                <p id="section-toc.1-1.7.2.2.1"><a href="#section-7.2" class="auto internal xref">7.2</a>.  <a href="#name-guidance-to-designate-exper" class="internal xref">Guidance to Designate Experts</a></p>
+                <p id="section-toc.1-1.7.2.2.1"><a href="#section-7.2" class="auto internal xref">7.2</a>.  <a href="#name-ipn-allocator-registry-list" class="internal xref">'ipn' Allocator Registry List of Nameservers</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.3">
+                <p id="section-toc.1-1.7.2.3.1"><a href="#section-7.3" class="auto internal xref">7.3</a>.  <a href="#name-guidance-to-designate-exper" class="internal xref">Guidance to Designate Experts</a></p>
 </li>
             </ul>
 </li>
@@ -1427,8 +1430,8 @@ A CNAME at the bare node name (e.g., <code>2.978879.ipn.arpa.</code>) does not
 alias its descendants and so does not redirect the service lookup.<a href="#section-3.3-2.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-3.3-2.2">
-            <p id="section-3.3-2.2.1">A name that owns a CNAME cannot also own other data, including an
-SRV RRset <span><a href="https://rfc-editor.org/rfc/rfc1034#section-3.6.2" class="relref">Section 3.6.2</a> of [<a href="#RFC1034" class="cite xref">RFC1034</a>]</span>.<a href="#section-3.3-2.2.1" class="pilcrow">¶</a></p>
+            <p id="section-3.3-2.2.1">A CNAME record and an SRV RRset cannot coexist at the same owner
+name <span><a href="https://rfc-editor.org/rfc/rfc1034#section-3.6.2" class="relref">Section 3.6.2</a> of [<a href="#RFC1034" class="cite xref">RFC1034</a>]</span>.<a href="#section-3.3-2.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-3.3-2.3">
             <p id="section-3.3-2.3.1">The Target of the SRV record eventually obtained must have one or
@@ -1476,8 +1479,9 @@ this document).<a href="#section-4-2" class="pilcrow">¶</a></p>
       <h2 id="name-iab-considerations">
 <a href="#section-6" class="section-number selfRef">6. </a><a href="#name-iab-considerations" class="section-name selfRef">IAB Considerations</a>
       </h2>
-<p id="section-6-1">The IAB is requested to approve the zone "ipn.arpa" as an
-infrastructure namespace derived from IPN identifiers.  Names in this
+<p id="section-6-1">In accordance with the procedure in <span><a href="https://rfc-editor.org/rfc/rfc3172#section-3" class="relref">Section 3</a> of [<a href="#RFC3172" class="cite xref">RFC3172</a>]</span>, the IAB
+is requested to approve the zone "ipn.arpa" as an infrastructure
+namespace derived from IPN identifiers.  Names in this
 zone are constructed from IPN Allocator Identifiers and Node Numbers
 and are usable for service discovery, such as locating the CL
 endpoint(s) of the BP Agent responsible for a given IPN node (see
@@ -1494,26 +1498,38 @@ allocator-specific identifier (both 32-bit unsigned integers).<a href="#section-
       <h2 id="name-iana-considerations">
 <a href="#section-7" class="section-number selfRef">7. </a><a href="#name-iana-considerations" class="section-name selfRef">IANA Considerations</a>
       </h2>
-<div id="ipn-allocator-registry-list-of-nameservers">
+<div id="creation-of-ipnarpa">
 <section id="section-7.1">
-        <h3 id="name-ipn-allocator-registry-list">
-<a href="#section-7.1" class="section-number selfRef">7.1. </a><a href="#name-ipn-allocator-registry-list" class="section-name selfRef">'ipn' Allocator Registry List of Nameservers</a>
+        <h3 id="name-creation-of-ipnarpa">
+<a href="#section-7.1" class="section-number selfRef">7.1. </a><a href="#name-creation-of-ipnarpa" class="section-name selfRef">Creation of ipn.arpa</a>
         </h3>
-<p id="section-7.1-1">IANA is requested to augment its registration procedures for entries
+<p id="section-7.1-1">Following approval by the IAB in accordance with
+<span><a href="https://rfc-editor.org/rfc/rfc3172#section-3" class="relref">Section 3</a> of [<a href="#RFC3172" class="cite xref">RFC3172</a>]</span>, IANA is requested to add "ipn.arpa" to the
+".arpa" domain.  This namespace supports DNS names derived from IPN
+Allocator Identifiers and Node Numbers, as specified in this document
+(see <a href="#concept-of-operations" class="auto internal xref">Section 3</a>).<a href="#section-7.1-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="ipn-allocator-registry-list-of-nameservers">
+<section id="section-7.2">
+        <h3 id="name-ipn-allocator-registry-list">
+<a href="#section-7.2" class="section-number selfRef">7.2. </a><a href="#name-ipn-allocator-registry-list" class="section-name selfRef">'ipn' Allocator Registry List of Nameservers</a>
+        </h3>
+<p id="section-7.2-1">IANA is requested to augment its registration procedures for entries
 in the 'ipn' Scheme URI Allocator Identifiers Registry with a column
 for "Authoritative Nameservers".  Requesters of an Allocator or
 Allocator range <span class="bcp14">MAY</span> provide the IP addresses of DNS nameservers that
 will be considered authoritative for the .ipn.arpa zone for each requested
-Allocator.<a href="#section-7.1-1" class="pilcrow">¶</a></p>
+Allocator.<a href="#section-7.2-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="guidance-to-designate-experts">
-<section id="section-7.2">
+<section id="section-7.3">
         <h3 id="name-guidance-to-designate-exper">
-<a href="#section-7.2" class="section-number selfRef">7.2. </a><a href="#name-guidance-to-designate-exper" class="section-name selfRef">Guidance to Designate Experts</a>
+<a href="#section-7.3" class="section-number selfRef">7.3. </a><a href="#name-guidance-to-designate-exper" class="section-name selfRef">Guidance to Designate Experts</a>
         </h3>
-<p id="section-7.2-1">TBD: things like make sure there are at least two nameserver IP addresses
-and both IPv4 and IPv6 addresses are given, etc.<a href="#section-7.2-1" class="pilcrow">¶</a></p>
+<p id="section-7.3-1">TBD: things like make sure there are at least two nameserver IP addresses
+and both IPv4 and IPv6 addresses are given, etc.<a href="#section-7.3-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -1540,6 +1556,10 @@ and both IPv4 and IPv6 addresses are given, etc.<a href="#section-7.2-1" class="
 <dt id="RFC2782">[RFC2782]</dt>
         <dd>
 <span class="refAuthor">Gulbrandsen, A.</span>, <span class="refAuthor">Vixie, P.</span>, and <span class="refAuthor">L. Esibov</span>, <span class="refTitle">"A DNS RR for specifying the location of services (DNS SRV)"</span>, <span class="seriesInfo">RFC 2782</span>, <span class="seriesInfo">DOI 10.17487/RFC2782</span>, <time datetime="2000-02" class="refDate">February 2000</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc2782">https://www.rfc-editor.org/rfc/rfc2782</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC3172">[RFC3172]</dt>
+        <dd>
+<span class="refAuthor">Huston, G., Ed.</span>, <span class="refTitle">"Management Guidelines &amp; Operational Requirements for the Address and Routing Parameter Area Domain ("arpa")"</span>, <span class="seriesInfo">BCP 52</span>, <span class="seriesInfo">RFC 3172</span>, <span class="seriesInfo">DOI 10.17487/RFC3172</span>, <time datetime="2001-09" class="refDate">September 2001</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc3172">https://www.rfc-editor.org/rfc/rfc3172</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="RFC8174">[RFC8174]</dt>
       <dd>

@@ -4,7 +4,7 @@
 
 Delay/Disruption Tolerant Networking                            E. Kline
 Internet-Draft                                 Aalyria Technologies, LLC
-Intended status: Informational                           22 October 2026
+Intended status: Standards Track                         22 October 2026
 Expires: 25 April 2027
 
 
@@ -87,8 +87,9 @@ Table of Contents
    5.  Security Considerations
    6.  IAB Considerations
    7.  IANA Considerations
-     7.1.  'ipn' Allocator Registry List of Nameservers
-     7.2.  Guidance to Designate Experts
+     7.1.  Creation of ipn.arpa
+     7.2.  'ipn' Allocator Registry List of Nameservers
+     7.3.  Guidance to Designate Experts
    8.  References
      8.1.  Normative References
      8.2.  Informative References
@@ -244,8 +245,8 @@ Table of Contents
       (e.g., 2.978879.ipn.arpa.) does not alias its descendants and so
       does not redirect the service lookup.
 
-   *  A name that owns a CNAME cannot also own other data, including an
-      SRV RRset Section 3.6.2 of [RFC1034].
+   *  A CNAME record and an SRV RRset cannot coexist at the same owner
+      name Section 3.6.2 of [RFC1034].
 
    *  The Target of the SRV record eventually obtained must have one or
       more address records and must not be an alias [RFC2782].
@@ -273,12 +274,12 @@ Table of Contents
 
 6.  IAB Considerations
 
-   The IAB is requested to approve the zone "ipn.arpa" as an
-   infrastructure namespace derived from IPN identifiers.  Names in this
-   zone are constructed from IPN Allocator Identifiers and Node Numbers
-   and are usable for service discovery, such as locating the CL
-   endpoint(s) of the BP Agent responsible for a given IPN node (see
-   Section 3).
+   In accordance with the procedure in Section 3 of [RFC3172], the IAB
+   is requested to approve the zone "ipn.arpa" as an infrastructure
+   namespace derived from IPN identifiers.  Names in this zone are
+   constructed from IPN Allocator Identifiers and Node Numbers and are
+   usable for service discovery, such as locating the CL endpoint(s) of
+   the BP Agent responsible for a given IPN node (see Section 3).
 
    This follows the precedent of e164.arpa [RFC6116], in which names are
    derived from E.164 telephone numbers and queried directly for service
@@ -289,7 +290,15 @@ Table of Contents
 
 7.  IANA Considerations
 
-7.1.  'ipn' Allocator Registry List of Nameservers
+7.1.  Creation of ipn.arpa
+
+   Following approval by the IAB in accordance with Section 3 of
+   [RFC3172], IANA is requested to add "ipn.arpa" to the ".arpa" domain.
+   This namespace supports DNS names derived from IPN Allocator
+   Identifiers and Node Numbers, as specified in this document (see
+   Section 3).
+
+7.2.  'ipn' Allocator Registry List of Nameservers
 
    IANA is requested to augment its registration procedures for entries
    in the 'ipn' Scheme URI Allocator Identifiers Registry with a column
@@ -298,7 +307,7 @@ Table of Contents
    will be considered authoritative for the .ipn.arpa zone for each
    requested Allocator.
 
-7.2.  Guidance to Designate Experts
+7.3.  Guidance to Designate Experts
 
    TBD: things like make sure there are at least two nameserver IP
    addresses and both IPv4 and IPv6 addresses are given, etc.
@@ -320,6 +329,11 @@ Table of Contents
               specifying the location of services (DNS SRV)", RFC 2782,
               DOI 10.17487/RFC2782, February 2000,
               <https://www.rfc-editor.org/rfc/rfc2782>.
+
+   [RFC3172]  Huston, G., Ed., "Management Guidelines & Operational
+              Requirements for the Address and Routing Parameter Area
+              Domain ("arpa")", BCP 52, RFC 3172, DOI 10.17487/RFC3172,
+              September 2001, <https://www.rfc-editor.org/rfc/rfc3172>.
 
    [RFC8174]  Leiba, B., "Ambiguity of Uppercase vs Lowercase in RFC
               2119 Key Words", BCP 14, RFC 8174, DOI 10.17487/RFC8174,
