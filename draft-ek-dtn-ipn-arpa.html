@@ -1195,6 +1195,16 @@ the BP Agent responsible for a given IPN address.<a href="#section-abstract-2" c
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4">
             <p id="section-toc.1-1.4.1"><a href="#section-4" class="auto internal xref">4</a>.  <a href="#name-operational-considerations" class="internal xref">Operational Considerations</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.1">
+                <p id="section-toc.1-1.4.2.1.1"><a href="#section-4.1" class="auto internal xref">4.1</a>.  <a href="#name-managing-allocator-ranges" class="internal xref">Managing Allocator Ranges</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.1.2.1">
+                    <p id="section-toc.1-1.4.2.1.2.1.1"><a href="#section-4.1.1" class="auto internal xref">4.1.1</a>.  <a href="#name-provisioning-tools" class="internal xref">Provisioning Tools</a></p>
+</li>
+                </ul>
+</li>
+            </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5">
             <p id="section-toc.1-1.5.1"><a href="#section-5" class="auto internal xref">5</a>.  <a href="#name-security-considerations" class="internal xref">Security Considerations</a></p>
@@ -1608,6 +1618,132 @@ environments. Any deployments where querying DNS might not align
 with reliability or performance requirements are recommended to
 obtain BP FIB information by other mechanisms (out of scope of
 this document).<a href="#section-4-2" class="pilcrow">¶</a></p>
+<div id="managing-allocator-ranges">
+<section id="section-4.1">
+        <h3 id="name-managing-allocator-ranges">
+<a href="#section-4.1" class="section-number selfRef">4.1. </a><a href="#name-managing-allocator-ranges" class="section-name selfRef">Managing Allocator Ranges</a>
+        </h3>
+<p id="section-4.1-1">An Allocator may hold a range of Allocator Identifiers
+(<span><a href="https://rfc-editor.org/rfc/rfc9758#section-3.2.1" class="relref">Section 3.2.1</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>).  Numeric allocation ranges do not
+automatically correspond to DNS subtrees.  With the decimal-label
+layout specified in <a href="#discovery-model" class="auto internal xref">Section 3.1</a>, each Allocator Identifier A
+has its own name, <code>A.ipn.arpa.</code>, directly beneath ipn.arpa.  The
+identifiers in a range are siblings, not descendants of a common name.<a href="#section-4.1-1" class="pilcrow">¶</a></p>
+<p id="section-4.1-2">An operator responsible for several Allocator Identifiers can serve an
+individually delegated zone for each one.  Alternatively, DNAME
+records <span>[<a href="#RFC6672" class="cite xref">RFC6672</a>]</span> can redirect each allocator subtree into a common
+operator-managed zone.<a href="#section-4.1-2" class="pilcrow">¶</a></p>
+<p id="section-4.1-3">The following example uses Allocator Identifiers 974848 and 974849,
+from the example range in <span><a href="https://rfc-editor.org/rfc/rfc9758#section-9.1" class="relref">Section 9.1</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>.  It assumes that
+the organization is authorized to administer both Allocator
+Identifiers.  The records are zone excerpts; routine SOA and NS
+records are omitted.<a href="#section-4.1-3" class="pilcrow">¶</a></p>
+<div class="lang-dns sourcecode" id="section-4.1-4">
+<pre>
+; Relevant records in ipn.arpa.
+$ORIGIN ipn.arpa.
+974848 3600 IN DNAME 974848.allocators.operator.example.
+974849 3600 IN DNAME 974849.allocators.operator.example.
+
+; Relevant records in the single zone operator.example.
+$ORIGIN operator.example.
+_dtn-bundle._tcp.2.974848.allocators 3600 IN SRV 0 0 4556 relay-a.operator.example.
+_dtn-bundle._tcp.2.974849.allocators 3600 IN SRV 0 0 4556 relay-b.operator.example.
+relay-a 3600 IN A    192.0.2.1
+relay-a 3600 IN AAAA 2001:db8::1
+relay-b 3600 IN A    192.0.2.2
+relay-b 3600 IN AAAA 2001:db8::2
+</pre><a href="#section-4.1-4" class="pilcrow">¶</a>
+</div>
+<p id="section-4.1-5">A BP Agent discovering TCPCLv4 service for <code>ipn:974848.2.345</code>
+constructs its initial query from the standard DNS base name, exactly
+as in <a href="#discovery-model" class="auto internal xref">Section 3.1</a>, and queries for SRV records at:<a href="#section-4.1-5" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-4.1-6">
+<pre>
+_dtn-bundle._tcp.2.974848.ipn.arpa.
+</pre><a href="#section-4.1-6" class="pilcrow">¶</a>
+</div>
+<p id="section-4.1-7">The DNAME at <code>974848.ipn.arpa.</code> redirects this query to:<a href="#section-4.1-7" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-4.1-8">
+<pre>
+_dtn-bundle._tcp.2.974848.allocators.operator.example.
+</pre><a href="#section-4.1-8" class="pilcrow">¶</a>
+</div>
+<p id="section-4.1-9">There the BP Agent finds an SRV record with port 4556 and target
+<code>relay-a.operator.example.</code>, whose addresses are 192.0.2.1 and
+2001:db8::1.  Ordinary DNS processing performs the redirection
+(<span><a href="https://rfc-editor.org/rfc/rfc6672#section-3" class="relref">Section 3</a> of [<a href="#RFC6672" class="cite xref">RFC6672</a>]</span>).  The BP Agent does not construct any name
+in the operator's zone itself.<a href="#section-4.1-9" class="pilcrow">¶</a></p>
+<p id="section-4.1-10">The example retains the Allocator Identifier in each target subtree.
+As a result, node 2 under Allocator 974848
+(<code>2.974848.allocators.operator.example.</code>) remains distinct from node 2
+under Allocator 974849 (<code>2.974849.allocators.operator.example.</code>).
+Pointing both DNAMEs at the same target would merge their
+corresponding lookup names: queries for the FQNNs (974848,2) and
+(974849,2) would then reach the same records.  Distinct target
+subtrees need to be preserved whenever the allocator namespaces must
+remain distinct.  Retaining the decimal allocator label in the target
+is a convenient convention, not a DNS requirement.<a href="#section-4.1-10" class="pilcrow">¶</a></p>
+<p id="section-4.1-11">One operator-managed zone can contain all of these subtrees.  One
+DNAME is still required in ipn.arpa for each redirected Allocator
+Identifier.  The technique reduces the number of separately
+administered child zones, not the number of allocator entries in the
+parent.<a href="#section-4.1-11" class="pilcrow">¶</a></p>
+<p id="section-4.1-12">The following constraints apply:<a href="#section-4.1-12" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-4.1-13.1">
+            <p id="section-4.1-13.1.1">A DNAME redirects the descendants of its owner name, not the owner
+name itself (<span><a href="https://rfc-editor.org/rfc/rfc6672#section-2.3" class="relref">Section 2.3</a> of [<a href="#RFC6672" class="cite xref">RFC6672</a>]</span>).<a href="#section-4.1-13.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-4.1-13.2">
+            <p id="section-4.1-13.2.1">Records cannot be published beneath the DNAME owner in the source
+zone (<span><a href="https://rfc-editor.org/rfc/rfc6672#section-2.4" class="relref">Section 2.4</a> of [<a href="#RFC6672" class="cite xref">RFC6672</a>]</span>).  Once <code>974848.ipn.arpa.</code> owns a
+DNAME, all data for that allocator is published in the target
+subtree.<a href="#section-4.1-13.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-4.1-13.3">
+            <p id="section-4.1-13.3.1">DNAME redirection is distinct from NS delegation.  An NS delegation
+creates a zone cut and transfers authority for the child zone to
+its own servers.  A DNAME instead rewrites names beneath its owner
+into the target namespace.  A parent-side DNAME cannot coexist with
+a delegation NS RRset at the same owner name
+(<span><a href="https://rfc-editor.org/rfc/rfc6672#section-2.3" class="relref">Section 2.3</a> of [<a href="#RFC6672" class="cite xref">RFC6672</a>]</span>).  An allocator zone that is already
+delegated can instead publish a DNAME at its own apex, keeping its
+SOA and NS records.  That arrangement retains the separate
+child-zone administration.<a href="#section-4.1-13.3.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-4.1-14">See <span>[<a href="#RFC6672" class="cite xref">RFC6672</a>]</span> for processing details and DNSSEC considerations
+(<span><a href="https://rfc-editor.org/rfc/rfc6672#section-5.3" class="relref">Section 5.3</a> of [<a href="#RFC6672" class="cite xref">RFC6672</a>]</span>).<a href="#section-4.1-14" class="pilcrow">¶</a></p>
+<p id="section-4.1-15">The same technique can redirect service subtrees beneath individual
+node names in 0.ipn.arpa (for example, with a DNAME at
+<code>N.0.ipn.arpa.</code>), subject to authorization by the administrator of
+that namespace.  Because 0.ipn.arpa is served only locally (see
+<a href="#creation-of-ipn-arpa" class="auto internal xref">Section 7.1</a>), such DNAMEs exist only in locally served
+instances of that zone.<a href="#section-4.1-15" class="pilcrow">¶</a></p>
+<div id="provisioning-tools">
+<section id="section-4.1.1">
+          <h4 id="name-provisioning-tools">
+<a href="#section-4.1.1" class="section-number selfRef">4.1.1. </a><a href="#name-provisioning-tools" class="section-name selfRef">Provisioning Tools</a>
+          </h4>
+<p id="section-4.1.1-1">Some DNS implementations provide implementation-specific facilities,
+such as the <code>$GENERATE</code> directive of BIND <span>[<a href="#BIND-ARM" class="cite xref">BIND-ARM</a>]</span>, as
+conveniences for producing repetitive records.  For example, the two
+parent-side DNAME records above can be expressed in BIND syntax as:<a href="#section-4.1.1-1" class="pilcrow">¶</a></p>
+<div class="lang-dns sourcecode" id="section-4.1.1-2">
+<pre>
+$ORIGIN ipn.arpa.
+$GENERATE 974848-974849 $ 3600 IN DNAME $.allocators.operator.example.
+</pre><a href="#section-4.1.1-2" class="pilcrow">¶</a>
+</div>
+<p id="section-4.1.1-3">Such a directive expands into ordinary records in the zone.  It
+introduces no numeric-range matching in DNS, and resolvers need no
+support for it.  Similar tooling can generate NS records or other
+repetitive data.  Use of these facilities is optional.<a href="#section-4.1.1-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
 </section>
 </div>
 <div id="security-considerations">
@@ -1685,6 +1821,10 @@ will be considered authoritative for the .ipn.arpa zone for each requested
 Allocator.<a href="#section-7.2-1" class="pilcrow">¶</a></p>
 <p id="section-7.2-2">TODO: Discuss the procedures for delegating the corresponding child
 zones of ipn.arpa to the allocator agency.<a href="#section-7.2-2" class="pilcrow">¶</a></p>
+<p id="section-7.2-3">TODO: In the forthcoming administration-policy pass, address the
+authorization, creation, and maintenance of DNAME redirections in
+ipn.arpa (see <a href="#managing-allocator-ranges" class="auto internal xref">Section 4.1</a>) alongside NS delegation
+requests.<a href="#section-7.2-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="guidance-to-designate-experts">
@@ -1725,6 +1865,10 @@ and both IPv4 and IPv6 addresses are given, etc.<a href="#section-7.3-1" class="
         <dd>
 <span class="refAuthor">Huston, G., Ed.</span>, <span class="refTitle">"Management Guidelines &amp; Operational Requirements for the Address and Routing Parameter Area Domain ("arpa")"</span>, <span class="seriesInfo">BCP 52</span>, <span class="seriesInfo">RFC 3172</span>, <span class="seriesInfo">DOI 10.17487/RFC3172</span>, <time datetime="2001-09" class="refDate">September 2001</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc3172">https://www.rfc-editor.org/rfc/rfc3172</a>&gt;</span>. </dd>
 <dd class="break"></dd>
+<dt id="RFC6672">[RFC6672]</dt>
+        <dd>
+<span class="refAuthor">Rose, S.</span> and <span class="refAuthor">W. Wijngaards</span>, <span class="refTitle">"DNAME Redirection in the DNS"</span>, <span class="seriesInfo">RFC 6672</span>, <span class="seriesInfo">DOI 10.17487/RFC6672</span>, <time datetime="2012-06" class="refDate">June 2012</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc6672">https://www.rfc-editor.org/rfc/rfc6672</a>&gt;</span>. </dd>
+<dd class="break"></dd>
 <dt id="RFC8174">[RFC8174]</dt>
         <dd>
 <span class="refAuthor">Leiba, B.</span>, <span class="refTitle">"Ambiguity of Uppercase vs Lowercase in RFC 2119 Key Words"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 8174</span>, <span class="seriesInfo">DOI 10.17487/RFC8174</span>, <time datetime="2017-05" class="refDate">May 2017</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8174">https://www.rfc-editor.org/rfc/rfc8174</a>&gt;</span>. </dd>
@@ -1742,6 +1886,10 @@ and both IPv4 and IPv6 addresses are given, etc.<a href="#section-7.3-1" class="
 <a href="#section-8.2" class="section-number selfRef">8.2. </a><a href="#name-informative-references" class="section-name selfRef">Informative References</a>
         </h3>
 <dl class="references">
+<dt id="BIND-ARM">[BIND-ARM]</dt>
+        <dd>
+<span class="refAuthor">Internet Systems Consortium</span>, <span class="refTitle">"BIND 9 Administrator Reference Manual"</span>, <span>&lt;<a href="https://bind9.readthedocs.io/en/latest/chapter3.html">https://bind9.readthedocs.io/en/latest/chapter3.html</a>&gt;</span>. </dd>
+<dd class="break"></dd>
 <dt id="RFC1918">[RFC1918]</dt>
         <dd>
 <span class="refAuthor">Rekhter, Y.</span>, <span class="refAuthor">Moskowitz, B.</span>, <span class="refAuthor">Karrenberg, D.</span>, <span class="refAuthor">de Groot, G. J.</span>, and <span class="refAuthor">E. Lear</span>, <span class="refTitle">"Address Allocation for Private Internets"</span>, <span class="seriesInfo">BCP 5</span>, <span class="seriesInfo">RFC 1918</span>, <span class="seriesInfo">DOI 10.17487/RFC1918</span>, <time datetime="1996-02" class="refDate">February 1996</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc1918">https://www.rfc-editor.org/rfc/rfc1918</a>&gt;</span>. </dd>
