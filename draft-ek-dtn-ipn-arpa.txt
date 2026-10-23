@@ -876,18 +876,15 @@ Table of Contents
 
 7.2.1.  Request Authorization
 
-   Requests to create, modify, or remove DNS provisioning for an
-   eligible assigned Allocator Identifier MUST be authenticated, and
-   MUST be authorized by the Change Controller recorded for that
-   identifier in the registry or by a representative that the Change
-   Controller has authorized.  A representative can be, for example, a
-   DNS service provider or an organizational unit authorized to manage
-   particular identifiers; it does not need a separate numeric
-   allocation.
+   Requests to create, update, or remove NS, DNAME, or DS records for an
+   eligible Allocator Identifier are subject to the same administrative
+   authority and requester-verification procedures that IANA applies to
+   changes to the corresponding entry in the "'ipn' Scheme URI Allocator
+   Identifiers" registry.  DNS provisioning changes do not themselves
+   require a new review of the numeric allocation.
 
-   These checks apply to NS, DNAME, and DS requests, including a request
-   to convert an allocator name between NS delegation and DNAME
-   redirection.
+   The same procedures apply to a request to convert an allocator name
+   between NS delegation and DNAME redirection.
 
 7.2.2.  Provisioning Alternatives
 
@@ -954,8 +951,7 @@ Table of Contents
 
    The allocation procedures of Section 9.1 of [RFC9758], including
    Expert Review, continue to apply to numeric assignments of Allocator
-   Identifiers.  Routine DNS provisioning changes for an existing
-   assignment do not require a new allocation Expert Review.
+   Identifiers (see also Section 7.2.1).
 
    The ipn.arpa operator performs the applicable DNS technical checks on
    provisioning requests under its published operational procedures.
