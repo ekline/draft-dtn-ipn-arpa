@@ -34,12 +34,13 @@ normative:
   RFC1034:
   RFC2782:
   RFC3172:
+  RFC4035:
   RFC6672:
+  RFC9364:
   RFC9758:
 
 informative:
   RFC1918:
-  RFC4033:
   RFC6116:
   RFC6303:
   RFC7116:
@@ -480,8 +481,7 @@ repetitive data.  Use of these facilities is optional.
 # Security Considerations
 
 This section describes the trust model for forwarding information
-derived from DNS.  It is explanatory; it does not define new
-requirements for DNS, DNSSEC, or any convergence-layer protocol.
+derived from DNS and the use of DNSSEC with this mechanism.
 
 ## Discovery Yields Candidates
 
@@ -494,57 +494,86 @@ the destination is currently reachable, that a candidate will accept
 a session or a Bundle, or that the Bundle will eventually be
 delivered.
 
-## Separate Security Questions
+## Discovery, Peer Authentication, and Forwarding Policy {#forwarding-policy}
 
-Using DNS-derived forwarding information involves three distinct
-questions:
+Using DNS-derived forwarding information involves two distinct
+authentication questions: whether the DNS data used in discovery is
+authentic (see {{dnssec}}), and whether the convergence-layer peer to
+which a session is established is the entity it claims to be (see
+{{cl-peer-identity}}).  Authenticating one does not authenticate the
+other.
 
-Authentication of DNS data:
-: Whether the records used in discovery are the data published by the
-  responsible zone operators, unmodified in transit.
+A BP Agent uses DNS-derived forwarding information according to its
+configured forwarding policy.  That policy may permit automatic use of
+authenticated discovery mappings.  Discovery does not override
+configured forwarding policy or convergence-layer security policy;
+DNS-derived candidates are subject to the same policy as forwarding
+information from other sources.
 
-Authentication of the connected peer:
-: Whether the convergence-layer peer to which a session is actually
-  established is the entity it claims to be.
+## DNSSEC {#dnssec}
 
-Authorization to forward:
-: Whether local policy permits that peer to be used to forward a given
-  Bundle toward its destination.
+Forged discovery information can redirect connection attempts, and
+therefore bundle transfers, to endpoints chosen by an attacker.
+DNSSEC {{RFC9364}} provides data origin authentication and integrity
+for DNS data.  It does not establish the identity of the live
+convergence-layer peer at the resulting address and port, and it
+does not guarantee that the advertised service is available.  ENUM
+makes similar observations ({{Section 7.1 of RFC6116}}).
 
-A positive answer to one question does not answer the others.
-Authenticated DNS information can inform forwarding policy, for
-example by indicating which relay an allocator's zone operator
-advertises for a node, but the decision to use a peer remains a
-matter of local policy.
-
-## Scope of DNSSEC Protection
-
-DNSSEC {{RFC4033}} provides data origin authentication and integrity
-for DNS data.  It does not authenticate the live convergence-layer
-peer: a validated SRV record and validated address records show what
-the zone operators published, not that the host answering at that
-address and port is the advertised peer.
-
-Discovery typically involves several lookups, and an assessment of
-its security needs to account for all records used:
+Operators publishing discovery data for this mechanism in the public
+DNS SHOULD provide DNSSEC authentication of that data, including the
+necessary chain of trust.  This recommendation applies to relevant
+alias, service, and address records, including records published
+outside ipn.arpa:
 
 * any CNAME or DNAME records that redirect the query, such as those in
-  {{dns-constraints}} and {{managing-allocator-ranges}}
-  ({{Section 5.3 of RFC6672}});
+  {{dns-constraints}} and {{managing-allocator-ranges}};
 
 * the SRV (or other CL-specific) records; and
 
 * the address records for the SRV target.
 
-Several of these records can lie outside ipn.arpa, in zones operated
-by other parties.  Signing ipn.arpa, or an allocator's zone, therefore
-does not by itself secure every subsequent lookup; each step in the
-chain has its own security status.
+The ipn.arpa zone itself is signed (see {{creation-of-ipn-arpa}}), and
+delegated allocator zones can be linked into its chain of trust with
+DS records (see {{ds-management}}).  Signing ipn.arpa alone does not
+authenticate records in delegated zones or external target
+namespaces; each record used in discovery has its own security
+status.
 
-## Convergence-Layer Peer Identity
+Validation of these records follows standard DNSSEC processing; this
+document does not define a new validation procedure.  For example, a
+CNAME synthesized from a validated DNAME does not require its own
+signature ({{Section 3.1 of RFC6672}} and
+{{Section 5.3.1 of RFC6672}}).
 
-Authentication of the convergence-layer peer is the responsibility of
-the convergence-layer protocol.  For TCPCLv4, session security,
+### Validation by BP Agents
+
+BP Agents using public DNS discovery SHOULD use DNSSEC validation,
+either locally or through a trusted validating resolver.  When relying
+on validation performed by another resolver, the resolver and the
+channel used to obtain its results need to satisfy the trust
+requirements of {{Section 4.9.3 of RFC4035}}.
+
+DNSSEC distinguishes data that is secure, insecure, bogus, or
+indeterminate ({{Section 4.3 of RFC4035}}).  Insecure data lies in a
+part of the namespace with no chain of trust, for example a target
+zone that is not signed.  Bogus data fails validation where a chain
+of trust is expected, which can indicate an attack or a
+misconfiguration.  An application can also receive results whose
+security status is unknown to it, for example from a resolver that
+does not convey validation results.  The absence of an authentication
+indication does not by itself establish which of these cases applies.
+
+This document does not impose a universal policy of accepting only
+secure results, and it does not authorize bypassing validation
+failures.  Detailed acceptance, failure, and fallback policies remain
+open (see {{security-open-items}}).
+
+## Convergence-Layer Peer Identity {#cl-peer-identity}
+
+The applicable convergence-layer specification and configured
+security policy govern authentication of the convergence-layer peer.
+For TCPCLv4, session security,
 including certificate-based identification of the peer, is specified
 in {{Section 4.4 of TCPCL}}, and the handling of the peer's Node ID
 is specified in {{Section 4.6 of TCPCL}}.  This document does not
@@ -561,30 +590,19 @@ Node ID that the peer presents.  {{Section 4.6 of TCPCL}} describes
 the handling of a peer Node ID that differs from the one intended,
 and of a peer Node ID that is not authenticated.
 
-## Relationship to Local Policy
+## Open Items {#security-open-items}
 
-Discovery does not override configured forwarding policy or
-convergence-layer security policy.  DNS-derived candidates are
-subject to the same policy as other sources of forwarding
-information, including any requirements for TLS, for peer
-authentication, and for which peers may be used for which
-destinations.
+TODO: Specify the BP Agent's detailed acceptance, failure, and
+fallback policies for discovery results, including the treatment of
+insecure, bogus, and indeterminate results and of failed lookups.
 
-## Open Items
+TODO: Address local resolution, public negative answers, and DNSSEC
+treatment for 0.ipn.arpa and Experimental Use Allocator Identifiers,
+which lie beneath the signed public hierarchy (see
+{{local-resolution-todo}}).
 
-TODO: Specify DNSSEC signing requirements for ipn.arpa and allocator
-zones, and DNSSEC validation requirements for BP Agents that use
-discovery.
-
-TODO: Specify the handling of DNSSEC results that are insecure or
-bogus, including whether and when such results can be used as
-forwarding candidates.
-
-TODO: Address locally served namespaces beneath the signed public
-hierarchy, such as 0.ipn.arpa and Experimental Use Allocator
-Identifiers (see {{local-resolution-todo}}).
-
-TODO Security: remaining security considerations not covered above.
+TODO: Address caching of discovery results, operation during
+disruption, and other remaining security considerations.
 
 
 # IAB Considerations
@@ -614,6 +632,13 @@ Following approval by the IAB in accordance with
 ".arpa" domain.  This namespace supports DNS names derived from IPN
 Allocator Identifiers and Node Numbers, as specified in this document
 (see {{concept-of-operations}}).
+
+The operator of the public ipn.arpa zone MUST sign the zone using
+DNSSEC and maintain a chain of trust through the arpa zone.  This
+requirement applies to the ipn.arpa zone itself.  Recommendations
+concerning discovery data in delegated allocator zones and in other
+namespaces are addressed to the operators of those zones and are
+given in {{dnssec}}.
 
 The following subsections establish restrictions on publishing
 discovery data in the global DNS for two sets of names beneath
@@ -697,8 +722,9 @@ TODO (next editing pass; a separate design question from the
 publication policy above): Specify how "0.ipn.arpa" and the names of
 Experimental Use Allocator Identifiers are represented in the global
 DNS so that locally served answers can still be validated.
-If ipn.arpa is signed, an authenticated denial of existence for these
-names would cause validating resolvers to reject locally served data;
+Because ipn.arpa is signed (see {{creation-of-ipn-arpa}}), an
+authenticated denial of existence for these names would cause
+validating resolvers to reject locally served data;
 locally served zones need an insecure delegation or must be within an
 insecure zone ({{Section 7 of RFC6303}}).  Compare the unsigned
 delegation of home.arpa to black-hole servers
@@ -736,6 +762,25 @@ TODO: In the forthcoming administration-policy pass, address the
 authorization, creation, and maintenance of DNAME redirections in
 ipn.arpa (see {{managing-allocator-ranges}}) alongside NS delegation
 requests, for eligible Allocator Identifiers.
+
+## DS Records for Delegated Allocator Zones {#ds-management}
+
+The ipn.arpa operator MUST support authenticated requests to add,
+update, and remove DS records for delegated allocator zones.  Such a
+request is subject to the same authority checks as a change to the
+corresponding NS delegation.  The operator of a delegated allocator
+zone is responsible for coordinating changes to its signing keys with
+updates to the corresponding DS records in ipn.arpa.
+
+This provides support for secure delegations; it does not require
+that every delegated allocator zone be signed.  This document does
+not specify the operational interface for these requests or the
+format in which DS data is stored.
+
+DS procedures apply to NS delegations.  A DNAME in ipn.arpa (see
+{{managing-allocator-ranges}}) is not a delegation: it is signed as
+ordinary data in the ipn.arpa zone, and the namespace to which it
+redirects has its own DNSSEC chain of trust.
 
 ## Guidance to Designate Experts
 
