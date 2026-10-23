@@ -39,6 +39,7 @@ normative:
 
 informative:
   RFC1918:
+  RFC4033:
   RFC6116:
   RFC6303:
   RFC7116:
@@ -312,7 +313,7 @@ allocator's zone maintains only the alias, while the service operator
 maintains the SRV records in its own zone and can change them without
 further changes to the allocator's zone.
 
-### Onward Forwarding
+### Onward Forwarding {#onward-forwarding}
 
 In these examples, `antenna-relay.space-agency.example.` is configured
 to accept Bundles for onward forwarding to node 2.  Establishing a
@@ -478,7 +479,112 @@ repetitive data.  Use of these facilities is optional.
 
 # Security Considerations
 
-TODO Security
+This section describes the trust model for forwarding information
+derived from DNS.  It is explanatory; it does not define new
+requirements for DNS, DNSSEC, or any convergence-layer protocol.
+
+## Discovery Yields Candidates
+
+The discovery procedure in {{concept-of-operations}} identifies
+candidate convergence-layer endpoints through which a destination
+node might be reached.  A candidate can be the destination node
+itself or a relay that accepts Bundles for onward forwarding, as in
+{{onward-forwarding}}.  Successful discovery does not guarantee that
+the destination is currently reachable, that a candidate will accept
+a session or a Bundle, or that the Bundle will eventually be
+delivered.
+
+## Separate Security Questions
+
+Using DNS-derived forwarding information involves three distinct
+questions:
+
+Authentication of DNS data:
+: Whether the records used in discovery are the data published by the
+  responsible zone operators, unmodified in transit.
+
+Authentication of the connected peer:
+: Whether the convergence-layer peer to which a session is actually
+  established is the entity it claims to be.
+
+Authorization to forward:
+: Whether local policy permits that peer to be used to forward a given
+  Bundle toward its destination.
+
+A positive answer to one question does not answer the others.
+Authenticated DNS information can inform forwarding policy, for
+example by indicating which relay an allocator's zone operator
+advertises for a node, but the decision to use a peer remains a
+matter of local policy.
+
+## Scope of DNSSEC Protection
+
+DNSSEC {{RFC4033}} provides data origin authentication and integrity
+for DNS data.  It does not authenticate the live convergence-layer
+peer: a validated SRV record and validated address records show what
+the zone operators published, not that the host answering at that
+address and port is the advertised peer.
+
+Discovery typically involves several lookups, and an assessment of
+its security needs to account for all records used:
+
+* any CNAME or DNAME records that redirect the query, such as those in
+  {{dns-constraints}} and {{managing-allocator-ranges}}
+  ({{Section 5.3 of RFC6672}});
+
+* the SRV (or other CL-specific) records; and
+
+* the address records for the SRV target.
+
+Several of these records can lie outside ipn.arpa, in zones operated
+by other parties.  Signing ipn.arpa, or an allocator's zone, therefore
+does not by itself secure every subsequent lookup; each step in the
+chain has its own security status.
+
+## Convergence-Layer Peer Identity
+
+Authentication of the convergence-layer peer is the responsibility of
+the convergence-layer protocol.  For TCPCLv4, session security,
+including certificate-based identification of the peer, is specified
+in {{Section 4.4 of TCPCL}}, and the handling of the peer's Node ID
+is specified in {{Section 4.6 of TCPCL}}.  This document does not
+modify those procedures.
+
+The name queried in ipn.arpa identifies the destination node, not the
+convergence-layer peer, and is not the name of the host to which a
+connection is made.  In {{onward-forwarding}}, the peer is a relay,
+`antenna-relay.space-agency.example.`, which can have its own Node ID
+distinct from that of node 2.  The Bundle's destination EID remains
+`ipn:978879.2.345` regardless of the session peer's identity.  A BP
+Agent therefore needs to distinguish the destination EID from the
+Node ID that the peer presents.  {{Section 4.6 of TCPCL}} describes
+the handling of a peer Node ID that differs from the one intended,
+and of a peer Node ID that is not authenticated.
+
+## Relationship to Local Policy
+
+Discovery does not override configured forwarding policy or
+convergence-layer security policy.  DNS-derived candidates are
+subject to the same policy as other sources of forwarding
+information, including any requirements for TLS, for peer
+authentication, and for which peers may be used for which
+destinations.
+
+## Open Items
+
+TODO: Specify DNSSEC signing requirements for ipn.arpa and allocator
+zones, and DNSSEC validation requirements for BP Agents that use
+discovery.
+
+TODO: Specify the handling of DNSSEC results that are insecure or
+bogus, including whether and when such results can be used as
+forwarding candidates.
+
+TODO: Address locally served namespaces beneath the signed public
+hierarchy, such as 0.ipn.arpa and Experimental Use Allocator
+Identifiers (see {{local-resolution-todo}}).
+
+TODO Security: remaining security considerations not covered above.
 
 
 # IAB Considerations
