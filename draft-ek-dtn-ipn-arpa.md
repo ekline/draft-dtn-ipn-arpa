@@ -53,6 +53,12 @@ informative:
       - org: Internet Systems Consortium
     date: false
     target: https://bind9.readthedocs.io/en/latest/chapter3.html
+  IANA-NS-REQS:
+    title: "Technical requirements for authoritative name servers"
+    author:
+      - org: IANA
+    date: false
+    target: https://www.iana.org/help/nameserver-requirements
 
 
 --- abstract
@@ -726,7 +732,18 @@ Following approval by the IAB in accordance with
 Allocator Identifiers and Node Numbers, as specified in this document
 (see {{concept-of-operations}}).
 
-The operator of the public ipn.arpa zone MUST sign the zone using
+IANA is requested to arrange the ongoing administration of ipn.arpa,
+consistent with the arrangements approved by the IAB under
+{{RFC3172}}.  Administration includes processing the requests
+described in {{allocator-dns-provisioning}}.  It is distinct from
+operation of the authoritative DNS servers for ipn.arpa; this document
+does not require that IANA itself operate those servers.  In this
+document,
+the "ipn.arpa operator" is the entity that performs the DNS
+provisioning and operational functions for the ipn.arpa zone under
+those arrangements.
+
+The ipn.arpa operator MUST sign the public ipn.arpa zone using
 DNSSEC and maintain a chain of trust through the arpa zone.  This
 requirement applies to the ipn.arpa zone itself.  Recommendations
 concerning discovery data in delegated allocator zones and in other
@@ -830,40 +847,89 @@ public DNS and the negative answers that the public DNS returns for
 them.
 {: #local-resolution-todo}
 
-## 'ipn' Allocator Registry List of Nameservers
+## Allocator DNS Provisioning {#allocator-dns-provisioning}
 
-IANA is requested to augment its registration procedures for entries
-in the 'ipn' Scheme URI Allocator Identifiers Registry with a column
-for "Authoritative Nameservers".  Requesters of an Allocator or
-Allocator range MAY provide the IP addresses of DNS nameservers that
-will be considered authoritative for the .ipn.arpa zone for each requested
-Allocator.
+IANA and the ipn.arpa operator are requested to maintain a procedure
+that links requests for DNS provisioning at "A.ipn.arpa" to the entry
+for Allocator Identifier A in the "'ipn' Scheme URI Allocator
+Identifiers" registry ({{Section 9.1 of RFC9758}}).  The storage
+format, the request interface, and the presentation of provisioning
+information are left to IANA and the ipn.arpa operator.
 
-Public NS delegation and DNAME redirection requests apply only to
-eligible Allocator Identifiers.  Allocator Identifier zero and
-Experimental Use Allocator Identifiers are not eligible for public
-publication (see {{publication-restrictions}}).  This document does
-not request IANA to provide NS, DNAME, CNAME, or other public
-discovery entries beneath "0.ipn.arpa" or beneath the name of any
-Experimental Use Allocator Identifier.
+DNS provisioning is optional.  It can be requested when an Allocator
+Identifier is assigned or at any later time.  Having a DNS entry is
+not a condition for the validity or use of an allocator assignment.
 
-TODO: Discuss the procedures for delegating the corresponding child
-zones of ipn.arpa to the allocator agency for eligible Allocator
-Identifiers.
+These procedures apply only to eligible assigned Allocator
+Identifiers.  Allocator Identifier zero and Experimental Use Allocator
+Identifiers are not eligible for public publication (see
+{{publication-restrictions}}), and this document does not request any
+public provisioning beneath their names.
 
-TODO: In the forthcoming administration-policy pass, address the
-authorization, creation, and maintenance of DNAME redirections in
-ipn.arpa (see {{managing-allocator-ranges}}) alongside NS delegation
-requests, for eligible Allocator Identifiers.
+### Request Authorization {#request-authorization}
 
-## DS Records for Delegated Allocator Zones {#ds-management}
+Requests to create, modify, or remove DNS provisioning for an eligible
+assigned Allocator Identifier MUST be authenticated, and MUST be
+authorized by the Change Controller recorded for that identifier in
+the registry or by a representative that the Change Controller has
+authorized.  A representative can be, for example, a DNS service
+provider or an organizational unit authorized to manage particular
+identifiers; it does not need a separate numeric allocation.
+
+These checks apply to NS, DNAME, and DS requests, including a request
+to convert an allocator name between NS delegation and DNAME
+redirection.
+
+### Provisioning Alternatives {#provisioning-alternatives}
+
+The parent-zone configuration at "A.ipn.arpa" is one of the following:
+
+NS delegation:
+: The requester supplies the domain names of the authoritative
+  nameservers for the allocator zone, any addresses needed for glue,
+  and any DS records to be published (see {{ds-management}}).
+
+DNAME redirection:
+: The requester supplies the fully qualified target domain name.  See
+  {{managing-allocator-ranges}} and {{RFC6672}}.
+
+These are alternatives.  A DNAME at the allocator name in ipn.arpa
+does not coexist with an NS delegation, or with the DS records of a
+delegation, at that name ({{Section 2.3 of RFC6672}}).
+
+A single request can cover multiple Allocator Identifiers within the
+requester's allocation.  It identifies each affected identifier and
+the configuration that applies to it.  Batch provisioning introduces
+no numeric-range syntax in DNS; each affected allocator name has its
+own parent-zone records (compare {{managing-allocator-ranges}}).
+
+### Maintenance {#provisioning-maintenance}
+
+The same procedures support later updates and removal, including a
+change of nameserver provider, a change of DNAME target, and changes
+of DNSSEC keys (see {{ds-management}}).
+
+When the registered Change Controller for an Allocator Identifier
+changes, or when an assignment is withdrawn or, if applicable,
+reassigned, IANA and the ipn.arpa operator review the associated DNS
+provisioning and coordinate with the currently authorized party to
+update or remove provisioning that no longer applies.  This document
+does not define a revocation process for numeric assignments or any
+fixed deadline for such changes.
+
+Records beneath an allocator name, such as node-level discovery
+records and any further delegations, are managed by the allocator's
+authorized DNS administrators.  These procedures do not require IANA
+or the ipn.arpa operator to provision individual Node Numbers.
+
+### DS Records for Delegated Allocator Zones {#ds-management}
 
 The ipn.arpa operator MUST support authenticated requests to add,
-update, and remove DS records for delegated allocator zones.  Such a
-request is subject to the same authority checks as a change to the
-corresponding NS delegation.  The operator of a delegated allocator
-zone is responsible for coordinating changes to its signing keys with
-updates to the corresponding DS records in ipn.arpa.
+update, and remove DS records for delegated allocator zones.  Such
+requests are authorized as described in {{request-authorization}}.
+The operator of a delegated allocator zone is responsible for
+coordinating changes to its signing keys with updates to the
+corresponding DS records in ipn.arpa.
 
 This provides support for secure delegations; it does not require
 that every delegated allocator zone be signed.  This document does
@@ -875,10 +941,18 @@ DS procedures apply to NS delegations.  A DNAME in ipn.arpa (see
 ordinary data in the ipn.arpa zone, and the namespace to which it
 redirects has its own DNSSEC chain of trust.
 
-## Guidance to Designate Experts
+## Request Validation and Allocation Review {#request-validation}
 
-TBD: things like make sure there are at least two nameserver IP addresses
-and both IPv4 and IPv6 addresses are given, etc.
+The allocation procedures of {{Section 9.1 of RFC9758}}, including
+Expert Review, continue to apply to numeric assignments of Allocator
+Identifiers.  Routine DNS provisioning changes for an existing
+assignment do not require a new allocation Expert Review.
+
+The ipn.arpa operator performs the applicable DNS technical checks on
+provisioning requests under its published operational procedures.
+IANA's technical requirements for delegations in the zones it manages
+{{IANA-NS-REQS}} are relevant background.  DNAME provisioning is
+subject to the requirements of {{RFC6672}}.
 
 
 --- back
