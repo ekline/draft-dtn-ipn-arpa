@@ -1252,13 +1252,24 @@ the BP Agent responsible for a given IPN address.<a href="#section-abstract-2" c
                 </ul>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.2">
-                <p id="section-toc.1-1.7.2.2.1"><a href="#section-7.2" class="auto internal xref">7.2</a>.  <a href="#name-ipn-allocator-registry-list" class="internal xref">'ipn' Allocator Registry List of Nameservers</a></p>
+                <p id="section-toc.1-1.7.2.2.1"><a href="#section-7.2" class="auto internal xref">7.2</a>.  <a href="#name-allocator-dns-provisioning" class="internal xref">Allocator DNS Provisioning</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.2.2.1">
+                    <p id="section-toc.1-1.7.2.2.2.1.1"><a href="#section-7.2.1" class="auto internal xref">7.2.1</a>.  <a href="#name-request-authorization" class="internal xref">Request Authorization</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.2.2.2">
+                    <p id="section-toc.1-1.7.2.2.2.2.1"><a href="#section-7.2.2" class="auto internal xref">7.2.2</a>.  <a href="#name-provisioning-alternatives" class="internal xref">Provisioning Alternatives</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.2.2.3">
+                    <p id="section-toc.1-1.7.2.2.2.3.1"><a href="#section-7.2.3" class="auto internal xref">7.2.3</a>.  <a href="#name-maintenance" class="internal xref">Maintenance</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.2.2.4">
+                    <p id="section-toc.1-1.7.2.2.2.4.1"><a href="#section-7.2.4" class="auto internal xref">7.2.4</a>.  <a href="#name-ds-records-for-delegated-al" class="internal xref">DS Records for Delegated Allocator Zones</a></p>
+</li>
+                </ul>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.3">
-                <p id="section-toc.1-1.7.2.3.1"><a href="#section-7.3" class="auto internal xref">7.3</a>.  <a href="#name-ds-records-for-delegated-al" class="internal xref">DS Records for Delegated Allocator Zones</a></p>
-</li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.4">
-                <p id="section-toc.1-1.7.2.4.1"><a href="#section-7.4" class="auto internal xref">7.4</a>.  <a href="#name-guidance-to-designate-exper" class="internal xref">Guidance to Designate Experts</a></p>
+                <p id="section-toc.1-1.7.2.3.1"><a href="#section-7.3" class="auto internal xref">7.3</a>.  <a href="#name-request-validation-and-allo" class="internal xref">Request Validation and Allocation Review</a></p>
 </li>
             </ul>
 </li>
@@ -1998,7 +2009,7 @@ outside ipn.arpa:<a href="#section-5.3-2" class="pilcrow">¶</a></p>
         </ul>
 <p id="section-5.3-4">The ipn.arpa zone itself is signed (see <a href="#creation-of-ipn-arpa" class="auto internal xref">Section 7.1</a>), and
 delegated allocator zones can be linked into its chain of trust with
-DS records (see <a href="#ds-management" class="auto internal xref">Section 7.3</a>).  Signing ipn.arpa alone does not
+DS records (see <a href="#ds-management" class="auto internal xref">Section 7.2.4</a>).  Signing ipn.arpa alone does not
 authenticate records in delegated zones or external target
 namespaces; each record used in discovery has its own security
 status.<a href="#section-5.3-4" class="pilcrow">¶</a></p>
@@ -2112,17 +2123,27 @@ components determine the DNS base name (see <a href="#discovery-model" class="au
 ".arpa" domain.  This namespace supports DNS names derived from IPN
 Allocator Identifiers and Node Numbers, as specified in this document
 (see <a href="#concept-of-operations" class="auto internal xref">Section 3</a>).<a href="#section-7.1-1" class="pilcrow">¶</a></p>
-<p id="section-7.1-2">The operator of the public ipn.arpa zone <span class="bcp14">MUST</span> sign the zone using
+<p id="section-7.1-2">IANA is requested to arrange the ongoing administration of ipn.arpa,
+consistent with the arrangements approved by the IAB under
+<span>[<a href="#RFC3172" class="cite xref">RFC3172</a>]</span>.  Administration includes processing the requests
+described in <a href="#allocator-dns-provisioning" class="auto internal xref">Section 7.2</a>.  It is distinct from
+operation of the authoritative DNS servers for ipn.arpa; this document
+does not require that IANA itself operate those servers.  In this
+document,
+the "ipn.arpa operator" is the entity that performs the DNS
+provisioning and operational functions for the ipn.arpa zone under
+those arrangements.<a href="#section-7.1-2" class="pilcrow">¶</a></p>
+<p id="section-7.1-3">The ipn.arpa operator <span class="bcp14">MUST</span> sign the public ipn.arpa zone using
 DNSSEC and maintain a chain of trust through the arpa zone.  This
 requirement applies to the ipn.arpa zone itself.  Recommendations
 concerning discovery data in delegated allocator zones and in other
 namespaces are addressed to the operators of those zones and are
-given in <a href="#dnssec" class="auto internal xref">Section 5.3</a>.<a href="#section-7.1-2" class="pilcrow">¶</a></p>
-<p id="section-7.1-3">The following subsections establish restrictions on publishing
+given in <a href="#dnssec" class="auto internal xref">Section 5.3</a>.<a href="#section-7.1-3" class="pilcrow">¶</a></p>
+<p id="section-7.1-4">The following subsections establish restrictions on publishing
 discovery data in the global DNS for two sets of names beneath
 ipn.arpa.  These restrictions are established by this document; they
 concern only the DNS discovery mechanism specified here and do not
-alter any allocation or its Bundle Protocol semantics.<a href="#section-7.1-3" class="pilcrow">¶</a></p>
+alter any allocation or its Bundle Protocol semantics.<a href="#section-7.1-4" class="pilcrow">¶</a></p>
 <div id="allocator-zero">
 <section id="section-7.1.1">
           <h4 id="name-allocator-identifier-zero">
@@ -2227,61 +2248,131 @@ them.<a href="#section-7.1.3-4" class="pilcrow">¶</a></p>
 </div>
 </section>
 </div>
-<div id="ipn-allocator-registry-list-of-nameservers">
+<div id="allocator-dns-provisioning">
 <section id="section-7.2">
-        <h3 id="name-ipn-allocator-registry-list">
-<a href="#section-7.2" class="section-number selfRef">7.2. </a><a href="#name-ipn-allocator-registry-list" class="section-name selfRef">'ipn' Allocator Registry List of Nameservers</a>
+        <h3 id="name-allocator-dns-provisioning">
+<a href="#section-7.2" class="section-number selfRef">7.2. </a><a href="#name-allocator-dns-provisioning" class="section-name selfRef">Allocator DNS Provisioning</a>
         </h3>
-<p id="section-7.2-1">IANA is requested to augment its registration procedures for entries
-in the 'ipn' Scheme URI Allocator Identifiers Registry with a column
-for "Authoritative Nameservers".  Requesters of an Allocator or
-Allocator range <span class="bcp14">MAY</span> provide the IP addresses of DNS nameservers that
-will be considered authoritative for the .ipn.arpa zone for each requested
-Allocator.<a href="#section-7.2-1" class="pilcrow">¶</a></p>
-<p id="section-7.2-2">Public NS delegation and DNAME redirection requests apply only to
-eligible Allocator Identifiers.  Allocator Identifier zero and
-Experimental Use Allocator Identifiers are not eligible for public
-publication (see <a href="#publication-restrictions" class="auto internal xref">Section 7.1.3</a>).  This document does
-not request IANA to provide NS, DNAME, CNAME, or other public
-discovery entries beneath "0.ipn.arpa" or beneath the name of any
-Experimental Use Allocator Identifier.<a href="#section-7.2-2" class="pilcrow">¶</a></p>
-<p id="section-7.2-3">TODO: Discuss the procedures for delegating the corresponding child
-zones of ipn.arpa to the allocator agency for eligible Allocator
-Identifiers.<a href="#section-7.2-3" class="pilcrow">¶</a></p>
-<p id="section-7.2-4">TODO: In the forthcoming administration-policy pass, address the
-authorization, creation, and maintenance of DNAME redirections in
-ipn.arpa (see <a href="#managing-allocator-ranges" class="auto internal xref">Section 4.1</a>) alongside NS delegation
-requests, for eligible Allocator Identifiers.<a href="#section-7.2-4" class="pilcrow">¶</a></p>
+<p id="section-7.2-1">IANA and the ipn.arpa operator are requested to maintain a procedure
+that links requests for DNS provisioning at "A.ipn.arpa" to the entry
+for Allocator Identifier A in the "'ipn' Scheme URI Allocator
+Identifiers" registry (<span><a href="https://rfc-editor.org/rfc/rfc9758#section-9.1" class="relref">Section 9.1</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>).  The storage
+format, the request interface, and the presentation of provisioning
+information are left to IANA and the ipn.arpa operator.<a href="#section-7.2-1" class="pilcrow">¶</a></p>
+<p id="section-7.2-2">DNS provisioning is optional.  It can be requested when an Allocator
+Identifier is assigned or at any later time.  Having a DNS entry is
+not a condition for the validity or use of an allocator assignment.<a href="#section-7.2-2" class="pilcrow">¶</a></p>
+<p id="section-7.2-3">These procedures apply only to eligible assigned Allocator
+Identifiers.  Allocator Identifier zero and Experimental Use Allocator
+Identifiers are not eligible for public publication (see
+<a href="#publication-restrictions" class="auto internal xref">Section 7.1.3</a>), and this document does not request any
+public provisioning beneath their names.<a href="#section-7.2-3" class="pilcrow">¶</a></p>
+<div id="request-authorization">
+<section id="section-7.2.1">
+          <h4 id="name-request-authorization">
+<a href="#section-7.2.1" class="section-number selfRef">7.2.1. </a><a href="#name-request-authorization" class="section-name selfRef">Request Authorization</a>
+          </h4>
+<p id="section-7.2.1-1">Requests to create, modify, or remove DNS provisioning for an eligible
+assigned Allocator Identifier <span class="bcp14">MUST</span> be authenticated, and <span class="bcp14">MUST</span> be
+authorized by the Change Controller recorded for that identifier in
+the registry or by a representative that the Change Controller has
+authorized.  A representative can be, for example, a DNS service
+provider or an organizational unit authorized to manage particular
+identifiers; it does not need a separate numeric allocation.<a href="#section-7.2.1-1" class="pilcrow">¶</a></p>
+<p id="section-7.2.1-2">These checks apply to NS, DNAME, and DS requests, including a request
+to convert an allocator name between NS delegation and DNAME
+redirection.<a href="#section-7.2.1-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="provisioning-alternatives">
+<section id="section-7.2.2">
+          <h4 id="name-provisioning-alternatives">
+<a href="#section-7.2.2" class="section-number selfRef">7.2.2. </a><a href="#name-provisioning-alternatives" class="section-name selfRef">Provisioning Alternatives</a>
+          </h4>
+<p id="section-7.2.2-1">The parent-zone configuration at "A.ipn.arpa" is one of the following:<a href="#section-7.2.2-1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-7.2.2-2">
+            <dt id="section-7.2.2-2.1">NS delegation:</dt>
+            <dd style="margin-left: 1.5em" id="section-7.2.2-2.2">
+              <p id="section-7.2.2-2.2.1">The requester supplies the domain names of the authoritative
+nameservers for the allocator zone, any addresses needed for glue,
+and any DS records to be published (see <a href="#ds-management" class="auto internal xref">Section 7.2.4</a>).<a href="#section-7.2.2-2.2.1" class="pilcrow">¶</a></p>
+</dd>
+            <dd class="break"></dd>
+<dt id="section-7.2.2-2.3">DNAME redirection:</dt>
+            <dd style="margin-left: 1.5em" id="section-7.2.2-2.4">
+              <p id="section-7.2.2-2.4.1">The requester supplies the fully qualified target domain name.  See
+<a href="#managing-allocator-ranges" class="auto internal xref">Section 4.1</a> and <span>[<a href="#RFC6672" class="cite xref">RFC6672</a>]</span>.<a href="#section-7.2.2-2.4.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+</dl>
+<p id="section-7.2.2-3">These are alternatives.  A DNAME at the allocator name in ipn.arpa
+does not coexist with an NS delegation, or with the DS records of a
+delegation, at that name (<span><a href="https://rfc-editor.org/rfc/rfc6672#section-2.3" class="relref">Section 2.3</a> of [<a href="#RFC6672" class="cite xref">RFC6672</a>]</span>).<a href="#section-7.2.2-3" class="pilcrow">¶</a></p>
+<p id="section-7.2.2-4">A single request can cover multiple Allocator Identifiers within the
+requester's allocation.  It identifies each affected identifier and
+the configuration that applies to it.  Batch provisioning introduces
+no numeric-range syntax in DNS; each affected allocator name has its
+own parent-zone records (compare <a href="#managing-allocator-ranges" class="auto internal xref">Section 4.1</a>).<a href="#section-7.2.2-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="provisioning-maintenance">
+<section id="section-7.2.3">
+          <h4 id="name-maintenance">
+<a href="#section-7.2.3" class="section-number selfRef">7.2.3. </a><a href="#name-maintenance" class="section-name selfRef">Maintenance</a>
+          </h4>
+<p id="section-7.2.3-1">The same procedures support later updates and removal, including a
+change of nameserver provider, a change of DNAME target, and changes
+of DNSSEC keys (see <a href="#ds-management" class="auto internal xref">Section 7.2.4</a>).<a href="#section-7.2.3-1" class="pilcrow">¶</a></p>
+<p id="section-7.2.3-2">When the registered Change Controller for an Allocator Identifier
+changes, or when an assignment is withdrawn or, if applicable,
+reassigned, IANA and the ipn.arpa operator review the associated DNS
+provisioning and coordinate with the currently authorized party to
+update or remove provisioning that no longer applies.  This document
+does not define a revocation process for numeric assignments or any
+fixed deadline for such changes.<a href="#section-7.2.3-2" class="pilcrow">¶</a></p>
+<p id="section-7.2.3-3">Records beneath an allocator name, such as node-level discovery
+records and any further delegations, are managed by the allocator's
+authorized DNS administrators.  These procedures do not require IANA
+or the ipn.arpa operator to provision individual Node Numbers.<a href="#section-7.2.3-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="ds-management">
-<section id="section-7.3">
-        <h3 id="name-ds-records-for-delegated-al">
-<a href="#section-7.3" class="section-number selfRef">7.3. </a><a href="#name-ds-records-for-delegated-al" class="section-name selfRef">DS Records for Delegated Allocator Zones</a>
-        </h3>
-<p id="section-7.3-1">The ipn.arpa operator <span class="bcp14">MUST</span> support authenticated requests to add,
-update, and remove DS records for delegated allocator zones.  Such a
-request is subject to the same authority checks as a change to the
-corresponding NS delegation.  The operator of a delegated allocator
-zone is responsible for coordinating changes to its signing keys with
-updates to the corresponding DS records in ipn.arpa.<a href="#section-7.3-1" class="pilcrow">¶</a></p>
-<p id="section-7.3-2">This provides support for secure delegations; it does not require
+<section id="section-7.2.4">
+          <h4 id="name-ds-records-for-delegated-al">
+<a href="#section-7.2.4" class="section-number selfRef">7.2.4. </a><a href="#name-ds-records-for-delegated-al" class="section-name selfRef">DS Records for Delegated Allocator Zones</a>
+          </h4>
+<p id="section-7.2.4-1">The ipn.arpa operator <span class="bcp14">MUST</span> support authenticated requests to add,
+update, and remove DS records for delegated allocator zones.  Such
+requests are authorized as described in <a href="#request-authorization" class="auto internal xref">Section 7.2.1</a>.
+The operator of a delegated allocator zone is responsible for
+coordinating changes to its signing keys with updates to the
+corresponding DS records in ipn.arpa.<a href="#section-7.2.4-1" class="pilcrow">¶</a></p>
+<p id="section-7.2.4-2">This provides support for secure delegations; it does not require
 that every delegated allocator zone be signed.  This document does
 not specify the operational interface for these requests or the
-format in which DS data is stored.<a href="#section-7.3-2" class="pilcrow">¶</a></p>
-<p id="section-7.3-3">DS procedures apply to NS delegations.  A DNAME in ipn.arpa (see
+format in which DS data is stored.<a href="#section-7.2.4-2" class="pilcrow">¶</a></p>
+<p id="section-7.2.4-3">DS procedures apply to NS delegations.  A DNAME in ipn.arpa (see
 <a href="#managing-allocator-ranges" class="auto internal xref">Section 4.1</a>) is not a delegation: it is signed as
 ordinary data in the ipn.arpa zone, and the namespace to which it
-redirects has its own DNSSEC chain of trust.<a href="#section-7.3-3" class="pilcrow">¶</a></p>
+redirects has its own DNSSEC chain of trust.<a href="#section-7.2.4-3" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="guidance-to-designate-experts">
-<section id="section-7.4">
-        <h3 id="name-guidance-to-designate-exper">
-<a href="#section-7.4" class="section-number selfRef">7.4. </a><a href="#name-guidance-to-designate-exper" class="section-name selfRef">Guidance to Designate Experts</a>
+</section>
+</div>
+<div id="request-validation">
+<section id="section-7.3">
+        <h3 id="name-request-validation-and-allo">
+<a href="#section-7.3" class="section-number selfRef">7.3. </a><a href="#name-request-validation-and-allo" class="section-name selfRef">Request Validation and Allocation Review</a>
         </h3>
-<p id="section-7.4-1">TBD: things like make sure there are at least two nameserver IP addresses
-and both IPv4 and IPv6 addresses are given, etc.<a href="#section-7.4-1" class="pilcrow">¶</a></p>
+<p id="section-7.3-1">The allocation procedures of <span><a href="https://rfc-editor.org/rfc/rfc9758#section-9.1" class="relref">Section 9.1</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>, including
+Expert Review, continue to apply to numeric assignments of Allocator
+Identifiers.  Routine DNS provisioning changes for an existing
+assignment do not require a new allocation Expert Review.<a href="#section-7.3-1" class="pilcrow">¶</a></p>
+<p id="section-7.3-2">The ipn.arpa operator performs the applicable DNS technical checks on
+provisioning requests under its published operational procedures.
+IANA's technical requirements for delegations in the zones it manages
+<span>[<a href="#IANA-NS-REQS" class="cite xref">IANA-NS-REQS</a>]</span> are relevant background.  DNAME provisioning is
+subject to the requirements of <span>[<a href="#RFC6672" class="cite xref">RFC6672</a>]</span>.<a href="#section-7.3-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -2345,6 +2436,10 @@ and both IPv4 and IPv6 addresses are given, etc.<a href="#section-7.4-1" class="
 <dt id="BIND-ARM">[BIND-ARM]</dt>
         <dd>
 <span class="refAuthor">Internet Systems Consortium</span>, <span class="refTitle">"BIND 9 Administrator Reference Manual"</span>, <span>&lt;<a href="https://bind9.readthedocs.io/en/latest/chapter3.html">https://bind9.readthedocs.io/en/latest/chapter3.html</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="IANA-NS-REQS">[IANA-NS-REQS]</dt>
+        <dd>
+<span class="refAuthor">IANA</span>, <span class="refTitle">"Technical requirements for authoritative name servers"</span>, <span>&lt;<a href="https://www.iana.org/help/nameserver-requirements">https://www.iana.org/help/nameserver-requirements</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="RFC1918">[RFC1918]</dt>
         <dd>
