@@ -233,95 +233,176 @@ for such names from leaking into the public DNS, the negative answers
 that the public DNS returns for them, and DNSSEC validation of locally
 served data (see {{local-resolution-todo}}).
 
-## Examples
+## Examples {#examples}
 
-The two examples in this section show alternative DNS configurations
-for the same node.  In both, a BP Agent (perhaps collocated at a
-ground station) has received a Bundle destined for
-`ipn:978879.2.345` and uses TCPCLv4 {{TCPCL}}.  An operator publishes
-either the configuration of Example A or the configuration of
-Example B, not both: the SRV RRset of Example A and the CNAME of
-Example B must not be published together at the same owner name
-(see {{dns-constraints}}).
+The examples in this section describe one deployment: a fictional
+space agency that offers a shared public ingress service for its
+destinations.  Other operators can use different arrangements, such
+as a distinct relay for each node or direct publication of a node's
+own endpoints; nothing in this document requires the architecture
+shown here.
 
-The records shown are zone excerpts; routine SOA and NS records are
-omitted.
+The agency administers Allocator Identifier 978879.  Its example
+destinations are:
+
+| FQNN | Destination | DNS base name |
+|---|---|---|
+| (978879,1) | mission operations center | `1.978879.ipn.arpa.` |
+| (978879,2) | mars-orbiter | `2.978879.ipn.arpa.` |
+| (978879,3) | lunar-lander | `3.978879.ipn.arpa.` |
+{: title="Example Destinations"}
+
+The destination names are descriptive labels chosen independently of
+the Node Numbers.
+
+All three destinations use the same public ingress service, provided
+by two relay BP Agents, `relay-a.space-agency.example.` and
+`relay-b.space-agency.example.`.  The relays are separate BP nodes
+with their own Node IDs, and each has onward routes to all three
+destinations.  The agency also operates cislunar and deep-space
+ground facilities; onward forwarding from the relays uses
+agency-managed routes and contact arrangements, which are not shown.
+
+Example A and Example B are alternative configurations of the
+allocator's zone.  The agency publishes one or the other, not both: a
+CNAME and an SRV RRset must not coexist at the same owner name (see
+{{dns-constraints}}).  All records shown are zone excerpts; routine
+zone infrastructure (such as SOA and NS records) and DNSSEC records
+are omitted.
+
+Both configurations use the following address records for the relays:
+
+~~~ dns
+$ORIGIN space-agency.example.
+$TTL 3600
+
+relay-a IN A    192.0.2.10
+relay-a IN AAAA 2001:db8::10
+relay-b IN A    192.0.2.11
+relay-b IN AAAA 2001:db8::11
+~~~
+{: #relay-addresses title="Relay Address Records"}
 
 ### Example A: Service Records in the Allocator's Zone
 
-In this configuration, the SRV records are published directly in the
-allocator's zone.
+In this configuration, the SRV records for each destination are
+published directly in the allocator's zone.
 
 ~~~ dns
-; Relevant records in 978879.ipn.arpa.
 $ORIGIN 978879.ipn.arpa.
-_dtn-bundle._tcp.2  3600 IN SRV 0 0 4556 antenna-relay.space-agency.example.
+$TTL 3600
 
-; Relevant records in space-agency.example.
-$ORIGIN space-agency.example.
-antenna-relay  3600 IN A    192.0.2.1
-antenna-relay  3600 IN AAAA 2001:db8::1
+_dtn-bundle._tcp.1 IN SRV 10 1 4556 relay-a.space-agency.example.
+_dtn-bundle._tcp.1 IN SRV 10 1 4556 relay-b.space-agency.example.
+
+_dtn-bundle._tcp.2 IN SRV 10 1 4556 relay-a.space-agency.example.
+_dtn-bundle._tcp.2 IN SRV 10 1 4556 relay-b.space-agency.example.
+
+_dtn-bundle._tcp.3 IN SRV 10 1 4556 relay-a.space-agency.example.
+_dtn-bundle._tcp.3 IN SRV 10 1 4556 relay-b.space-agency.example.
 ~~~
 
-The BP Agent:
+A BP Agent that has a Bundle destined for `ipn:978879.2.345`, and
+that uses TCPCLv4 {{TCPCL}}:
 
 1. constructs the query name `_dtn-bundle._tcp.2.978879.ipn.arpa.`
    from Allocator Identifier 978879 and Node Number 2 of the
-   destination `ipn:978879.2.345`;
+   destination;
 
-2. queries for SRV records at `_dtn-bundle._tcp.2.978879.ipn.arpa.`,
-   receiving an SRV record with port 4556 and target
-   `antenna-relay.space-agency.example.`;
+2. queries for SRV records at that name, receiving two candidate
+   relay endpoints, `relay-a.space-agency.example.` and
+   `relay-b.space-agency.example.`, both on port 4556 with priority 10
+   and weight 1;
 
-3. queries for A and AAAA records at
-   `antenna-relay.space-agency.example.`, receiving `192.0.2.1` and
-   `2001:db8::1`; and
+3. orders the candidates as specified in {{RFC2782}}: because both
+   records have the same priority and weight, either relay can be
+   selected first;
 
-4. attempts a TCPCLv4 connection to `[2001:db8::1]:4556` or
-   `192.0.2.1:4556` and, once a session is established, transfers
-   the Bundle.
+4. queries for A and AAAA records at the selected target; for
+   `relay-a.space-agency.example.`, it receives `192.0.2.10` and
+   `2001:db8::10`; and
+
+5. attempts a TCPCLv4 connection to `[2001:db8::10]:4556` or
+   `192.0.2.10:4556`.  If that relay cannot be reached, the BP Agent
+   can try the other candidate, `relay-b.space-agency.example.`
+   (`[2001:db8::11]:4556` or `192.0.2.11:4556`).  Once a session is
+   established, it transfers the Bundle.
 
 ### Example B: Service Lookup Redirected through a CNAME
 
-In this configuration, the allocator's zone contains a CNAME that
-redirects the service lookup to a name in the service operator's zone,
-where the SRV records are published.
+In this configuration, the allocator's zone contains, instead of
+Example A's SRV records, a CNAME for each destination that redirects
+the service lookup to a single shared name in the agency's zone:
 
 ~~~ dns
-; Relevant records in 978879.ipn.arpa.
 $ORIGIN 978879.ipn.arpa.
-_dtn-bundle._tcp.2  3600 IN CNAME _dtn-bundle._tcp.mars-orbiter2.space-agency.example.
+$TTL 3600
 
-; Relevant records in space-agency.example.
+_dtn-bundle._tcp.1 IN CNAME (
+    _dtn-bundle._tcp.ingress.space-agency.example. )
+_dtn-bundle._tcp.2 IN CNAME (
+    _dtn-bundle._tcp.ingress.space-agency.example. )
+_dtn-bundle._tcp.3 IN CNAME (
+    _dtn-bundle._tcp.ingress.space-agency.example. )
+~~~
+
+The agency publishes the shared service in its own zone:
+
+~~~ dns
 $ORIGIN space-agency.example.
-_dtn-bundle._tcp.mars-orbiter2  3600 IN SRV 0 0 4556 antenna-relay.space-agency.example.
-antenna-relay  3600 IN A    192.0.2.1
-antenna-relay  3600 IN AAAA 2001:db8::1
+$TTL 3600
+
+_dtn-bundle._tcp.ingress IN SRV (
+    10 1 4556 relay-a.space-agency.example. )
+_dtn-bundle._tcp.ingress IN SRV (
+    10 1 4556 relay-b.space-agency.example. )
 ~~~
 
 The BP Agent starts with the same query as in Example A: it queries
 for SRV records at `_dtn-bundle._tcp.2.978879.ipn.arpa.`.  Ordinary
 DNS resolution follows the CNAME at that name to
-`_dtn-bundle._tcp.mars-orbiter2.space-agency.example.` and returns the
-SRV RRset found there, with port 4556 and target
-`antenna-relay.space-agency.example.`.  There is no separate
-preliminary CNAME query.  Resolution of the A and AAAA records at
-`antenna-relay.space-agency.example.` and establishment of the
+`_dtn-bundle._tcp.ingress.space-agency.example.` and returns the SRV
+RRset found there, which contains the same two candidate relay
+endpoints as in Example A.  There is no separate preliminary CNAME
+query.  Relay selection, address resolution, and establishment of the
 TCPCLv4 connection then proceed as in Example A.
 
-This configuration divides administrative responsibility: the
-allocator's zone maintains only the alias, while the service operator
-maintains the SRV records in its own zone and can change them without
-further changes to the allocator's zone.
+With this configuration, the agency maintains the common relay
+selection in one SRV RRset.  The allocator's zone holds only the
+aliases, and the set of relays can be changed in
+`space-agency.example.` without changes to the allocator's zone.
 
-### Onward Forwarding {#onward-forwarding}
+### Shared Ingress Behavior {#shared-ingress}
 
-In these examples, `antenna-relay.space-agency.example.` is configured
-to accept Bundles for onward forwarding to node 2.  Establishing a
-TCPCLv4 connection to that relay does not change the Bundle's
-destination EID, which remains `ipn:978879.2.345`, and does not imply
-that the spacecraft is currently reachable.  Forwarding the Bundle
-toward node 2 is the relay's responsibility.
+The following points apply to both configurations:
+
+* Equal SRV priorities and weights provide approximately balanced
+  relay selection across connection attempts {{RFC2782}}.  They do
+  not guarantee equal bundle volume, because a session can carry any
+  number of Bundles, and they do not indicate current server load.
+
+* Multiple destination FQNNs can share the same discovery result.
+  Queries for (978879,1), (978879,2), and (978879,3) all yield the
+  same two relays, but the destinations remain distinct, and each
+  Bundle retains its destination EID; for example, a Bundle for the
+  mars-orbiter is still destined for `ipn:978879.2.345` when it is
+  transferred to a relay.  Each relay is a session peer with its own
+  Node ID (see {{cl-peer-identity}}).
+
+* After accepting a Bundle, a relay forwards it using the agency's
+  configured onward routes and contact arrangements.  A successful
+  connection to a relay does not imply that the destination
+  spacecraft is currently reachable.
+
+* The example uses a single public DNS view.  The agency's internal
+  forwarding arrangements are configured in its BP Agents rather than
+  in DNS, so they require no internal DNS overrides.
+
+* The public records expose the advertised FQNNs, their association
+  with the ingress service, and the relay addresses.  They do not
+  describe the agency's ground facilities or contact arrangements.
+  The example limits disclosure of internal topology; it does not
+  provide confidentiality for the published data.
 
 ## DNS Constraints {#dns-constraints}
 
@@ -371,25 +452,32 @@ records {{RFC6672}} can redirect each allocator subtree into a common
 operator-managed zone.
 
 The following example uses Allocator Identifiers 974848 and 974849,
-from the example range in {{Section 9.1 of RFC9758}}.  It assumes that
-the organization is authorized to administer both Allocator
-Identifiers.  The records are zone excerpts; routine SOA and NS
-records are omitted.
+from the example range in {{Section 9.1 of RFC9758}}.  They are
+additional illustrative allocator namespaces, and the example assumes
+that the agency of {{examples}} is also authorized to administer
+them.  The records are zone excerpts; routine zone infrastructure and
+DNSSEC records are omitted.  The address records for the relays are
+those in {{relay-addresses}}.
 
 ~~~ dns
-; Relevant records in ipn.arpa.
 $ORIGIN ipn.arpa.
-974848 3600 IN DNAME 974848.allocators.operator.example.
-974849 3600 IN DNAME 974849.allocators.operator.example.
+$TTL 3600
 
-; Relevant records in the single zone operator.example.
-$ORIGIN operator.example.
-_dtn-bundle._tcp.2.974848.allocators 3600 IN SRV 0 0 4556 relay-a.operator.example.
-_dtn-bundle._tcp.2.974849.allocators 3600 IN SRV 0 0 4556 relay-b.operator.example.
-relay-a 3600 IN A    192.0.2.1
-relay-a 3600 IN AAAA 2001:db8::1
-relay-b 3600 IN A    192.0.2.2
-relay-b 3600 IN AAAA 2001:db8::2
+974848 IN DNAME 974848.allocators.space-agency.example.
+974849 IN DNAME 974849.allocators.space-agency.example.
+~~~
+
+~~~ dns
+$ORIGIN 974848.allocators.space-agency.example.
+$TTL 3600
+
+_dtn-bundle._tcp.2 IN SRV 10 1 4556 relay-a.space-agency.example.
+_dtn-bundle._tcp.2 IN SRV 10 1 4556 relay-b.space-agency.example.
+
+$ORIGIN 974849.allocators.space-agency.example.
+
+_dtn-bundle._tcp.2 IN SRV 10 1 4556 relay-a.space-agency.example.
+_dtn-bundle._tcp.2 IN SRV 10 1 4556 relay-b.space-agency.example.
 ~~~
 
 A BP Agent discovering TCPCLv4 service for `ipn:974848.2.345`
@@ -403,27 +491,29 @@ _dtn-bundle._tcp.2.974848.ipn.arpa.
 The DNAME at `974848.ipn.arpa.` redirects this query to:
 
 ~~~
-_dtn-bundle._tcp.2.974848.allocators.operator.example.
+_dtn-bundle._tcp.2.974848.allocators.space-agency.example.
 ~~~
 
-There the BP Agent finds an SRV record with port 4556 and target
-`relay-a.operator.example.`, whose addresses are 192.0.2.1 and
-2001:db8::1.  Ordinary DNS processing performs the redirection
+There the BP Agent finds the same relay-a/relay-b SRV pair as in
+{{examples}}.  Ordinary DNS processing performs the redirection
 ({{Section 3 of RFC6672}}).  The BP Agent does not construct any name
-in the operator's zone itself.
+in the agency's zone itself.
 
 The example retains the Allocator Identifier in each target subtree.
 As a result, node 2 under Allocator 974848
-(`2.974848.allocators.operator.example.`) remains distinct from node 2
-under Allocator 974849 (`2.974849.allocators.operator.example.`).
-Pointing both DNAMEs at the same target would merge their
+(`2.974848.allocators.space-agency.example.`) remains distinct from
+node 2 under Allocator 974849
+(`2.974849.allocators.space-agency.example.`), even though their
+service records select the same relay hosts.  Both FQNNs are also
+distinct from (978879,2), the mars-orbiter; they identify other
+nodes.  Pointing both DNAMEs at the same target would merge their
 corresponding lookup names: queries for the FQNNs (974848,2) and
 (974849,2) would then reach the same records.  Distinct target
 subtrees need to be preserved whenever the allocator namespaces must
 remain distinct.  Retaining the decimal allocator label in the target
 is a convenient convention, not a DNS requirement.
 
-One operator-managed zone can contain all of these subtrees.  One
+One agency-managed zone can contain all of these subtrees.  One
 DNAME is still required in ipn.arpa for each redirected Allocator
 Identifier.  The technique reduces the number of separately
 administered child zones, not the number of allocator entries in the
@@ -470,7 +560,9 @@ parent-side DNAME records above can be expressed in BIND syntax as:
 
 ~~~ dns
 $ORIGIN ipn.arpa.
-$GENERATE 974848-974849 $ 3600 IN DNAME $.allocators.operator.example.
+$TTL 3600
+
+$GENERATE 974848-974849 $ DNAME $.allocators.space-agency.example.
 ~~~
 
 Such a directive expands into ordinary records in the zone.  It
@@ -489,7 +581,7 @@ The discovery procedure in {{concept-of-operations}} identifies
 candidate convergence-layer endpoints through which a destination
 node might be reached.  A candidate can be the destination node
 itself or a relay that accepts Bundles for onward forwarding, as in
-{{onward-forwarding}}.  Successful discovery does not guarantee that
+{{shared-ingress}}.  Successful discovery does not guarantee that
 the destination is currently reachable, that a candidate will accept
 a session or a Bundle, or that the Bundle will eventually be
 delivered.
@@ -581,9 +673,10 @@ modify those procedures.
 
 The name queried in ipn.arpa identifies the destination node, not the
 convergence-layer peer, and is not the name of the host to which a
-connection is made.  In {{onward-forwarding}}, the peer is a relay,
-`antenna-relay.space-agency.example.`, which can have its own Node ID
-distinct from that of node 2.  The Bundle's destination EID remains
+connection is made.  In {{examples}}, the peer is one of the relays,
+`relay-a.space-agency.example.` or `relay-b.space-agency.example.`,
+each a separate BP node with its own Node ID, distinct from the
+destination's.  The Bundle's destination EID remains
 `ipn:978879.2.345` regardless of the session peer's identity.  A BP
 Agent therefore needs to distinguish the destination EID from the
 Node ID that the peer presents.  {{Section 4.6 of TCPCL}} describes
