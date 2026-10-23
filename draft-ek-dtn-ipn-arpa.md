@@ -907,14 +907,6 @@ The same procedures support later updates and removal, including a
 change of nameserver provider, a change of DNAME target, and changes
 of DNSSEC keys (see {{ds-management}}).
 
-When the registered Change Controller for an Allocator Identifier
-changes, or when an assignment is withdrawn or, if applicable,
-reassigned, IANA and the ipn.arpa operator review the associated DNS
-provisioning and coordinate with the currently authorized party to
-update or remove provisioning that no longer applies.  This document
-does not define a revocation process for numeric assignments or any
-fixed deadline for such changes.
-
 Records beneath an allocator name, such as node-level discovery
 records and any further delegations, are managed by the allocator's
 authorized DNS administrators.  These procedures do not require IANA
