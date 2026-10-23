@@ -84,8 +84,9 @@ Table of Contents
      3.3.  DNS Constraints
      3.4.  Other Convergence Layers
    4.  Operational Considerations
-     4.1.  Managing Allocator Ranges
-       4.1.1.  Provisioning Tools
+     4.1.  Locally Served Namespaces
+     4.2.  Managing Allocator Ranges
+       4.2.1.  Provisioning Tools
    5.  Security Considerations
      5.1.  Discovery Yields Candidates
      5.2.  Discovery, Peer Authentication, and Forwarding Policy
@@ -264,13 +265,7 @@ Table of Contents
    of [RFC9758]) exist only under Allocator Identifier zero, so their
    DNS base names fall beneath 0.ipn.arpa.  Their public DNS publication
    is therefore excluded, and they can be resolved only in locally
-   served instances (see Section 7.1.1 and Section 7.1.3).
-
-   TODO: Address, separately from the publication policy above, the
-   remaining questions for locally served namespaces: preventing queries
-   for such names from leaking into the public DNS, the negative answers
-   that the public DNS returns for them, and DNSSEC validation of
-   locally served data (see Section 7.1.3, Paragraph 4).
+   served instances (see Section 7.1.1, Section 7.1.3, and Section 4.1).
 
 3.2.  Examples
 
@@ -474,7 +469,48 @@ Table of Contents
    obtain BP FIB information by other mechanisms (out of scope of this
    document).
 
-4.1.  Managing Allocator Ranges
+4.1.  Locally Served Namespaces
+
+   Deployments that use locally served instances of 0.ipn.arpa or of
+   Experimental Use allocator subtrees (see Section 7.1.3) configure
+   their DNS infrastructure using existing mechanisms.  Loading the
+   zones, selecting authoritative servers, and configuring resolvers to
+   forward queries for those names are ordinary DNS administration; this
+   document defines no new procedure for them.  Local use depends on
+   explicit configuration in each deployment.  This document does not
+   request automatic resolver behavior or any addition to the IANA
+   "Locally-Served DNS Zones" registry [RFC6303].
+
+   The signed public ipn.arpa namespace does not supply a chain of trust
+   to independently administered local data.  Where the public namespace
+   contains no corresponding name, ordinary DNSSEC processing can
+   authenticate that name's nonexistence in the public namespace, and a
+   validator relying only on that public chain cannot authenticate a
+   conflicting local answer.  A signed local zone can instead be
+   authenticated using an appropriately configured local trust anchor
+   (Section 7 of [RFC6303]); Section 5.10 of [RFC6840] describes how a
+   validator chooses among nested trust anchors.  That configuration is
+   needed wherever validation occurs: in a validating resolver relied
+   upon as described in Section 5.3.1, or in a BP Agent that validates
+   independently.
+
+   A deployment can instead accept unsigned local data under explicit
+   local policy.  Such acceptance is a policy decision; it is not
+   successful DNSSEC validation.  In either case, local resolution and
+   trust settings are best scoped to the relevant subtrees, without
+   disabling validation for ipn.arpa as a whole.
+
+   It is recommended that resolution be configured so that queries for
+   these locally served names remain within the intended administrative
+   or experimental scope, including when local resolution fails.  Public
+   resolution cannot provide the intended local discovery data, and
+   queries that reach the public DNS can disclose the queried
+   identifiers; [RFC6303] describes the motivation for containing such
+   queries.  This is operational guidance, not a new resolver protocol,
+   and it does not require Internet resolvers in general to recognize
+   these namespaces.
+
+4.2.  Managing Allocator Ranges
 
    An Allocator may hold a range of Allocator Identifiers (Section 3.2.1
    of [RFC9758]).  Numeric allocation ranges do not automatically
@@ -579,7 +615,7 @@ Table of Contents
    instances of that zone.  The same applies to DNAMEs for Experimental
    Use Allocator Identifiers (see Section 7.1.3).
 
-4.1.1.  Provisioning Tools
+4.2.1.  Provisioning Tools
 
    Some DNS implementations provide implementation-specific facilities,
    such as the $GENERATE directive of BIND [BIND-ARM], as conveniences
@@ -643,7 +679,7 @@ Table of Contents
    outside ipn.arpa:
 
    *  any CNAME or DNAME records that redirect the query, such as those
-      in Section 3.3 and Section 4.1;
+      in Section 3.3 and Section 4.2;
 
    *  the SRV (or other CL-specific) records; and
 
@@ -681,7 +717,8 @@ Table of Contents
    This document does not impose a universal policy of accepting only
    secure results, and it does not authorize bypassing validation
    failures.  Detailed acceptance, failure, and fallback policies remain
-   open (see Section 5.5).
+   open (see Section 5.5).  Validation of locally served namespaces is
+   discussed in Section 4.1.
 
 5.4.  Convergence-Layer Peer Identity
 
@@ -709,11 +746,6 @@ Table of Contents
    TODO: Specify the BP Agent's detailed acceptance, failure, and
    fallback policies for discovery results, including the treatment of
    insecure, bogus, and indeterminate results and of failed lookups.
-
-   TODO: Address local resolution, public negative answers, and DNSSEC
-   treatment for 0.ipn.arpa and Experimental Use Allocator Identifiers,
-   which lie beneath the signed public hierarchy (see Section 7.1.3,
-   Paragraph 4).
 
    TODO: Address caching of discovery results, operation during
    disruption, and other remaining security considerations.
@@ -835,25 +867,14 @@ Table of Contents
    *  CNAME or DNAME records at or beneath those names that redirect
       discovery queries to data published elsewhere in the global DNS.
 
-   These restrictions do not preclude whatever empty or insecure global
-   representation of these names is chosen to support local resolution
-   (see Section 7.1.3, Paragraph 4).
-
-   TODO (next editing pass; a separate design question from the
-   publication policy above): Specify how "0.ipn.arpa" and the names of
-   Experimental Use Allocator Identifiers are represented in the global
-   DNS so that locally served answers can still be validated.  Because
-   ipn.arpa is signed (see Section 7.1), an authenticated denial of
-   existence for these names would cause validating resolvers to reject
-   locally served data; locally served zones need an insecure delegation
-   or must be within an insecure zone (Section 7 of [RFC6303]).  Compare
-   the unsigned delegation of home.arpa to black-hole servers (Section 7
-   of [RFC8375]).  Also consider adding "0.ipn.arpa" to the IANA
-   "Locally-Served DNS Zones" registry (Section 6 of [RFC6303]).  The
-   Experimental Use range comprises 2^30 sibling names directly beneath
-   ipn.arpa, so its treatment may differ.  Related questions include
-   preventing queries for these names from leaking into the public DNS
-   and the negative answers that the public DNS returns for them.
+   Names in these subtrees are absent from the public zone and receive
+   ordinary DNS negative answers, with normal DNSSEC processing.  This
+   document introduces no special public delegation or negative-answer
+   mechanism for them.  For comparison, home.arpa has an insecure public
+   delegation to accommodate validators without local trust
+   configuration (Section 6.2 of [RFC8375] and Section 7 of [RFC8375]);
+   this document does not request that arrangement.  Operational
+   guidance for locally served instances is given in Section 4.1.
 
 7.2.  Allocator DNS Provisioning
 
@@ -897,7 +918,7 @@ Table of Contents
       Section 7.2.4).
 
    DNAME redirection:  The requester supplies the fully qualified target
-      domain name.  See Section 4.1 and [RFC6672].
+      domain name.  See Section 4.2 and [RFC6672].
 
    These are alternatives.  A DNAME at the allocator name in ipn.arpa
    does not coexist with an NS delegation, or with the DS records of a
@@ -907,21 +928,13 @@ Table of Contents
    requester's allocation.  It identifies each affected identifier and
    the configuration that applies to it.  Batch provisioning introduces
    no numeric-range syntax in DNS; each affected allocator name has its
-   own parent-zone records (compare Section 4.1).
+   own parent-zone records (compare Section 4.2).
 
 7.2.3.  Maintenance
 
    The same procedures support later updates and removal, including a
    change of nameserver provider, a change of DNAME target, and changes
    of DNSSEC keys (see Section 7.2.4).
-
-   When the registered Change Controller for an Allocator Identifier
-   changes, or when an assignment is withdrawn or, if applicable,
-   reassigned, IANA and the ipn.arpa operator review the associated DNS
-   provisioning and coordinate with the currently authorized party to
-   update or remove provisioning that no longer applies.  This document
-   does not define a revocation process for numeric assignments or any
-   fixed deadline for such changes.
 
    Records beneath an allocator name, such as node-level discovery
    records and any further delegations, are managed by the allocator's
@@ -943,7 +956,7 @@ Table of Contents
    format in which DS data is stored.
 
    DS procedures apply to NS delegations.  A DNAME in ipn.arpa (see
-   Section 4.1) is not a delegation: it is signed as ordinary data in
+   Section 4.2) is not a delegation: it is signed as ordinary data in
    the ipn.arpa zone, and the namespace to which it redirects has its
    own DNSSEC chain of trust.
 
@@ -1028,6 +1041,11 @@ Table of Contents
    [RFC6303]  Andrews, M., "Locally Served DNS Zones", BCP 163,
               RFC 6303, DOI 10.17487/RFC6303, July 2011,
               <https://www.rfc-editor.org/rfc/rfc6303>.
+
+   [RFC6840]  Weiler, S., Ed. and D. Blacka, Ed., "Clarifications and
+              Implementation Notes for DNS Security (DNSSEC)", RFC 6840,
+              DOI 10.17487/RFC6840, February 2013,
+              <https://www.rfc-editor.org/rfc/rfc6840>.
 
    [RFC7116]  Scott, K. and M. Blanchet, "Licklider Transmission
               Protocol (LTP), Compressed Bundle Header Encoding (CBHE),
