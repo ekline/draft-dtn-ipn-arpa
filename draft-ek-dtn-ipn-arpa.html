@@ -1217,6 +1217,17 @@ the BP Agent responsible for a given IPN address.<a href="#section-abstract-2" c
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.1">
                 <p id="section-toc.1-1.7.2.1.1"><a href="#section-7.1" class="auto internal xref">7.1</a>.  <a href="#name-creation-of-ipnarpa" class="internal xref">Creation of ipn.arpa</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.1.2.1">
+                    <p id="section-toc.1-1.7.2.1.2.1.1"><a href="#section-7.1.1" class="auto internal xref">7.1.1</a>.  <a href="#name-allocator-identifier-zero" class="internal xref">Allocator Identifier Zero</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.1.2.2">
+                    <p id="section-toc.1-1.7.2.1.2.2.1"><a href="#section-7.1.2" class="auto internal xref">7.1.2</a>.  <a href="#name-experimental-use-allocator-" class="internal xref">Experimental Use Allocator Identifiers</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.1.2.3">
+                    <p id="section-toc.1-1.7.2.1.2.3.1"><a href="#section-7.1.3" class="auto internal xref">7.1.3</a>.  <a href="#name-scope-of-the-publication-re" class="internal xref">Scope of the Publication Restrictions</a></p>
+</li>
+                </ul>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.2">
                 <p id="section-toc.1-1.7.2.2.1"><a href="#section-7.2" class="auto internal xref">7.2</a>.  <a href="#name-ipn-allocator-registry-list" class="internal xref">'ipn' Allocator Registry List of Nameservers</a></p>
@@ -1417,11 +1428,10 @@ example, <code>ipn:16384.345</code> and <code>ipn:0.16384.345</code> both identi
 (0,16384).  Likewise, the two-element and three-element CBOR encodings
 of an ipn EID (<span><a href="https://rfc-editor.org/rfc/rfc9758#section-6.4" class="relref">Section 6.4</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>) produce the same DNS base
 name.<a href="#section-3.1-8" class="pilcrow">¶</a></p>
-<p id="section-3.1-9">Names for Allocator Identifier zero, such as <code>16384.0.ipn.arpa.</code>, are
-constructed by the same rule.  They are usable in locally served
-instances of 0.ipn.arpa.  Public DNS discovery for Allocator
-Identifier zero is outside the scope of this document (see
-<a href="#creation-of-ipn-arpa" class="auto internal xref">Section 7.1</a>).<a href="#section-3.1-9" class="pilcrow">¶</a></p>
+<p id="section-3.1-9">Names for Allocator Identifier zero, such as <code>16384.0.ipn.arpa.</code>, and
+for Experimental Use Allocator Identifiers are constructed by the same
+rule.  They are usable in locally served instances, but they are not
+published in the global DNS (see <a href="#publication-restrictions" class="auto internal xref">Section 7.1.3</a>).<a href="#section-3.1-9" class="pilcrow">¶</a></p>
 <p id="section-3.1-10">The DNS base name is distinct from the CL-specific query name at
 which a BP Agent queries for records.  For example, a BP Agent
 discovering TCPCLv4 <span>[<a href="#TCPCL" class="cite xref">TCPCL</a>]</span> service for the FQNN (978879,2)
@@ -1457,11 +1467,17 @@ ipn URI and (0,4294967295) for LocalNode ipn URIs.  This document
 does not reserve Node Number 0 or Node Number 4294967295 under any
 other Allocator Identifier.  For example, the FQNNs (978879,0) and
 (978879,4294967295) are processed like any other FQNN.<a href="#section-3.1-15" class="pilcrow">¶</a></p>
-<p id="section-3.1-16">TODO: Specify the treatment of Private Use identities
-(<span><a href="https://rfc-editor.org/rfc/rfc9758#section-3.4.3" class="relref">Section 3.4.3</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span> and <span><a href="https://rfc-editor.org/rfc/rfc9758#section-5.5" class="relref">Section 5.5</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>),
-including resolution within a locally scoped namespace and prevention
-of inappropriate queries for such names in the public DNS.  This
-policy will be addressed separately.<a href="#section-3.1-16" class="pilcrow">¶</a></p>
+<p id="section-3.1-16">Private Use Node Numbers (<span><a href="https://rfc-editor.org/rfc/rfc9758#section-3.4.3" class="relref">Section 3.4.3</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span> and
+<span><a href="https://rfc-editor.org/rfc/rfc9758#section-5.5" class="relref">Section 5.5</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>) exist only under Allocator Identifier zero,
+so their DNS base names fall beneath 0.ipn.arpa.  Their public DNS
+publication is therefore excluded, and they can be resolved only in
+locally served instances (see <a href="#allocator-zero" class="auto internal xref">Section 7.1.1</a> and
+<a href="#publication-restrictions" class="auto internal xref">Section 7.1.3</a>).<a href="#section-3.1-16" class="pilcrow">¶</a></p>
+<p id="section-3.1-17">TODO: Address, separately from the publication policy above, the
+remaining questions for locally served namespaces: preventing queries
+for such names from leaking into the public DNS, the negative answers
+that the public DNS returns for them, and DNSSEC validation of locally
+served data (see <a href="#local-resolution-todo" class="auto internal xref">Section 7.1.3, Paragraph 4</a>).<a href="#section-3.1-17" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="examples">
@@ -1723,9 +1739,11 @@ child-zone administration.<a href="#section-4.1-13.3.1" class="pilcrow">¶</a></
 <p id="section-4.1-15">The same technique can redirect service subtrees beneath individual
 node names in 0.ipn.arpa (for example, with a DNAME at
 <code>N.0.ipn.arpa.</code>), subject to authorization by the administrator of
-that namespace.  Because a populated 0.ipn.arpa zone is not published
-in the public DNS (see <a href="#creation-of-ipn-arpa" class="auto internal xref">Section 7.1</a>), such DNAMEs exist
-only in locally served instances of that zone.<a href="#section-4.1-15" class="pilcrow">¶</a></p>
+that namespace.  Because populated subtrees beneath 0.ipn.arpa are
+not published in the public DNS, such DNAMEs exist only in locally
+served instances of that zone.  The same applies to DNAMEs for
+Experimental Use Allocator Identifiers (see
+<a href="#publication-restrictions" class="auto internal xref">Section 7.1.3</a>).<a href="#section-4.1-15" class="pilcrow">¶</a></p>
 <div id="provisioning-tools">
 <section id="section-4.1.1">
           <h4 id="name-provisioning-tools">
@@ -1794,7 +1812,17 @@ components determine the DNS base name (see <a href="#discovery-model" class="au
 ".arpa" domain.  This namespace supports DNS names derived from IPN
 Allocator Identifiers and Node Numbers, as specified in this document
 (see <a href="#concept-of-operations" class="auto internal xref">Section 3</a>).<a href="#section-7.1-1" class="pilcrow">¶</a></p>
-<p id="section-7.1-2">"0.ipn.arpa" corresponds to Allocator Identifier zero, the Default
+<p id="section-7.1-2">The following subsections establish restrictions on publishing
+discovery data in the global DNS for two sets of names beneath
+ipn.arpa.  These restrictions are established by this document; they
+concern only the DNS discovery mechanism specified here and do not
+alter any allocation or its Bundle Protocol semantics.<a href="#section-7.1-2" class="pilcrow">¶</a></p>
+<div id="allocator-zero">
+<section id="section-7.1.1">
+          <h4 id="name-allocator-identifier-zero">
+<a href="#section-7.1.1" class="section-number selfRef">7.1.1. </a><a href="#name-allocator-identifier-zero" class="section-name selfRef">Allocator Identifier Zero</a>
+          </h4>
+<p id="section-7.1.1-1">"0.ipn.arpa" corresponds to Allocator Identifier zero, the Default
 Allocator (<span><a href="https://rfc-editor.org/rfc/rfc9758#section-3.2.2" class="relref">Section 3.2.2</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>).  Public DNS discovery for
 FQNNs with Allocator Identifier zero is intentionally outside the
 scope of this document.  A populated "0.ipn.arpa" zone <span class="bcp14">MUST NOT</span> ever
@@ -1802,30 +1830,94 @@ be published in the global DNS.  A "0.ipn.arpa" zone <span class="bcp14">MAY</sp
 local DNS resolvers or servers that serve it authoritatively as a
 locally served zone <span>[<a href="#RFC6303" class="cite xref">RFC6303</a>]</span>, much as the IN-ADDR.ARPA zones for
 the private address space of <span>[<a href="#RFC1918" class="cite xref">RFC1918</a>]</span> are served locally
-(<span><a href="https://rfc-editor.org/rfc/rfc6303#section-4.1" class="relref">Section 4.1</a> of [<a href="#RFC6303" class="cite xref">RFC6303</a>]</span>).<a href="#section-7.1-2" class="pilcrow">¶</a></p>
-<p id="section-7.1-3">This restriction concerns only the DNS discovery mechanism specified
-in this document.  It does not mean that Allocator Identifier zero has
-only local significance: the Default Allocator's registry
-(<span><a href="https://rfc-editor.org/rfc/rfc9758#section-9.2" class="relref">Section 9.2</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>) contains both assigned Node Numbers and a
-Private Use range (<span><a href="https://rfc-editor.org/rfc/rfc9758#section-3.4.3" class="relref">Section 3.4.3</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>).  The restriction
-does not alter any existing allocation or its Bundle Protocol
-semantics.  Supporting Allocator Identifier zero in the public DNS
-would require additional administration and delegation procedures for
-existing Default Allocator Node Number allocations, together with a
-treatment of the Private Use range and of locally served DNS data.<a href="#section-7.1-3" class="pilcrow">¶</a></p>
-<p id="section-7.1-4">Note to the Working Group (to be removed before publication as an
+(<span><a href="https://rfc-editor.org/rfc/rfc6303#section-4.1" class="relref">Section 4.1</a> of [<a href="#RFC6303" class="cite xref">RFC6303</a>]</span>).<a href="#section-7.1.1-1" class="pilcrow">¶</a></p>
+<p id="section-7.1.1-2">This restriction covers every Node Number under Allocator Identifier
+zero.  That includes the Private Use Node Numbers 1 through 16383
+(<span><a href="https://rfc-editor.org/rfc/rfc9758#section-3.4.3" class="relref">Section 3.4.3</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>) and the Node Numbers 2097152 through
+268435455 reserved for Private or Experimental Use, a reservation
+carried over from the "CBHE Node Numbers" registry
+(<span><a href="https://rfc-editor.org/rfc/rfc7116#section-3.2.1" class="relref">Section 3.2.1</a> of [<a href="#RFC7116" class="cite xref">RFC7116</a>]</span>; <span><a href="https://rfc-editor.org/rfc/rfc9758#section-9.2" class="relref">Section 9.2</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>).<a href="#section-7.1.1-2" class="pilcrow">¶</a></p>
+<p id="section-7.1.1-3">The restriction does not mean that Allocator Identifier zero has only
+local significance: the Default Allocator's registry
+(<span><a href="https://rfc-editor.org/rfc/rfc9758#section-9.2" class="relref">Section 9.2</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>) contains assigned Node Numbers as well as
+the Private Use and Private or Experimental Use ranges.  Supporting
+Allocator Identifier zero in the public DNS would require additional
+administration and delegation procedures for existing Default
+Allocator Node Number allocations, together with a treatment of those
+ranges and of locally served DNS data.<a href="#section-7.1.1-3" class="pilcrow">¶</a></p>
+<p id="section-7.1.1-4">Note to the Working Group (to be removed before publication as an
 RFC): Public DNS support for Allocator Identifier zero can be
-reconsidered if the working group chooses to take on that scope.<a href="#section-7.1-4" class="pilcrow">¶</a></p>
-<p id="section-7.1-5">TODO (next editing pass; a separate design question from the scope
-decision above): Specify how "0.ipn.arpa" is represented in the
-global DNS so that locally served answers can still be validated.  If ipn.arpa is
-signed, an authenticated denial of existence for "0.ipn.arpa" would
-cause validating resolvers to reject locally served data; locally
-served zones need an insecure delegation or must be within an insecure
-zone (<span><a href="https://rfc-editor.org/rfc/rfc6303#section-7" class="relref">Section 7</a> of [<a href="#RFC6303" class="cite xref">RFC6303</a>]</span>).  Compare the unsigned delegation of
-home.arpa to black-hole servers (<span><a href="https://rfc-editor.org/rfc/rfc8375#section-7" class="relref">Section 7</a> of [<a href="#RFC8375" class="cite xref">RFC8375</a>]</span>).  Also
-consider adding "0.ipn.arpa" to the IANA "Locally-Served DNS Zones"
-registry (<span><a href="https://rfc-editor.org/rfc/rfc6303#section-6" class="relref">Section 6</a> of [<a href="#RFC6303" class="cite xref">RFC6303</a>]</span>).<a href="#section-7.1-5" class="pilcrow">¶</a></p>
+reconsidered if the working group chooses to take on that scope.<a href="#section-7.1.1-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="experimental-allocators">
+<section id="section-7.1.2">
+          <h4 id="name-experimental-use-allocator-">
+<a href="#section-7.1.2" class="section-number selfRef">7.1.2. </a><a href="#name-experimental-use-allocator-" class="section-name selfRef">Experimental Use Allocator Identifiers</a>
+          </h4>
+<p id="section-7.1.2-1"><span><a href="https://rfc-editor.org/rfc/rfc9758#section-9.1" class="relref">Section 9.1</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span> designates Allocator Identifiers 1073741824
+through 2147483647 inclusive (0x40000000 through 0x7FFFFFFF) as
+Experimental Use.  Experimental Use values are not assigned to any
+particular party (<span><a href="https://rfc-editor.org/rfc/rfc8126#section-4.2" class="relref">Section 4.2</a> of [<a href="#RFC8126" class="cite xref">RFC8126</a>]</span>), so independent
+experiments may reuse the same identifier.  A globally authoritative
+mapping from such an identifier to discovery data would therefore be
+inappropriate.<a href="#section-7.1.2-1" class="pilcrow">¶</a></p>
+<p id="section-7.1.2-2">For each Experimental Use Allocator Identifier A, a populated subtree
+beneath "A.ipn.arpa" <span class="bcp14">MUST NOT</span> be published in the global DNS.
+Locally scoped DNS discovery for Experimental Use Allocator
+Identifiers is permitted: names beneath "A.ipn.arpa" <span class="bcp14">MAY</span> be served by
+local DNS resolvers or servers within the scope of an experiment.<a href="#section-7.1.2-2" class="pilcrow">¶</a></p>
+<p id="section-7.1.2-3">This DNS publication restriction is established by this document.
+<span>[<a href="#RFC9758" class="cite xref">RFC9758</a>]</span> designates the Experimental Use range but does not itself
+restrict DNS publication.<a href="#section-7.1.2-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="publication-restrictions">
+<section id="section-7.1.3">
+          <h4 id="name-scope-of-the-publication-re">
+<a href="#section-7.1.3" class="section-number selfRef">7.1.3. </a><a href="#name-scope-of-the-publication-re" class="section-name selfRef">Scope of the Publication Restrictions</a>
+          </h4>
+<p id="section-7.1.3-1">The restrictions in <a href="#allocator-zero" class="auto internal xref">Section 7.1.1</a> and <a href="#experimental-allocators" class="auto internal xref">Section 7.1.2</a>
+apply to every means of placing discovery data for the affected FQNNs
+in the global DNS, including:<a href="#section-7.1.3-1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-7.1.3-2.1">
+              <p id="section-7.1.3-2.1.1">discovery records, such as SRV, SVCB, or CNAME records, at or
+beneath "0.ipn.arpa" or "A.ipn.arpa" for an Experimental Use
+Allocator Identifier A;<a href="#section-7.1.3-2.1.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-7.1.3-2.2">
+              <p id="section-7.1.3-2.2.1">NS delegations of those names, or of names beneath them, to servers
+that publish such discovery data; and<a href="#section-7.1.3-2.2.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-7.1.3-2.3">
+              <p id="section-7.1.3-2.3.1">CNAME or DNAME records at or beneath those names that redirect
+discovery queries to data published elsewhere in the global DNS.<a href="#section-7.1.3-2.3.1" class="pilcrow">¶</a></p>
+</li>
+          </ul>
+<p id="section-7.1.3-3">These restrictions do not preclude whatever empty or insecure global
+representation of these names is chosen to support local resolution
+(see <a href="#local-resolution-todo" class="auto internal xref">Section 7.1.3, Paragraph 4</a>).<a href="#section-7.1.3-3" class="pilcrow">¶</a></p>
+<div id="local-resolution-todo">
+<p id="section-7.1.3-4">TODO (next editing pass; a separate design question from the
+publication policy above): Specify how "0.ipn.arpa" and the names of
+Experimental Use Allocator Identifiers are represented in the global
+DNS so that locally served answers can still be validated.
+If ipn.arpa is signed, an authenticated denial of existence for these
+names would cause validating resolvers to reject locally served data;
+locally served zones need an insecure delegation or must be within an
+insecure zone (<span><a href="https://rfc-editor.org/rfc/rfc6303#section-7" class="relref">Section 7</a> of [<a href="#RFC6303" class="cite xref">RFC6303</a>]</span>).  Compare the unsigned
+delegation of home.arpa to black-hole servers
+(<span><a href="https://rfc-editor.org/rfc/rfc8375#section-7" class="relref">Section 7</a> of [<a href="#RFC8375" class="cite xref">RFC8375</a>]</span>).  Also consider adding "0.ipn.arpa" to the
+IANA "Locally-Served DNS Zones" registry (<span><a href="https://rfc-editor.org/rfc/rfc6303#section-6" class="relref">Section 6</a> of [<a href="#RFC6303" class="cite xref">RFC6303</a>]</span>).
+The Experimental Use range comprises 2^30 sibling names directly
+beneath ipn.arpa, so its treatment may differ.  Related questions
+include preventing queries for these names from leaking into the
+public DNS and the negative answers that the public DNS returns for
+them.<a href="#section-7.1.3-4" class="pilcrow">¶</a></p>
+</div>
+</section>
+</div>
 </section>
 </div>
 <div id="ipn-allocator-registry-list-of-nameservers">
@@ -1840,16 +1932,19 @@ Allocator range <span class="bcp14">MAY</span> provide the IP addresses of DNS n
 will be considered authoritative for the .ipn.arpa zone for each requested
 Allocator.<a href="#section-7.2-1" class="pilcrow">¶</a></p>
 <p id="section-7.2-2">Public NS delegation and DNAME redirection requests apply only to
-eligible nonzero Allocator Identifiers.  This document does not
-request IANA to provide NS, DNAME, or other public discovery entries
-beneath "0.ipn.arpa" (see <a href="#creation-of-ipn-arpa" class="auto internal xref">Section 7.1</a>).<a href="#section-7.2-2" class="pilcrow">¶</a></p>
+eligible Allocator Identifiers.  Allocator Identifier zero and
+Experimental Use Allocator Identifiers are not eligible for public
+publication (see <a href="#publication-restrictions" class="auto internal xref">Section 7.1.3</a>).  This document does
+not request IANA to provide NS, DNAME, CNAME, or other public
+discovery entries beneath "0.ipn.arpa" or beneath the name of any
+Experimental Use Allocator Identifier.<a href="#section-7.2-2" class="pilcrow">¶</a></p>
 <p id="section-7.2-3">TODO: Discuss the procedures for delegating the corresponding child
-zones of ipn.arpa to the allocator agency for eligible nonzero
-Allocator Identifiers.<a href="#section-7.2-3" class="pilcrow">¶</a></p>
+zones of ipn.arpa to the allocator agency for eligible Allocator
+Identifiers.<a href="#section-7.2-3" class="pilcrow">¶</a></p>
 <p id="section-7.2-4">TODO: In the forthcoming administration-policy pass, address the
 authorization, creation, and maintenance of DNAME redirections in
 ipn.arpa (see <a href="#managing-allocator-ranges" class="auto internal xref">Section 4.1</a>) alongside NS delegation
-requests, for eligible nonzero Allocator Identifiers.<a href="#section-7.2-4" class="pilcrow">¶</a></p>
+requests, for eligible Allocator Identifiers.<a href="#section-7.2-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="guidance-to-designate-experts">
@@ -1926,6 +2021,14 @@ and both IPv4 and IPv6 addresses are given, etc.<a href="#section-7.3-1" class="
 <dt id="RFC6303">[RFC6303]</dt>
         <dd>
 <span class="refAuthor">Andrews, M.</span>, <span class="refTitle">"Locally Served DNS Zones"</span>, <span class="seriesInfo">BCP 163</span>, <span class="seriesInfo">RFC 6303</span>, <span class="seriesInfo">DOI 10.17487/RFC6303</span>, <time datetime="2011-07" class="refDate">July 2011</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc6303">https://www.rfc-editor.org/rfc/rfc6303</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC7116">[RFC7116]</dt>
+        <dd>
+<span class="refAuthor">Scott, K.</span> and <span class="refAuthor">M. Blanchet</span>, <span class="refTitle">"Licklider Transmission Protocol (LTP), Compressed Bundle Header Encoding (CBHE), and Bundle Protocol IANA Registries"</span>, <span class="seriesInfo">RFC 7116</span>, <span class="seriesInfo">DOI 10.17487/RFC7116</span>, <time datetime="2014-02" class="refDate">February 2014</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc7116">https://www.rfc-editor.org/rfc/rfc7116</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC8126">[RFC8126]</dt>
+        <dd>
+<span class="refAuthor">Cotton, M.</span>, <span class="refAuthor">Leiba, B.</span>, and <span class="refAuthor">T. Narten</span>, <span class="refTitle">"Guidelines for Writing an IANA Considerations Section in RFCs"</span>, <span class="seriesInfo">BCP 26</span>, <span class="seriesInfo">RFC 8126</span>, <span class="seriesInfo">DOI 10.17487/RFC8126</span>, <time datetime="2017-06" class="refDate">June 2017</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8126">https://www.rfc-editor.org/rfc/rfc8126</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="RFC8375">[RFC8375]</dt>
         <dd>

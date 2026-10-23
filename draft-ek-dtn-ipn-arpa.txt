@@ -90,6 +90,9 @@ Table of Contents
    6.  IAB Considerations
    7.  IANA Considerations
      7.1.  Creation of ipn.arpa
+       7.1.1.  Allocator Identifier Zero
+       7.1.2.  Experimental Use Allocator Identifiers
+       7.1.3.  Scope of the Publication Restrictions
      7.2.  'ipn' Allocator Registry List of Nameservers
      7.3.  Guidance to Designate Experts
    8.  References
@@ -205,11 +208,10 @@ Table of Contents
    encodings of an ipn EID (Section 6.4 of [RFC9758]) produce the same
    DNS base name.
 
-   Names for Allocator Identifier zero, such as 16384.0.ipn.arpa., are
-   constructed by the same rule.  They are usable in locally served
-   instances of 0.ipn.arpa.  Public DNS discovery for Allocator
-   Identifier zero is outside the scope of this document (see
-   Section 7.1).
+   Names for Allocator Identifier zero, such as 16384.0.ipn.arpa., and
+   for Experimental Use Allocator Identifiers are constructed by the
+   same rule.  They are usable in locally served instances, but they are
+   not published in the global DNS (see Section 7.1.3).
 
    The DNS base name is distinct from the CL-specific query name at
    which a BP Agent queries for records.  For example, a BP Agent
@@ -248,11 +250,17 @@ Table of Contents
    other Allocator Identifier.  For example, the FQNNs (978879,0) and
    (978879,4294967295) are processed like any other FQNN.
 
-   TODO: Specify the treatment of Private Use identities (Section 3.4.3
-   of [RFC9758] and Section 5.5 of [RFC9758]), including resolution
-   within a locally scoped namespace and prevention of inappropriate
-   queries for such names in the public DNS.  This policy will be
-   addressed separately.
+   Private Use Node Numbers (Section 3.4.3 of [RFC9758] and Section 5.5
+   of [RFC9758]) exist only under Allocator Identifier zero, so their
+   DNS base names fall beneath 0.ipn.arpa.  Their public DNS publication
+   is therefore excluded, and they can be resolved only in locally
+   served instances (see Section 7.1.1 and Section 7.1.3).
+
+   TODO: Address, separately from the publication policy above, the
+   remaining questions for locally served namespaces: preventing queries
+   for such names from leaking into the public DNS, the negative answers
+   that the public DNS returns for them, and DNSSEC validation of
+   locally served data (see Section 7.1.3, Paragraph 4).
 
 3.2.  Examples
 
@@ -464,9 +472,10 @@ Table of Contents
    The same technique can redirect service subtrees beneath individual
    node names in 0.ipn.arpa (for example, with a DNAME at
    N.0.ipn.arpa.), subject to authorization by the administrator of that
-   namespace.  Because a populated 0.ipn.arpa zone is not published in
-   the public DNS (see Section 7.1), such DNAMEs exist only in locally
-   served instances of that zone.
+   namespace.  Because populated subtrees beneath 0.ipn.arpa are not
+   published in the public DNS, such DNAMEs exist only in locally served
+   instances of that zone.  The same applies to DNAMEs for Experimental
+   Use Allocator Identifiers (see Section 7.1.3).
 
 4.1.1.  Provisioning Tools
 
@@ -514,6 +523,14 @@ Table of Contents
    Identifiers and Node Numbers, as specified in this document (see
    Section 3).
 
+   The following subsections establish restrictions on publishing
+   discovery data in the global DNS for two sets of names beneath
+   ipn.arpa.  These restrictions are established by this document; they
+   concern only the DNS discovery mechanism specified here and do not
+   alter any allocation or its Bundle Protocol semantics.
+
+7.1.1.  Allocator Identifier Zero
+
    "0.ipn.arpa" corresponds to Allocator Identifier zero, the Default
    Allocator (Section 3.2.2 of [RFC9758]).  Public DNS discovery for
    FQNNs with Allocator Identifier zero is intentionally outside the
@@ -524,31 +541,81 @@ Table of Contents
    private address space of [RFC1918] are served locally (Section 4.1 of
    [RFC6303]).
 
-   This restriction concerns only the DNS discovery mechanism specified
-   in this document.  It does not mean that Allocator Identifier zero
-   has only local significance: the Default Allocator's registry
-   (Section 9.2 of [RFC9758]) contains both assigned Node Numbers and a
-   Private Use range (Section 3.4.3 of [RFC9758]).  The restriction does
-   not alter any existing allocation or its Bundle Protocol semantics.
-   Supporting Allocator Identifier zero in the public DNS would require
-   additional administration and delegation procedures for existing
-   Default Allocator Node Number allocations, together with a treatment
-   of the Private Use range and of locally served DNS data.
+   This restriction covers every Node Number under Allocator Identifier
+   zero.  That includes the Private Use Node Numbers 1 through 16383
+   (Section 3.4.3 of [RFC9758]) and the Node Numbers 2097152 through
+   268435455 reserved for Private or Experimental Use, a reservation
+   carried over from the "CBHE Node Numbers" registry (Section 3.2.1 of
+   [RFC7116]; Section 9.2 of [RFC9758]).
+
+   The restriction does not mean that Allocator Identifier zero has only
+   local significance: the Default Allocator's registry (Section 9.2 of
+   [RFC9758]) contains assigned Node Numbers as well as the Private Use
+   and Private or Experimental Use ranges.  Supporting Allocator
+   Identifier zero in the public DNS would require additional
+   administration and delegation procedures for existing Default
+   Allocator Node Number allocations, together with a treatment of those
+   ranges and of locally served DNS data.
 
    Note to the Working Group (to be removed before publication as an
    RFC): Public DNS support for Allocator Identifier zero can be
    reconsidered if the working group chooses to take on that scope.
 
-   TODO (next editing pass; a separate design question from the scope
-   decision above): Specify how "0.ipn.arpa" is represented in the
-   global DNS so that locally served answers can still be validated.  If
-   ipn.arpa is signed, an authenticated denial of existence for
-   "0.ipn.arpa" would cause validating resolvers to reject locally
-   served data; locally served zones need an insecure delegation or must
-   be within an insecure zone (Section 7 of [RFC6303]).  Compare the
-   unsigned delegation of home.arpa to black-hole servers (Section 7 of
+7.1.2.  Experimental Use Allocator Identifiers
+
+   Section 9.1 of [RFC9758] designates Allocator Identifiers 1073741824
+   through 2147483647 inclusive (0x40000000 through 0x7FFFFFFF) as
+   Experimental Use.  Experimental Use values are not assigned to any
+   particular party (Section 4.2 of [RFC8126]), so independent
+   experiments may reuse the same identifier.  A globally authoritative
+   mapping from such an identifier to discovery data would therefore be
+   inappropriate.
+
+   For each Experimental Use Allocator Identifier A, a populated subtree
+   beneath "A.ipn.arpa" MUST NOT be published in the global DNS.
+   Locally scoped DNS discovery for Experimental Use Allocator
+   Identifiers is permitted: names beneath "A.ipn.arpa" MAY be served by
+   local DNS resolvers or servers within the scope of an experiment.
+
+   This DNS publication restriction is established by this document.
+   [RFC9758] designates the Experimental Use range but does not itself
+   restrict DNS publication.
+
+7.1.3.  Scope of the Publication Restrictions
+
+   The restrictions in Section 7.1.1 and Section 7.1.2 apply to every
+   means of placing discovery data for the affected FQNNs in the global
+   DNS, including:
+
+   *  discovery records, such as SRV, SVCB, or CNAME records, at or
+      beneath "0.ipn.arpa" or "A.ipn.arpa" for an Experimental Use
+      Allocator Identifier A;
+
+   *  NS delegations of those names, or of names beneath them, to
+      servers that publish such discovery data; and
+
+   *  CNAME or DNAME records at or beneath those names that redirect
+      discovery queries to data published elsewhere in the global DNS.
+
+   These restrictions do not preclude whatever empty or insecure global
+   representation of these names is chosen to support local resolution
+   (see Section 7.1.3, Paragraph 4).
+
+   TODO (next editing pass; a separate design question from the
+   publication policy above): Specify how "0.ipn.arpa" and the names of
+   Experimental Use Allocator Identifiers are represented in the global
+   DNS so that locally served answers can still be validated.  If
+   ipn.arpa is signed, an authenticated denial of existence for these
+   names would cause validating resolvers to reject locally served data;
+   locally served zones need an insecure delegation or must be within an
+   insecure zone (Section 7 of [RFC6303]).  Compare the unsigned
+   delegation of home.arpa to black-hole servers (Section 7 of
    [RFC8375]).  Also consider adding "0.ipn.arpa" to the IANA "Locally-
-   Served DNS Zones" registry (Section 6 of [RFC6303]).
+   Served DNS Zones" registry (Section 6 of [RFC6303]).  The
+   Experimental Use range comprises 2^30 sibling names directly beneath
+   ipn.arpa, so its treatment may differ.  Related questions include
+   preventing queries for these names from leaking into the public DNS
+   and the negative answers that the public DNS returns for them.
 
 7.2.  'ipn' Allocator Registry List of Nameservers
 
@@ -560,18 +627,21 @@ Table of Contents
    requested Allocator.
 
    Public NS delegation and DNAME redirection requests apply only to
-   eligible nonzero Allocator Identifiers.  This document does not
-   request IANA to provide NS, DNAME, or other public discovery entries
-   beneath "0.ipn.arpa" (see Section 7.1).
+   eligible Allocator Identifiers.  Allocator Identifier zero and
+   Experimental Use Allocator Identifiers are not eligible for public
+   publication (see Section 7.1.3).  This document does not request IANA
+   to provide NS, DNAME, CNAME, or other public discovery entries
+   beneath "0.ipn.arpa" or beneath the name of any Experimental Use
+   Allocator Identifier.
 
    TODO: Discuss the procedures for delegating the corresponding child
-   zones of ipn.arpa to the allocator agency for eligible nonzero
-   Allocator Identifiers.
+   zones of ipn.arpa to the allocator agency for eligible Allocator
+   Identifiers.
 
    TODO: In the forthcoming administration-policy pass, address the
    authorization, creation, and maintenance of DNAME redirections in
    ipn.arpa (see Section 4.1) alongside NS delegation requests, for
-   eligible nonzero Allocator Identifiers.
+   eligible Allocator Identifiers.
 
 7.3.  Guidance to Designate Experts
 
@@ -633,6 +703,17 @@ Table of Contents
    [RFC6303]  Andrews, M., "Locally Served DNS Zones", BCP 163,
               RFC 6303, DOI 10.17487/RFC6303, July 2011,
               <https://www.rfc-editor.org/rfc/rfc6303>.
+
+   [RFC7116]  Scott, K. and M. Blanchet, "Licklider Transmission
+              Protocol (LTP), Compressed Bundle Header Encoding (CBHE),
+              and Bundle Protocol IANA Registries", RFC 7116,
+              DOI 10.17487/RFC7116, February 2014,
+              <https://www.rfc-editor.org/rfc/rfc7116>.
+
+   [RFC8126]  Cotton, M., Leiba, B., and T. Narten, "Guidelines for
+              Writing an IANA Considerations Section in RFCs", BCP 26,
+              RFC 8126, DOI 10.17487/RFC8126, June 2017,
+              <https://www.rfc-editor.org/rfc/rfc8126>.
 
    [RFC8375]  Pfister, P. and T. Lemon, "Special-Use Domain
               'home.arpa.'", RFC 8375, DOI 10.17487/RFC8375, May 2018,
