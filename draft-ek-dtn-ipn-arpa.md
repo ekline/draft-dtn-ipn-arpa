@@ -41,12 +41,14 @@ normative:
 
 informative:
   RFC1918:
+  RFC2308:
   RFC6116:
   RFC6303:
   RFC6840:
   RFC7116:
   RFC8126:
   RFC8375:
+  RFC9460:
   TCPCL: RFC9174
   BIND-ARM:
     title: "BIND 9 Administrator Reference Manual"
@@ -421,7 +423,7 @@ The following DNS behaviors apply to the configurations above:
 * The Target of the SRV record eventually obtained must have one or
   more address records and must not be an alias {{RFC2782}}.
 
-## Other Convergence Layers
+## Other Convergence Layers {#other-cls}
 
 Each CL specification that uses DNS for discovery defines its own
 service query names and record types (e.g., SRV or SVCB records)
@@ -437,6 +439,56 @@ environments. Any deployments where querying DNS might not align
 with reliability or performance requirements are recommended to
 obtain BP FIB information by other mechanisms (out of scope of
 this document).
+
+## Discovery Results and Failures {#discovery-results}
+
+Discovery succeeds when a BP Agent obtains usable connection
+information as defined by the applicable convergence-layer
+specification, which determines the query names, record types,
+processing rules, and required connection parameters (see
+{{other-cls}}).  A syntactically valid DNS answer does not necessarily
+contain a binding that the requesting implementation can use;
+candidate selection and compatibility checks follow the applicable
+record-type and CL specifications.  This document does not require a
+BP Agent to query for every CL it supports, and it does not prescribe
+an order in which to try different CLs.
+
+Record-type processing is defined by the specification for that
+record type.  For SRV-based discovery, {{RFC2782}} governs priority,
+weight, and target processing, including a Target of ".", which
+indicates that the specified service is not available at that domain.
+For SVCB-based discovery, {{RFC9460}} and the applicable CL
+specification govern AliasMode and ServiceMode, parameter
+compatibility, endpoint selection, and fallback.  SRV rules do not
+carry over to other record types; for example, a ServiceMode SVCB
+TargetName of "." denotes the record's owner name
+({{Section 2.5.2 of RFC9460}}), not unavailability.
+
+Unsuccessful lookups are distinguished using existing DNS terminology
+{{RFC2308}}:
+
+NXDOMAIN:
+: The relevant DNS name does not exist.
+
+NODATA:
+: The name exists, but no records of the requested type exist.
+
+SERVFAIL, timeout, and other resolution failures:
+: The lookup did not complete successfully.  This does not establish
+  that the service is absent.
+
+These outcomes concern only the DNS discovery attempt.  They do not
+establish that the destination FQNN is invalid or that it is
+unreachable by other means, and the absence of one CL's discovery
+records does not establish the absence of another CL's service.
+
+An unsuccessful DNS discovery attempt does not by itself invalidate
+independently obtained forwarding information, such as configured
+routes or information from other discovery or routing mechanisms, and
+does not require deletion of a Bundle.  Those mechanisms remain
+governed by the BP Agent's existing policies; this document does not
+define retry timers, route precedence, or cache retention.  DNSSEC
+result handling is described in {{bpa-validation}}.
 
 ## Locally Served Namespaces {#locally-served}
 
@@ -656,16 +708,18 @@ makes similar observations ({{Section 7.1 of RFC6116}}).
 
 Operators publishing discovery data for this mechanism in the public
 DNS SHOULD provide DNSSEC authentication of that data, including the
-necessary chain of trust.  This recommendation applies to relevant
-alias, service, and address records, including records published
-outside ipn.arpa:
+necessary chain of trust.  This recommendation applies to all DNS
+records relied upon in discovery, including records published outside
+ipn.arpa:
 
-* any CNAME or DNAME records that redirect the query, such as those in
-  {{dns-constraints}} and {{managing-allocator-ranges}};
+* aliases and redirections, such as the CNAME and DNAME records in
+  {{dns-constraints}} and {{managing-allocator-ranges}}, or SVCB
+  AliasMode records;
 
-* the SRV (or other CL-specific) records; and
+* service records and other records carrying connection parameters,
+  such as SRV records or SVCB ServiceMode records; and
 
-* the address records for the SRV target.
+* address records for the resulting targets.
 
 The ipn.arpa zone itself is signed (see {{creation-of-ipn-arpa}}), and
 delegated allocator zones can be linked into its chain of trust with
@@ -699,10 +753,18 @@ does not convey validation results.  The absence of an authentication
 indication does not by itself establish which of these cases applies.
 
 This document does not impose a universal policy of accepting only
-secure results, and it does not authorize bypassing validation
-failures.  Detailed acceptance, failure, and fallback policies remain
-open (see {{security-open-items}}).  Validation of locally served
-namespaces is discussed in {{locally-served}}.
+secure results.  Acceptance of insecure results, and of results whose
+security status is unknown to the application, is subject to the BP
+Agent's configured policy.  The absence of an authentication
+indication does not by itself establish that a result is insecure.
+
+A known validation failure is a failure of the affected discovery
+path (see {{discovery-results}}).  It should not lead to automatic
+acceptance of the same data without validation, for example by
+repeating the query through a non-validating path.  This does not
+preclude retrieving DNSSEC data in order to validate it independently.
+Validation of locally served namespaces is discussed in
+{{locally-served}}.
 
 ## Convergence-Layer Peer Identity {#cl-peer-identity}
 
@@ -727,11 +789,6 @@ the handling of a peer Node ID that differs from the one intended,
 and of a peer Node ID that is not authenticated.
 
 ## Open Items {#security-open-items}
-
-TODO: Specify the BP Agent's detailed acceptance, failure, and
-fallback policies for discovery results, including the treatment of
-insecure, bogus, and indeterminate results and of failed lookups.
-
 
 TODO: Address caching of discovery results, operation during
 disruption, and other remaining security considerations.
