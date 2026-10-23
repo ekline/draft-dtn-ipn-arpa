@@ -43,6 +43,7 @@ informative:
   RFC1918:
   RFC6116:
   RFC6303:
+  RFC6840:
   RFC7116:
   RFC8126:
   RFC8375:
@@ -230,14 +231,8 @@ Private Use Node Numbers ({{Section 3.4.3 of RFC9758}} and
 {{Section 5.5 of RFC9758}}) exist only under Allocator Identifier zero,
 so their DNS base names fall beneath 0.ipn.arpa.  Their public DNS
 publication is therefore excluded, and they can be resolved only in
-locally served instances (see {{allocator-zero}} and
-{{publication-restrictions}}).
-
-TODO: Address, separately from the publication policy above, the
-remaining questions for locally served namespaces: preventing queries
-for such names from leaking into the public DNS, the negative answers
-that the public DNS returns for them, and DNSSEC validation of locally
-served data (see {{local-resolution-todo}}).
+locally served instances (see {{allocator-zero}},
+{{publication-restrictions}}, and {{locally-served}}).
 
 ## Examples {#examples}
 
@@ -443,6 +438,47 @@ with reliability or performance requirements are recommended to
 obtain BP FIB information by other mechanisms (out of scope of
 this document).
 
+## Locally Served Namespaces {#locally-served}
+
+Deployments that use locally served instances of 0.ipn.arpa or of
+Experimental Use allocator subtrees (see {{publication-restrictions}})
+configure their DNS infrastructure using existing mechanisms.  Loading
+the zones, selecting authoritative servers, and configuring resolvers
+to forward queries for those names are ordinary DNS administration;
+this document defines no new procedure for them.  Local use depends on
+explicit configuration in each deployment.  This document does not
+request automatic resolver behavior or any addition to the IANA
+"Locally-Served DNS Zones" registry {{RFC6303}}.
+
+The signed public ipn.arpa namespace does not supply a chain of trust
+to independently administered local data.  Where the public namespace
+contains no corresponding name, ordinary DNSSEC processing can
+authenticate that name's nonexistence in the public namespace, and a
+validator relying only on that public chain cannot authenticate a
+conflicting local answer.  A signed local zone can instead be
+authenticated using an appropriately configured local trust anchor
+({{Section 7 of RFC6303}}); {{Section 5.10 of RFC6840}} describes how
+a validator chooses among nested trust anchors.  That configuration
+is needed wherever validation occurs: in a validating resolver relied
+upon as described in {{bpa-validation}}, or in a BP Agent that
+validates independently.
+
+A deployment can instead accept unsigned local data under explicit
+local policy.  Such acceptance is a policy decision; it is not
+successful DNSSEC validation.  In either case, local resolution and
+trust settings are best scoped to the relevant subtrees, without
+disabling validation for ipn.arpa as a whole.
+
+It is recommended that resolution be configured so that queries for
+these locally served names remain within the intended administrative
+or experimental scope, including when local resolution fails.  Public
+resolution cannot provide the intended local discovery data, and
+queries that reach the public DNS can disclose the queried
+identifiers; {{RFC6303}} describes the motivation for containing such
+queries.  This is operational guidance, not a new resolver protocol,
+and it does not require Internet resolvers in general to recognize
+these namespaces.
+
 ## Managing Allocator Ranges {#managing-allocator-ranges}
 
 An Allocator may hold a range of Allocator Identifiers
@@ -644,7 +680,7 @@ CNAME synthesized from a validated DNAME does not require its own
 signature ({{Section 3.1 of RFC6672}} and
 {{Section 5.3.1 of RFC6672}}).
 
-### Validation by BP Agents
+### Validation by BP Agents {#bpa-validation}
 
 BP Agents using public DNS discovery SHOULD use DNSSEC validation,
 either locally or through a trusted validating resolver.  When relying
@@ -665,7 +701,8 @@ indication does not by itself establish which of these cases applies.
 This document does not impose a universal policy of accepting only
 secure results, and it does not authorize bypassing validation
 failures.  Detailed acceptance, failure, and fallback policies remain
-open (see {{security-open-items}}).
+open (see {{security-open-items}}).  Validation of locally served
+namespaces is discussed in {{locally-served}}.
 
 ## Convergence-Layer Peer Identity {#cl-peer-identity}
 
@@ -695,10 +732,6 @@ TODO: Specify the BP Agent's detailed acceptance, failure, and
 fallback policies for discovery results, including the treatment of
 insecure, bogus, and indeterminate results and of failed lookups.
 
-TODO: Address local resolution, public negative answers, and DNSSEC
-treatment for 0.ipn.arpa and Experimental Use Allocator Identifiers,
-which lie beneath the signed public hierarchy (see
-{{local-resolution-todo}}).
 
 TODO: Address caching of discovery results, operation during
 disruption, and other remaining security considerations.
@@ -824,28 +857,15 @@ in the global DNS, including:
 * CNAME or DNAME records at or beneath those names that redirect
   discovery queries to data published elsewhere in the global DNS.
 
-These restrictions do not preclude whatever empty or insecure global
-representation of these names is chosen to support local resolution
-(see {{local-resolution-todo}}).
-
-TODO (next editing pass; a separate design question from the
-publication policy above): Specify how "0.ipn.arpa" and the names of
-Experimental Use Allocator Identifiers are represented in the global
-DNS so that locally served answers can still be validated.
-Because ipn.arpa is signed (see {{creation-of-ipn-arpa}}), an
-authenticated denial of existence for these names would cause
-validating resolvers to reject locally served data;
-locally served zones need an insecure delegation or must be within an
-insecure zone ({{Section 7 of RFC6303}}).  Compare the unsigned
-delegation of home.arpa to black-hole servers
-({{Section 7 of RFC8375}}).  Also consider adding "0.ipn.arpa" to the
-IANA "Locally-Served DNS Zones" registry ({{Section 6 of RFC6303}}).
-The Experimental Use range comprises 2^30 sibling names directly
-beneath ipn.arpa, so its treatment may differ.  Related questions
-include preventing queries for these names from leaking into the
-public DNS and the negative answers that the public DNS returns for
-them.
-{: #local-resolution-todo}
+Names in these subtrees are absent from the public zone and receive
+ordinary DNS negative answers, with normal DNSSEC processing.  This
+document introduces no special public delegation or negative-answer
+mechanism for them.  For comparison, home.arpa has an insecure public
+delegation to accommodate validators without local trust
+configuration ({{Section 6.2 of RFC8375}} and
+{{Section 7 of RFC8375}}); this document does not request that
+arrangement.  Operational guidance for locally served
+instances is given in {{locally-served}}.
 
 ## Allocator DNS Provisioning {#allocator-dns-provisioning}
 
