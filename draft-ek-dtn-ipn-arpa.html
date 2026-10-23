@@ -1213,19 +1213,21 @@ the BP Agent responsible for a given IPN address.<a href="#section-abstract-2" c
                 <p id="section-toc.1-1.5.2.1.1"><a href="#section-5.1" class="auto internal xref">5.1</a>.  <a href="#name-discovery-yields-candidates" class="internal xref">Discovery Yields Candidates</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.2">
-                <p id="section-toc.1-1.5.2.2.1"><a href="#section-5.2" class="auto internal xref">5.2</a>.  <a href="#name-separate-security-questions" class="internal xref">Separate Security Questions</a></p>
+                <p id="section-toc.1-1.5.2.2.1"><a href="#section-5.2" class="auto internal xref">5.2</a>.  <a href="#name-discovery-peer-authenticati" class="internal xref">Discovery, Peer Authentication, and Forwarding Policy</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.3">
-                <p id="section-toc.1-1.5.2.3.1"><a href="#section-5.3" class="auto internal xref">5.3</a>.  <a href="#name-scope-of-dnssec-protection" class="internal xref">Scope of DNSSEC Protection</a></p>
+                <p id="section-toc.1-1.5.2.3.1"><a href="#section-5.3" class="auto internal xref">5.3</a>.  <a href="#name-dnssec" class="internal xref">DNSSEC</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.3.2.1">
+                    <p id="section-toc.1-1.5.2.3.2.1.1"><a href="#section-5.3.1" class="auto internal xref">5.3.1</a>.  <a href="#name-validation-by-bp-agents" class="internal xref">Validation by BP Agents</a></p>
+</li>
+                </ul>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.4">
                 <p id="section-toc.1-1.5.2.4.1"><a href="#section-5.4" class="auto internal xref">5.4</a>.  <a href="#name-convergence-layer-peer-iden" class="internal xref">Convergence-Layer Peer Identity</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.5">
-                <p id="section-toc.1-1.5.2.5.1"><a href="#section-5.5" class="auto internal xref">5.5</a>.  <a href="#name-relationship-to-local-polic" class="internal xref">Relationship to Local Policy</a></p>
-</li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.6">
-                <p id="section-toc.1-1.5.2.6.1"><a href="#section-5.6" class="auto internal xref">5.6</a>.  <a href="#name-open-items" class="internal xref">Open Items</a></p>
+                <p id="section-toc.1-1.5.2.5.1"><a href="#section-5.5" class="auto internal xref">5.5</a>.  <a href="#name-open-items" class="internal xref">Open Items</a></p>
 </li>
             </ul>
 </li>
@@ -1253,7 +1255,10 @@ the BP Agent responsible for a given IPN address.<a href="#section-abstract-2" c
                 <p id="section-toc.1-1.7.2.2.1"><a href="#section-7.2" class="auto internal xref">7.2</a>.  <a href="#name-ipn-allocator-registry-list" class="internal xref">'ipn' Allocator Registry List of Nameservers</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.3">
-                <p id="section-toc.1-1.7.2.3.1"><a href="#section-7.3" class="auto internal xref">7.3</a>.  <a href="#name-guidance-to-designate-exper" class="internal xref">Guidance to Designate Experts</a></p>
+                <p id="section-toc.1-1.7.2.3.1"><a href="#section-7.3" class="auto internal xref">7.3</a>.  <a href="#name-ds-records-for-delegated-al" class="internal xref">DS Records for Delegated Allocator Zones</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.4">
+                <p id="section-toc.1-1.7.2.4.1"><a href="#section-7.4" class="auto internal xref">7.4</a>.  <a href="#name-guidance-to-designate-exper" class="internal xref">Guidance to Designate Experts</a></p>
 </li>
             </ul>
 </li>
@@ -1795,8 +1800,7 @@ repetitive data.  Use of these facilities is optional.<a href="#section-4.1.1-3"
 <a href="#section-5" class="section-number selfRef">5. </a><a href="#name-security-considerations" class="section-name selfRef">Security Considerations</a>
       </h2>
 <p id="section-5-1">This section describes the trust model for forwarding information
-derived from DNS.  It is explanatory; it does not define new
-requirements for DNS, DNSSEC, or any convergence-layer protocol.<a href="#section-5-1" class="pilcrow">¶</a></p>
+derived from DNS and the use of DNSSEC with this mechanism.<a href="#section-5-1" class="pilcrow">¶</a></p>
 <div id="discovery-yields-candidates">
 <section id="section-5.1">
         <h3 id="name-discovery-yields-candidates">
@@ -1812,57 +1816,46 @@ a session or a Bundle, or that the Bundle will eventually be
 delivered.<a href="#section-5.1-1" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="separate-security-questions">
+<div id="forwarding-policy">
 <section id="section-5.2">
-        <h3 id="name-separate-security-questions">
-<a href="#section-5.2" class="section-number selfRef">5.2. </a><a href="#name-separate-security-questions" class="section-name selfRef">Separate Security Questions</a>
+        <h3 id="name-discovery-peer-authenticati">
+<a href="#section-5.2" class="section-number selfRef">5.2. </a><a href="#name-discovery-peer-authenticati" class="section-name selfRef">Discovery, Peer Authentication, and Forwarding Policy</a>
         </h3>
-<p id="section-5.2-1">Using DNS-derived forwarding information involves three distinct
-questions:<a href="#section-5.2-1" class="pilcrow">¶</a></p>
-<span class="break"></span><dl class="dlParallel" id="section-5.2-2">
-          <dt id="section-5.2-2.1">Authentication of DNS data:</dt>
-          <dd style="margin-left: 1.5em" id="section-5.2-2.2">
-            <p id="section-5.2-2.2.1">Whether the records used in discovery are the data published by the
-responsible zone operators, unmodified in transit.<a href="#section-5.2-2.2.1" class="pilcrow">¶</a></p>
-</dd>
-          <dd class="break"></dd>
-<dt id="section-5.2-2.3">Authentication of the connected peer:</dt>
-          <dd style="margin-left: 1.5em" id="section-5.2-2.4">
-            <p id="section-5.2-2.4.1">Whether the convergence-layer peer to which a session is actually
-established is the entity it claims to be.<a href="#section-5.2-2.4.1" class="pilcrow">¶</a></p>
-</dd>
-          <dd class="break"></dd>
-<dt id="section-5.2-2.5">Authorization to forward:</dt>
-          <dd style="margin-left: 1.5em" id="section-5.2-2.6">
-            <p id="section-5.2-2.6.1">Whether local policy permits that peer to be used to forward a given
-Bundle toward its destination.<a href="#section-5.2-2.6.1" class="pilcrow">¶</a></p>
-</dd>
-        <dd class="break"></dd>
-</dl>
-<p id="section-5.2-3">A positive answer to one question does not answer the others.
-Authenticated DNS information can inform forwarding policy, for
-example by indicating which relay an allocator's zone operator
-advertises for a node, but the decision to use a peer remains a
-matter of local policy.<a href="#section-5.2-3" class="pilcrow">¶</a></p>
+<p id="section-5.2-1">Using DNS-derived forwarding information involves two distinct
+authentication questions: whether the DNS data used in discovery is
+authentic (see <a href="#dnssec" class="auto internal xref">Section 5.3</a>), and whether the convergence-layer peer to
+which a session is established is the entity it claims to be (see
+<a href="#cl-peer-identity" class="auto internal xref">Section 5.4</a>).  Authenticating one does not authenticate the
+other.<a href="#section-5.2-1" class="pilcrow">¶</a></p>
+<p id="section-5.2-2">A BP Agent uses DNS-derived forwarding information according to its
+configured forwarding policy.  That policy may permit automatic use of
+authenticated discovery mappings.  Discovery does not override
+configured forwarding policy or convergence-layer security policy;
+DNS-derived candidates are subject to the same policy as forwarding
+information from other sources.<a href="#section-5.2-2" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="scope-of-dnssec-protection">
+<div id="dnssec">
 <section id="section-5.3">
-        <h3 id="name-scope-of-dnssec-protection">
-<a href="#section-5.3" class="section-number selfRef">5.3. </a><a href="#name-scope-of-dnssec-protection" class="section-name selfRef">Scope of DNSSEC Protection</a>
+        <h3 id="name-dnssec">
+<a href="#section-5.3" class="section-number selfRef">5.3. </a><a href="#name-dnssec" class="section-name selfRef">DNSSEC</a>
         </h3>
-<p id="section-5.3-1">DNSSEC <span>[<a href="#RFC4033" class="cite xref">RFC4033</a>]</span> provides data origin authentication and integrity
-for DNS data.  It does not authenticate the live convergence-layer
-peer: a validated SRV record and validated address records show what
-the zone operators published, not that the host answering at that
-address and port is the advertised peer.<a href="#section-5.3-1" class="pilcrow">¶</a></p>
-<p id="section-5.3-2">Discovery typically involves several lookups, and an assessment of
-its security needs to account for all records used:<a href="#section-5.3-2" class="pilcrow">¶</a></p>
+<p id="section-5.3-1">Forged discovery information can redirect connection attempts, and
+therefore bundle transfers, to endpoints chosen by an attacker.
+DNSSEC <span>[<a href="#RFC9364" class="cite xref">RFC9364</a>]</span> provides data origin authentication and integrity
+for DNS data.  It does not establish the identity of the live
+convergence-layer peer at the resulting address and port, and it
+does not guarantee that the advertised service is available.  ENUM
+makes similar observations (<span><a href="https://rfc-editor.org/rfc/rfc6116#section-7.1" class="relref">Section 7.1</a> of [<a href="#RFC6116" class="cite xref">RFC6116</a>]</span>).<a href="#section-5.3-1" class="pilcrow">¶</a></p>
+<p id="section-5.3-2">Operators publishing discovery data for this mechanism in the public
+DNS <span class="bcp14">SHOULD</span> provide DNSSEC authentication of that data, including the
+necessary chain of trust.  This recommendation applies to relevant
+alias, service, and address records, including records published
+outside ipn.arpa:<a href="#section-5.3-2" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-5.3-3.1">
             <p id="section-5.3-3.1.1">any CNAME or DNAME records that redirect the query, such as those in
-<a href="#dns-constraints" class="auto internal xref">Section 3.3</a> and <a href="#managing-allocator-ranges" class="auto internal xref">Section 4.1</a>
-(<span><a href="https://rfc-editor.org/rfc/rfc6672#section-5.3" class="relref">Section 5.3</a> of [<a href="#RFC6672" class="cite xref">RFC6672</a>]</span>);<a href="#section-5.3-3.1.1" class="pilcrow">¶</a></p>
+<a href="#dns-constraints" class="auto internal xref">Section 3.3</a> and <a href="#managing-allocator-ranges" class="auto internal xref">Section 4.1</a>;<a href="#section-5.3-3.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-5.3-3.2">
             <p id="section-5.3-3.2.1">the SRV (or other CL-specific) records; and<a href="#section-5.3-3.2.1" class="pilcrow">¶</a></p>
@@ -1871,19 +1864,52 @@ its security needs to account for all records used:<a href="#section-5.3-2" clas
             <p id="section-5.3-3.3.1">the address records for the SRV target.<a href="#section-5.3-3.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-5.3-4">Several of these records can lie outside ipn.arpa, in zones operated
-by other parties.  Signing ipn.arpa, or an allocator's zone, therefore
-does not by itself secure every subsequent lookup; each step in the
-chain has its own security status.<a href="#section-5.3-4" class="pilcrow">¶</a></p>
+<p id="section-5.3-4">The ipn.arpa zone itself is signed (see <a href="#creation-of-ipn-arpa" class="auto internal xref">Section 7.1</a>), and
+delegated allocator zones can be linked into its chain of trust with
+DS records (see <a href="#ds-management" class="auto internal xref">Section 7.3</a>).  Signing ipn.arpa alone does not
+authenticate records in delegated zones or external target
+namespaces; each record used in discovery has its own security
+status.<a href="#section-5.3-4" class="pilcrow">¶</a></p>
+<p id="section-5.3-5">Validation of these records follows standard DNSSEC processing; this
+document does not define a new validation procedure.  For example, a
+CNAME synthesized from a validated DNAME does not require its own
+signature (<span><a href="https://rfc-editor.org/rfc/rfc6672#section-3.1" class="relref">Section 3.1</a> of [<a href="#RFC6672" class="cite xref">RFC6672</a>]</span> and
+<span><a href="https://rfc-editor.org/rfc/rfc6672#section-5.3.1" class="relref">Section 5.3.1</a> of [<a href="#RFC6672" class="cite xref">RFC6672</a>]</span>).<a href="#section-5.3-5" class="pilcrow">¶</a></p>
+<div id="validation-by-bp-agents">
+<section id="section-5.3.1">
+          <h4 id="name-validation-by-bp-agents">
+<a href="#section-5.3.1" class="section-number selfRef">5.3.1. </a><a href="#name-validation-by-bp-agents" class="section-name selfRef">Validation by BP Agents</a>
+          </h4>
+<p id="section-5.3.1-1">BP Agents using public DNS discovery <span class="bcp14">SHOULD</span> use DNSSEC validation,
+either locally or through a trusted validating resolver.  When relying
+on validation performed by another resolver, the resolver and the
+channel used to obtain its results need to satisfy the trust
+requirements of <span><a href="https://rfc-editor.org/rfc/rfc4035#section-4.9.3" class="relref">Section 4.9.3</a> of [<a href="#RFC4035" class="cite xref">RFC4035</a>]</span>.<a href="#section-5.3.1-1" class="pilcrow">¶</a></p>
+<p id="section-5.3.1-2">DNSSEC distinguishes data that is secure, insecure, bogus, or
+indeterminate (<span><a href="https://rfc-editor.org/rfc/rfc4035#section-4.3" class="relref">Section 4.3</a> of [<a href="#RFC4035" class="cite xref">RFC4035</a>]</span>).  Insecure data lies in a
+part of the namespace with no chain of trust, for example a target
+zone that is not signed.  Bogus data fails validation where a chain
+of trust is expected, which can indicate an attack or a
+misconfiguration.  An application can also receive results whose
+security status is unknown to it, for example from a resolver that
+does not convey validation results.  The absence of an authentication
+indication does not by itself establish which of these cases applies.<a href="#section-5.3.1-2" class="pilcrow">¶</a></p>
+<p id="section-5.3.1-3">This document does not impose a universal policy of accepting only
+secure results, and it does not authorize bypassing validation
+failures.  Detailed acceptance, failure, and fallback policies remain
+open (see <a href="#security-open-items" class="auto internal xref">Section 5.5</a>).<a href="#section-5.3.1-3" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="convergence-layer-peer-identity">
+</section>
+</div>
+<div id="cl-peer-identity">
 <section id="section-5.4">
         <h3 id="name-convergence-layer-peer-iden">
 <a href="#section-5.4" class="section-number selfRef">5.4. </a><a href="#name-convergence-layer-peer-iden" class="section-name selfRef">Convergence-Layer Peer Identity</a>
         </h3>
-<p id="section-5.4-1">Authentication of the convergence-layer peer is the responsibility of
-the convergence-layer protocol.  For TCPCLv4, session security,
+<p id="section-5.4-1">The applicable convergence-layer specification and configured
+security policy govern authentication of the convergence-layer peer.
+For TCPCLv4, session security,
 including certificate-based identification of the peer, is specified
 in <span><a href="https://rfc-editor.org/rfc/rfc9174#section-4.4" class="relref">Section 4.4</a> of [<a href="#TCPCL" class="cite xref">TCPCL</a>]</span>, and the handling of the peer's Node ID
 is specified in <span><a href="https://rfc-editor.org/rfc/rfc9174#section-4.6" class="relref">Section 4.6</a> of [<a href="#TCPCL" class="cite xref">TCPCL</a>]</span>.  This document does not
@@ -1900,34 +1926,20 @@ the handling of a peer Node ID that differs from the one intended,
 and of a peer Node ID that is not authenticated.<a href="#section-5.4-2" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="relationship-to-local-policy">
+<div id="security-open-items">
 <section id="section-5.5">
-        <h3 id="name-relationship-to-local-polic">
-<a href="#section-5.5" class="section-number selfRef">5.5. </a><a href="#name-relationship-to-local-polic" class="section-name selfRef">Relationship to Local Policy</a>
-        </h3>
-<p id="section-5.5-1">Discovery does not override configured forwarding policy or
-convergence-layer security policy.  DNS-derived candidates are
-subject to the same policy as other sources of forwarding
-information, including any requirements for TLS, for peer
-authentication, and for which peers may be used for which
-destinations.<a href="#section-5.5-1" class="pilcrow">¶</a></p>
-</section>
-</div>
-<div id="open-items">
-<section id="section-5.6">
         <h3 id="name-open-items">
-<a href="#section-5.6" class="section-number selfRef">5.6. </a><a href="#name-open-items" class="section-name selfRef">Open Items</a>
+<a href="#section-5.5" class="section-number selfRef">5.5. </a><a href="#name-open-items" class="section-name selfRef">Open Items</a>
         </h3>
-<p id="section-5.6-1">TODO: Specify DNSSEC signing requirements for ipn.arpa and allocator
-zones, and DNSSEC validation requirements for BP Agents that use
-discovery.<a href="#section-5.6-1" class="pilcrow">¶</a></p>
-<p id="section-5.6-2">TODO: Specify the handling of DNSSEC results that are insecure or
-bogus, including whether and when such results can be used as
-forwarding candidates.<a href="#section-5.6-2" class="pilcrow">¶</a></p>
-<p id="section-5.6-3">TODO: Address locally served namespaces beneath the signed public
-hierarchy, such as 0.ipn.arpa and Experimental Use Allocator
-Identifiers (see <a href="#local-resolution-todo" class="auto internal xref">Section 7.1.3, Paragraph 4</a>).<a href="#section-5.6-3" class="pilcrow">¶</a></p>
-<p id="section-5.6-4">TODO Security: remaining security considerations not covered above.<a href="#section-5.6-4" class="pilcrow">¶</a></p>
+<p id="section-5.5-1">TODO: Specify the BP Agent's detailed acceptance, failure, and
+fallback policies for discovery results, including the treatment of
+insecure, bogus, and indeterminate results and of failed lookups.<a href="#section-5.5-1" class="pilcrow">¶</a></p>
+<p id="section-5.5-2">TODO: Address local resolution, public negative answers, and DNSSEC
+treatment for 0.ipn.arpa and Experimental Use Allocator Identifiers,
+which lie beneath the signed public hierarchy (see
+<a href="#local-resolution-todo" class="auto internal xref">Section 7.1.3, Paragraph 4</a>).<a href="#section-5.5-2" class="pilcrow">¶</a></p>
+<p id="section-5.5-3">TODO: Address caching of discovery results, operation during
+disruption, and other remaining security considerations.<a href="#section-5.5-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -1967,11 +1979,17 @@ components determine the DNS base name (see <a href="#discovery-model" class="au
 ".arpa" domain.  This namespace supports DNS names derived from IPN
 Allocator Identifiers and Node Numbers, as specified in this document
 (see <a href="#concept-of-operations" class="auto internal xref">Section 3</a>).<a href="#section-7.1-1" class="pilcrow">¶</a></p>
-<p id="section-7.1-2">The following subsections establish restrictions on publishing
+<p id="section-7.1-2">The operator of the public ipn.arpa zone <span class="bcp14">MUST</span> sign the zone using
+DNSSEC and maintain a chain of trust through the arpa zone.  This
+requirement applies to the ipn.arpa zone itself.  Recommendations
+concerning discovery data in delegated allocator zones and in other
+namespaces are addressed to the operators of those zones and are
+given in <a href="#dnssec" class="auto internal xref">Section 5.3</a>.<a href="#section-7.1-2" class="pilcrow">¶</a></p>
+<p id="section-7.1-3">The following subsections establish restrictions on publishing
 discovery data in the global DNS for two sets of names beneath
 ipn.arpa.  These restrictions are established by this document; they
 concern only the DNS discovery mechanism specified here and do not
-alter any allocation or its Bundle Protocol semantics.<a href="#section-7.1-2" class="pilcrow">¶</a></p>
+alter any allocation or its Bundle Protocol semantics.<a href="#section-7.1-3" class="pilcrow">¶</a></p>
 <div id="allocator-zero">
 <section id="section-7.1.1">
           <h4 id="name-allocator-identifier-zero">
@@ -2058,8 +2076,9 @@ representation of these names is chosen to support local resolution
 publication policy above): Specify how "0.ipn.arpa" and the names of
 Experimental Use Allocator Identifiers are represented in the global
 DNS so that locally served answers can still be validated.
-If ipn.arpa is signed, an authenticated denial of existence for these
-names would cause validating resolvers to reject locally served data;
+Because ipn.arpa is signed (see <a href="#creation-of-ipn-arpa" class="auto internal xref">Section 7.1</a>), an
+authenticated denial of existence for these names would cause
+validating resolvers to reject locally served data;
 locally served zones need an insecure delegation or must be within an
 insecure zone (<span><a href="https://rfc-editor.org/rfc/rfc6303#section-7" class="relref">Section 7</a> of [<a href="#RFC6303" class="cite xref">RFC6303</a>]</span>).  Compare the unsigned
 delegation of home.arpa to black-hole servers
@@ -2102,13 +2121,34 @@ ipn.arpa (see <a href="#managing-allocator-ranges" class="auto internal xref">Se
 requests, for eligible Allocator Identifiers.<a href="#section-7.2-4" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="guidance-to-designate-experts">
+<div id="ds-management">
 <section id="section-7.3">
-        <h3 id="name-guidance-to-designate-exper">
-<a href="#section-7.3" class="section-number selfRef">7.3. </a><a href="#name-guidance-to-designate-exper" class="section-name selfRef">Guidance to Designate Experts</a>
+        <h3 id="name-ds-records-for-delegated-al">
+<a href="#section-7.3" class="section-number selfRef">7.3. </a><a href="#name-ds-records-for-delegated-al" class="section-name selfRef">DS Records for Delegated Allocator Zones</a>
         </h3>
-<p id="section-7.3-1">TBD: things like make sure there are at least two nameserver IP addresses
-and both IPv4 and IPv6 addresses are given, etc.<a href="#section-7.3-1" class="pilcrow">¶</a></p>
+<p id="section-7.3-1">The ipn.arpa operator <span class="bcp14">MUST</span> support authenticated requests to add,
+update, and remove DS records for delegated allocator zones.  Such a
+request is subject to the same authority checks as a change to the
+corresponding NS delegation.  The operator of a delegated allocator
+zone is responsible for coordinating changes to its signing keys with
+updates to the corresponding DS records in ipn.arpa.<a href="#section-7.3-1" class="pilcrow">¶</a></p>
+<p id="section-7.3-2">This provides support for secure delegations; it does not require
+that every delegated allocator zone be signed.  This document does
+not specify the operational interface for these requests or the
+format in which DS data is stored.<a href="#section-7.3-2" class="pilcrow">¶</a></p>
+<p id="section-7.3-3">DS procedures apply to NS delegations.  A DNAME in ipn.arpa (see
+<a href="#managing-allocator-ranges" class="auto internal xref">Section 4.1</a>) is not a delegation: it is signed as
+ordinary data in the ipn.arpa zone, and the namespace to which it
+redirects has its own DNSSEC chain of trust.<a href="#section-7.3-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="guidance-to-designate-experts">
+<section id="section-7.4">
+        <h3 id="name-guidance-to-designate-exper">
+<a href="#section-7.4" class="section-number selfRef">7.4. </a><a href="#name-guidance-to-designate-exper" class="section-name selfRef">Guidance to Designate Experts</a>
+        </h3>
+<p id="section-7.4-1">TBD: things like make sure there are at least two nameserver IP addresses
+and both IPv4 and IPv6 addresses are given, etc.<a href="#section-7.4-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -2140,6 +2180,10 @@ and both IPv4 and IPv6 addresses are given, etc.<a href="#section-7.3-1" class="
         <dd>
 <span class="refAuthor">Huston, G., Ed.</span>, <span class="refTitle">"Management Guidelines &amp; Operational Requirements for the Address and Routing Parameter Area Domain ("arpa")"</span>, <span class="seriesInfo">BCP 52</span>, <span class="seriesInfo">RFC 3172</span>, <span class="seriesInfo">DOI 10.17487/RFC3172</span>, <time datetime="2001-09" class="refDate">September 2001</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc3172">https://www.rfc-editor.org/rfc/rfc3172</a>&gt;</span>. </dd>
 <dd class="break"></dd>
+<dt id="RFC4035">[RFC4035]</dt>
+        <dd>
+<span class="refAuthor">Arends, R.</span>, <span class="refAuthor">Austein, R.</span>, <span class="refAuthor">Larson, M.</span>, <span class="refAuthor">Massey, D.</span>, and <span class="refAuthor">S. Rose</span>, <span class="refTitle">"Protocol Modifications for the DNS Security Extensions"</span>, <span class="seriesInfo">RFC 4035</span>, <span class="seriesInfo">DOI 10.17487/RFC4035</span>, <time datetime="2005-03" class="refDate">March 2005</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc4035">https://www.rfc-editor.org/rfc/rfc4035</a>&gt;</span>. </dd>
+<dd class="break"></dd>
 <dt id="RFC6672">[RFC6672]</dt>
         <dd>
 <span class="refAuthor">Rose, S.</span> and <span class="refAuthor">W. Wijngaards</span>, <span class="refTitle">"DNAME Redirection in the DNS"</span>, <span class="seriesInfo">RFC 6672</span>, <span class="seriesInfo">DOI 10.17487/RFC6672</span>, <time datetime="2012-06" class="refDate">June 2012</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc6672">https://www.rfc-editor.org/rfc/rfc6672</a>&gt;</span>. </dd>
@@ -2147,6 +2191,10 @@ and both IPv4 and IPv6 addresses are given, etc.<a href="#section-7.3-1" class="
 <dt id="RFC8174">[RFC8174]</dt>
         <dd>
 <span class="refAuthor">Leiba, B.</span>, <span class="refTitle">"Ambiguity of Uppercase vs Lowercase in RFC 2119 Key Words"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 8174</span>, <span class="seriesInfo">DOI 10.17487/RFC8174</span>, <time datetime="2017-05" class="refDate">May 2017</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8174">https://www.rfc-editor.org/rfc/rfc8174</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC9364">[RFC9364]</dt>
+        <dd>
+<span class="refAuthor">Hoffman, P.</span>, <span class="refTitle">"DNS Security Extensions (DNSSEC)"</span>, <span class="seriesInfo">BCP 237</span>, <span class="seriesInfo">RFC 9364</span>, <span class="seriesInfo">DOI 10.17487/RFC9364</span>, <time datetime="2023-02" class="refDate">February 2023</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9364">https://www.rfc-editor.org/rfc/rfc9364</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="RFC9758">[RFC9758]</dt>
       <dd>
@@ -2168,10 +2216,6 @@ and both IPv4 and IPv6 addresses are given, etc.<a href="#section-7.3-1" class="
 <dt id="RFC1918">[RFC1918]</dt>
         <dd>
 <span class="refAuthor">Rekhter, Y.</span>, <span class="refAuthor">Moskowitz, B.</span>, <span class="refAuthor">Karrenberg, D.</span>, <span class="refAuthor">de Groot, G. J.</span>, and <span class="refAuthor">E. Lear</span>, <span class="refTitle">"Address Allocation for Private Internets"</span>, <span class="seriesInfo">BCP 5</span>, <span class="seriesInfo">RFC 1918</span>, <span class="seriesInfo">DOI 10.17487/RFC1918</span>, <time datetime="1996-02" class="refDate">February 1996</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc1918">https://www.rfc-editor.org/rfc/rfc1918</a>&gt;</span>. </dd>
-<dd class="break"></dd>
-<dt id="RFC4033">[RFC4033]</dt>
-        <dd>
-<span class="refAuthor">Arends, R.</span>, <span class="refAuthor">Austein, R.</span>, <span class="refAuthor">Larson, M.</span>, <span class="refAuthor">Massey, D.</span>, and <span class="refAuthor">S. Rose</span>, <span class="refTitle">"DNS Security Introduction and Requirements"</span>, <span class="seriesInfo">RFC 4033</span>, <span class="seriesInfo">DOI 10.17487/RFC4033</span>, <time datetime="2005-03" class="refDate">March 2005</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc4033">https://www.rfc-editor.org/rfc/rfc4033</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="RFC6116">[RFC6116]</dt>
         <dd>
