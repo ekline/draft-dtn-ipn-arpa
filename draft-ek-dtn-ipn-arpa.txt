@@ -84,9 +84,10 @@ Table of Contents
      3.3.  DNS Constraints
      3.4.  Other Convergence Layers
    4.  Operational Considerations
-     4.1.  Locally Served Namespaces
-     4.2.  Managing Allocator Ranges
-       4.2.1.  Provisioning Tools
+     4.1.  Discovery Results and Failures
+     4.2.  Locally Served Namespaces
+     4.3.  Managing Allocator Ranges
+       4.3.1.  Provisioning Tools
    5.  Security Considerations
      5.1.  Discovery Yields Candidates
      5.2.  Discovery, Peer Authentication, and Forwarding Policy
@@ -265,7 +266,7 @@ Table of Contents
    of [RFC9758]) exist only under Allocator Identifier zero, so their
    DNS base names fall beneath 0.ipn.arpa.  Their public DNS publication
    is therefore excluded, and they can be resolved only in locally
-   served instances (see Section 7.1.1, Section 7.1.3, and Section 4.1).
+   served instances (see Section 7.1.1, Section 7.1.3, and Section 4.2).
 
 3.2.  Examples
 
@@ -469,7 +470,55 @@ Table of Contents
    obtain BP FIB information by other mechanisms (out of scope of this
    document).
 
-4.1.  Locally Served Namespaces
+4.1.  Discovery Results and Failures
+
+   Discovery succeeds when a BP Agent obtains usable connection
+   information as defined by the applicable convergence-layer
+   specification, which determines the query names, record types,
+   processing rules, and required connection parameters (see
+   Section 3.4).  A syntactically valid DNS answer does not necessarily
+   contain a binding that the requesting implementation can use;
+   candidate selection and compatibility checks follow the applicable
+   record-type and CL specifications.  This document does not require a
+   BP Agent to query for every CL it supports, and it does not prescribe
+   an order in which to try different CLs.
+
+   Record-type processing is defined by the specification for that
+   record type.  For SRV-based discovery, [RFC2782] governs priority,
+   weight, and target processing, including a Target of ".", which
+   indicates that the specified service is not available at that domain.
+   For SVCB-based discovery, [RFC9460] and the applicable CL
+   specification govern AliasMode and ServiceMode, parameter
+   compatibility, endpoint selection, and fallback.  SRV rules do not
+   carry over to other record types; for example, a ServiceMode SVCB
+   TargetName of "." denotes the record's owner name (Section 2.5.2 of
+   [RFC9460]), not unavailability.
+
+   Unsuccessful lookups are distinguished using existing DNS terminology
+   [RFC2308]:
+
+   NXDOMAIN:  The relevant DNS name does not exist.
+
+   NODATA:  The name exists, but no records of the requested type exist.
+
+   SERVFAIL, timeout, and other resolution failures:  The lookup did not
+      complete successfully.  This does not establish that the service
+      is absent.
+
+   These outcomes concern only the DNS discovery attempt.  They do not
+   establish that the destination FQNN is invalid or that it is
+   unreachable by other means, and the absence of one CL's discovery
+   records does not establish the absence of another CL's service.
+
+   An unsuccessful DNS discovery attempt does not by itself invalidate
+   independently obtained forwarding information, such as configured
+   routes or information from other discovery or routing mechanisms, and
+   does not require deletion of a Bundle.  Those mechanisms remain
+   governed by the BP Agent's existing policies; this document does not
+   define retry timers, route precedence, or cache retention.  DNSSEC
+   result handling is described in Section 5.3.1.
+
+4.2.  Locally Served Namespaces
 
    Deployments that use locally served instances of 0.ipn.arpa or of
    Experimental Use allocator subtrees (see Section 7.1.3) configure
@@ -510,7 +559,7 @@ Table of Contents
    and it does not require Internet resolvers in general to recognize
    these namespaces.
 
-4.2.  Managing Allocator Ranges
+4.3.  Managing Allocator Ranges
 
    An Allocator may hold a range of Allocator Identifiers (Section 3.2.1
    of [RFC9758]).  Numeric allocation ranges do not automatically
@@ -615,7 +664,7 @@ Table of Contents
    instances of that zone.  The same applies to DNAMEs for Experimental
    Use Allocator Identifiers (see Section 7.1.3).
 
-4.2.1.  Provisioning Tools
+4.3.1.  Provisioning Tools
 
    Some DNS implementations provide implementation-specific facilities,
    such as the $GENERATE directive of BIND [BIND-ARM], as conveniences
@@ -674,16 +723,17 @@ Table of Contents
 
    Operators publishing discovery data for this mechanism in the public
    DNS SHOULD provide DNSSEC authentication of that data, including the
-   necessary chain of trust.  This recommendation applies to relevant
-   alias, service, and address records, including records published
-   outside ipn.arpa:
+   necessary chain of trust.  This recommendation applies to all DNS
+   records relied upon in discovery, including records published outside
+   ipn.arpa:
 
-   *  any CNAME or DNAME records that redirect the query, such as those
-      in Section 3.3 and Section 4.2;
+   *  aliases and redirections, such as the CNAME and DNAME records in
+      Section 3.3 and Section 4.3, or SVCB AliasMode records;
 
-   *  the SRV (or other CL-specific) records; and
+   *  service records and other records carrying connection parameters,
+      such as SRV records or SVCB ServiceMode records; and
 
-   *  the address records for the SRV target.
+   *  address records for the resulting targets.
 
    The ipn.arpa zone itself is signed (see Section 7.1), and delegated
    allocator zones can be linked into its chain of trust with DS records
@@ -715,10 +765,17 @@ Table of Contents
    indication does not by itself establish which of these cases applies.
 
    This document does not impose a universal policy of accepting only
-   secure results, and it does not authorize bypassing validation
-   failures.  Detailed acceptance, failure, and fallback policies remain
-   open (see Section 5.5).  Validation of locally served namespaces is
-   discussed in Section 4.1.
+   secure results.  Acceptance of insecure results, and of results whose
+   security status is unknown to the application, is subject to the BP
+   Agent's configured policy.  The absence of an authentication
+   indication does not by itself establish that a result is insecure.
+
+   A known validation failure is a failure of the affected discovery
+   path (see Section 4.1).  It should not lead to automatic acceptance
+   of the same data without validation, for example by repeating the
+   query through a non-validating path.  This does not preclude
+   retrieving DNSSEC data in order to validate it independently.
+   Validation of locally served namespaces is discussed in Section 4.2.
 
 5.4.  Convergence-Layer Peer Identity
 
@@ -742,10 +799,6 @@ Table of Contents
    ID that is not authenticated.
 
 5.5.  Open Items
-
-   TODO: Specify the BP Agent's detailed acceptance, failure, and
-   fallback policies for discovery results, including the treatment of
-   insecure, bogus, and indeterminate results and of failed lookups.
 
    TODO: Address caching of discovery results, operation during
    disruption, and other remaining security considerations.
@@ -874,7 +927,7 @@ Table of Contents
    delegation to accommodate validators without local trust
    configuration (Section 6.2 of [RFC8375] and Section 7 of [RFC8375]);
    this document does not request that arrangement.  Operational
-   guidance for locally served instances is given in Section 4.1.
+   guidance for locally served instances is given in Section 4.2.
 
 7.2.  Allocator DNS Provisioning
 
@@ -918,7 +971,7 @@ Table of Contents
       Section 7.2.4).
 
    DNAME redirection:  The requester supplies the fully qualified target
-      domain name.  See Section 4.2 and [RFC6672].
+      domain name.  See Section 4.3 and [RFC6672].
 
    These are alternatives.  A DNAME at the allocator name in ipn.arpa
    does not coexist with an NS delegation, or with the DS records of a
@@ -928,7 +981,7 @@ Table of Contents
    requester's allocation.  It identifies each affected identifier and
    the configuration that applies to it.  Batch provisioning introduces
    no numeric-range syntax in DNS; each affected allocator name has its
-   own parent-zone records (compare Section 4.2).
+   own parent-zone records (compare Section 4.3).
 
 7.2.3.  Maintenance
 
@@ -956,7 +1009,7 @@ Table of Contents
    format in which DS data is stored.
 
    DS procedures apply to NS delegations.  A DNAME in ipn.arpa (see
-   Section 4.2) is not a delegation: it is signed as ordinary data in
+   Section 4.3) is not a delegation: it is signed as ordinary data in
    the ipn.arpa zone, and the namespace to which it redirects has its
    own DNSSEC chain of trust.
 
@@ -1032,6 +1085,10 @@ Table of Contents
               Internets", BCP 5, RFC 1918, DOI 10.17487/RFC1918,
               February 1996, <https://www.rfc-editor.org/rfc/rfc1918>.
 
+   [RFC2308]  Andrews, M., "Negative Caching of DNS Queries (DNS
+              NCACHE)", RFC 2308, DOI 10.17487/RFC2308, March 1998,
+              <https://www.rfc-editor.org/rfc/rfc2308>.
+
    [RFC6116]  Bradner, S., Conroy, L., and K. Fujiwara, "The E.164 to
               Uniform Resource Identifiers (URI) Dynamic Delegation
               Discovery System (DDDS) Application (ENUM)", RFC 6116,
@@ -1061,6 +1118,11 @@ Table of Contents
    [RFC8375]  Pfister, P. and T. Lemon, "Special-Use Domain
               'home.arpa.'", RFC 8375, DOI 10.17487/RFC8375, May 2018,
               <https://www.rfc-editor.org/rfc/rfc8375>.
+
+   [RFC9460]  Schwartz, B., Bishop, M., and E. Nygren, "Service Binding
+              and Parameter Specification via the DNS (SVCB and HTTPS
+              Resource Records)", RFC 9460, DOI 10.17487/RFC9460,
+              November 2023, <https://www.rfc-editor.org/rfc/rfc9460>.
 
    [TCPCL]    Sipos, B., Demmer, M., Ott, J., and S. Perreault, "Delay-
               Tolerant Networking TCP Convergence-Layer Protocol Version
