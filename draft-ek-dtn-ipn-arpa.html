@@ -12,12 +12,9 @@ namespace for the IPN node identifiers used by the Bundle Protocol (BP).
 Each Fully Qualified Node Number has a canonical name of the form
 N.A.ipn.arpa, where A is the Allocator Identifier and N is the Node
 Number.  A BP Agent can query directly beneath that name for records
-defined by a convergence-layer specification, such as SRV or SVCB
+specified by a convergence-layer discovery binding, such as SRV or SVCB
 records.  The DNS records identify convergence-layer endpoints
-advertised for reaching a destination, including relays.  A BP Agent's
-configured forwarding policy may permit automatic use of authenticated
-discovery mappings, subject to the security requirements of the
-applicable convergence layer. 
+advertised for reaching a destination, including relays. 
     " name="description">
 <meta content="xml2rfc 3.34.1" name="generator">
 <meta content="DTN" name="keyword">
@@ -1094,12 +1091,9 @@ namespace for the IPN node identifiers used by the Bundle Protocol (BP).
 Each Fully Qualified Node Number has a canonical name of the form
 N.A.ipn.arpa, where A is the Allocator Identifier and N is the Node
 Number.  A BP Agent can query directly beneath that name for records
-defined by a convergence-layer specification, such as SRV or SVCB
+specified by a convergence-layer discovery binding, such as SRV or SVCB
 records.  The DNS records identify convergence-layer endpoints
-advertised for reaching a destination, including relays.  A BP Agent's
-configured forwarding policy may permit automatic use of authenticated
-discovery mappings, subject to the security requirements of the
-applicable convergence layer.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
+advertised for reaching a destination, including relays.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
 </section>
 <section class="note rfcEditorRemove" id="section-note.1">
       <h2 id="name-about-this-document">
@@ -1397,10 +1391,11 @@ as specified in <a href="#discovery-model" class="auto internal xref">Section 3.
         <dd class="break"></dd>
 <dt id="section-2-5.3">CL-specific query name:</dt>
         <dd style="margin-left: 1.5em" id="section-2-5.4">
-          <p id="section-2-5.4.1">A DNS name, defined by a CL specification relative to a DNS base
-name, at which a BP Agent queries for the records needed to reach
-the node using that CL.  For example, the TCPCLv4 query name is
-formed by prepending <code>_dtn-bundle._tcp</code> to the DNS base name.<a href="#section-2-5.4.1" class="pilcrow">¶</a></p>
+          <p id="section-2-5.4.1">A DNS name, defined relative to a DNS base name by this document
+or the discovery specification applicable to another CL, at which a
+BP Agent queries for the records needed to reach the node using that
+CL.  The TCPCLv4 query name prepends <code>_dtn-bundle._tcp</code> to the DNS
+base name (<a href="#discovery-model" class="auto internal xref">Section 3.1</a>).<a href="#section-2-5.4.1" class="pilcrow">¶</a></p>
 </dd>
       <dd class="break"></dd>
 </dl>
@@ -1509,24 +1504,31 @@ Allocator Identifier zero (<span><a href="https://rfc-editor.org/rfc/rfc9758#sec
 are not published in the public hierarchy
 (<a href="#publication-restrictions" class="auto internal xref">Section 7.1.3</a>) but can be used in locally served
 instances (<a href="#locally-served" class="auto internal xref">Section 4.3</a>).<a href="#section-3.1-9" class="pilcrow">¶</a></p>
-<p id="section-3.1-10">The DNS base name is distinct from the CL-specific query name at
-which a BP Agent queries for records.  For example, a BP Agent
-discovering TCPCLv4 <span>[<a href="#TCPCL" class="cite xref">TCPCL</a>]</span> service for the FQNN (978879,2)
-prepends <code>_dtn-bundle._tcp</code> to the DNS base name and queries for SRV
-records <span>[<a href="#RFC2782" class="cite xref">RFC2782</a>]</span> at:<a href="#section-3.1-10" class="pilcrow">¶</a></p>
+<p id="section-3.1-10">This document defines TCPCLv4 <span>[<a href="#TCPCL" class="cite xref">TCPCL</a>]</span> discovery using SRV records
+at the CL-specific query name:<a href="#section-3.1-10" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-3.1-11">
 <pre>
-_dtn-bundle._tcp.2.978879.ipn.arpa.
+_dtn-bundle._tcp.N.A.ipn.arpa.
 </pre><a href="#section-3.1-11" class="pilcrow">¶</a>
 </div>
-<p id="section-3.1-12">No preliminary PTR query is required, and this discovery procedure
-requires no PTR records.<a href="#section-3.1-12" class="pilcrow">¶</a></p>
-<p id="section-3.1-13">This differs from the conventional use of in-addr.arpa and ip6.arpa,
+<p id="section-3.1-12">Here, <code>N.A.ipn.arpa.</code> is the DNS base name constructed by the rules
+above.  SRV processing follows <span>[<a href="#RFC2782" class="cite xref">RFC2782</a>]</span>, including priority,
+weight, port, and target processing.  DNS discovery is optional;
+retention and refresh of discovery results follow <a href="#caching" class="auto internal xref">Section 4.2</a>.<a href="#section-3.1-12" class="pilcrow">¶</a></p>
+<p id="section-3.1-13">For example, the TCPCLv4 query name for the FQNN (978879,2) is:<a href="#section-3.1-13" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-3.1-14">
+<pre>
+_dtn-bundle._tcp.2.978879.ipn.arpa.
+</pre><a href="#section-3.1-14" class="pilcrow">¶</a>
+</div>
+<p id="section-3.1-15">No preliminary PTR query is required, and this discovery procedure
+requires no PTR records.<a href="#section-3.1-15" class="pilcrow">¶</a></p>
+<p id="section-3.1-16">This differs from the conventional use of in-addr.arpa and ip6.arpa,
 in which a PTR record maps an address to a hostname that is then used
 for further lookups.  The discovery procedure in this document
 publishes service records directly beneath the DNS base name; no
-IPN-to-hostname mapping step is involved.<a href="#section-3.1-13" class="pilcrow">¶</a></p>
-<p id="section-3.1-14">The Null ipn URI (<span><a href="https://rfc-editor.org/rfc/rfc9758#section-3.1" class="relref">Section 3.1</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>) and LocalNode ipn URIs
+IPN-to-hostname mapping step is involved.<a href="#section-3.1-16" class="pilcrow">¶</a></p>
+<p id="section-3.1-17">The Null ipn URI (<span><a href="https://rfc-editor.org/rfc/rfc9758#section-3.1" class="relref">Section 3.1</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>) and LocalNode ipn URIs
 (<span><a href="https://rfc-editor.org/rfc/rfc9758#section-3.4.2" class="relref">Section 3.4.2</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>) are recognized after the interpretation
 described above.  For example, an ipn URI with a zero Allocator
 Identifier, a zero Node Number, and a non-zero Service Number is
@@ -1538,12 +1540,12 @@ local node (<span><a href="https://rfc-editor.org/rfc/rfc9758#section-5.4" class
 DNS discovery for the Null ipn URI or for a LocalNode ipn URI.  In
 addition,
 <span><a href="https://rfc-editor.org/rfc/rfc9758#section-5.4" class="relref">Section 5.4</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span> prohibits publishing LocalNode ipn EIDs in
-any node identification directory, such as a DNS registration.<a href="#section-3.1-14" class="pilcrow">¶</a></p>
-<p id="section-3.1-15">These cases are identified by the complete FQNN: (0,0) for the Null
+any node identification directory, such as a DNS registration.<a href="#section-3.1-17" class="pilcrow">¶</a></p>
+<p id="section-3.1-18">These cases are identified by the complete FQNN: (0,0) for the Null
 ipn URI and (0,4294967295) for LocalNode ipn URIs.  This document
 does not reserve Node Number 0 or Node Number 4294967295 under any
 other Allocator Identifier.  For example, the FQNNs (978879,0) and
-(978879,4294967295) are processed like any other FQNN.<a href="#section-3.1-15" class="pilcrow">¶</a></p>
+(978879,4294967295) are processed like any other FQNN.<a href="#section-3.1-18" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="examples">
@@ -1811,13 +1813,13 @@ must have one or more address records and must not be an alias
         <h3 id="name-other-convergence-layers">
 <a href="#section-3.4" class="section-number selfRef">3.4. </a><a href="#name-other-convergence-layers" class="section-name selfRef">Other Convergence Layers</a>
         </h3>
-<p id="section-3.4-1">Each CL specification that uses DNS for discovery defines its own
-service query names and record types (e.g., SRV or SVCB records)
-relative to the DNS base name.  Appropriately capable BP Agents query
-for those records using the same DNS base name.  TCPCLv4 SRV discovery
-is this document's worked example; <span>[<a href="#TCPCL" class="cite xref">TCPCL</a>]</span> registers the
-"dtn-bundle" service name and port 4556 but does not itself define
-DNS discovery.<a href="#section-3.4-1" class="pilcrow">¶</a></p>
+<p id="section-3.4-1">For other CLs, the applicable discovery specification defines service
+query names and record types (e.g., SRV or SVCB records) relative to
+the DNS base name.  Appropriately capable BP Agents query for those
+records using the same DNS base name.  The TCPCLv4 SRV discovery
+binding is specified in <a href="#discovery-model" class="auto internal xref">Section 3.1</a>; <span>[<a href="#TCPCL" class="cite xref">TCPCL</a>]</span> specifies
+TCPCLv4 and registers the "dtn-bundle" service name and port 4556,
+but does not itself define this DNS discovery procedure.<a href="#section-3.4-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -1836,11 +1838,12 @@ information by other means.<a href="#section-4-1" class="pilcrow">¶</a></p>
 <a href="#section-4.1" class="section-number selfRef">4.1. </a><a href="#name-discovery-results-and-failu" class="section-name selfRef">Discovery Results and Failures</a>
         </h3>
 <p id="section-4.1-1">Discovery succeeds when a BP Agent obtains usable connection
-information as defined by the applicable convergence-layer
-specification, which determines the query names, record types,
-processing rules, and required connection parameters (see
-<a href="#other-cls" class="auto internal xref">Section 3.4</a>).  A syntactically valid DNS answer does not necessarily
-contain a binding that the requesting implementation can use;
+information under the applicable discovery binding: the TCPCLv4
+binding in <a href="#discovery-model" class="auto internal xref">Section 3.1</a>, or the specification applicable to
+another CL (<a href="#other-cls" class="auto internal xref">Section 3.4</a>).  The binding determines the query names,
+record types, processing rules, and required connection parameters.
+A syntactically valid DNS answer does not necessarily contain a binding
+that the requesting implementation can use;
 candidate selection and compatibility checks follow the applicable
 record-type and CL specifications.  This document does not require a
 BP Agent to query for every CL it supports, and it does not prescribe
@@ -2136,10 +2139,7 @@ between configured routes and discovery results, or between
 authenticated and unauthenticated discovery results.  A BP Agent's
 configured forwarding policy may permit automatic use of authenticated
 discovery mappings, subject to the security requirements of the
-applicable convergence layer.  Authentic DNS data shows what the
-zone's administrator published; it does not by itself make a peer
-acceptable for particular traffic, whether that peer is the
-destination node or a relay.<a href="#section-5.2-2" class="pilcrow">¶</a></p>
+applicable convergence layer.<a href="#section-5.2-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="dnssec">
@@ -2150,8 +2150,7 @@ destination node or a relay.<a href="#section-5.2-2" class="pilcrow">¶</a></p>
 <p id="section-5.3-1">Forged discovery information can redirect connection attempts, and
 therefore bundle transfers, to endpoints chosen by an attacker.
 DNSSEC <span>[<a href="#RFC9364" class="cite xref">RFC9364</a>]</span> provides data origin authentication and integrity
-for DNS data.  It neither authenticates the convergence-layer peer
-(<a href="#forwarding-policy" class="auto internal xref">Section 5.2</a>) nor guarantees that the advertised service is
+for DNS data.  It does not guarantee that the advertised service is
 available; ENUM makes similar observations
 (<span><a href="https://rfc-editor.org/rfc/rfc6116#section-7.1" class="relref">Section 7.1</a> of [<a href="#RFC6116" class="cite xref">RFC6116</a>]</span>).<a href="#section-5.3-1" class="pilcrow">¶</a></p>
 <p id="section-5.3-2">Operators publishing discovery data for this mechanism in the public
@@ -2179,9 +2178,8 @@ DS records (see <a href="#ds-management" class="auto internal xref">Section 7.2.
 authenticate records in delegated zones or external target
 namespaces; each record used in discovery has its own security
 status.<a href="#section-5.3-4" class="pilcrow">¶</a></p>
-<p id="section-5.3-5">Validation of these records follows standard DNSSEC processing; this
-document does not define a new validation procedure.  For example, a
-CNAME synthesized from a validated DNAME does not require its own
+<p id="section-5.3-5">Validation of these records follows standard DNSSEC processing.  For
+example, a CNAME synthesized from a validated DNAME does not require its own
 signature (<span><a href="https://rfc-editor.org/rfc/rfc6672#section-3.1" class="relref">Section 3.1</a> of [<a href="#RFC6672" class="cite xref">RFC6672</a>]</span> and
 <span><a href="https://rfc-editor.org/rfc/rfc6672#section-5.3.1" class="relref">Section 5.3.1</a> of [<a href="#RFC6672" class="cite xref">RFC6672</a>]</span>).<a href="#section-5.3-5" class="pilcrow">¶</a></p>
 <div id="bpa-validation">
