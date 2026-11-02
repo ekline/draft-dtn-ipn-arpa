@@ -37,7 +37,9 @@ normative:
   RFC4035:
   RFC6672:
   RFC9364:
+  RFC9460:
   RFC9758:
+  TCPCL: RFC9174
 
 informative:
   RFC1918:
@@ -48,8 +50,9 @@ informative:
   RFC7116:
   RFC8126:
   RFC8375:
-  RFC9460:
-  TCPCL: RFC9174
+  RFC8767:
+  RFC9076:
+  RFC9171:
   BIND-ARM:
     title: "BIND 9 Administrator Reference Manual"
     author:
@@ -66,21 +69,49 @@ informative:
 
 --- abstract
 
-This document requests a DNS parent for IPN addresses, discusses
-the registration procedures and management of the DNS zone, as
-well as some operational recommendations.  This document specifies that
-IPN addresses may have a DNS representation of the form 1.978879.ipn.arpa,
-for IPN node 1 under IPN Allocator 978879.
-
-This document also describes how this DNS structure can be useful in
-locating the Bundle Protocol (BP) Convergence Layer (CL) endpoint(s) of
-the BP Agent responsible for a given IPN address.
+This document requests the creation of ipn.arpa, an infrastructure DNS
+namespace for the IPN node identifiers used by the Bundle Protocol (BP).
+Each Fully Qualified Node Number has a canonical name of the form
+N.A.ipn.arpa, where A is the Allocator Identifier and N is the Node
+Number.  A BP Agent can query directly beneath that name for records
+defined by a convergence-layer specification, such as SRV or SVCB
+records.  The DNS records identify convergence-layer endpoints
+advertised for reaching a destination, including relays.  A BP Agent's
+configured forwarding policy may permit automatic use of authenticated
+discovery mappings, subject to the security requirements of the
+applicable convergence layer.
 
 --- middle
 
 # Introduction
 
-TODO Introduction
+The Bundle Protocol (BP) {{RFC9171}} supports communication in networks
+subject to delay and disruption.  The ipn URI scheme {{RFC9758}}
+identifies BP nodes and services numerically.  An Allocator, identified
+by an Allocator Identifier assigned through an IANA registry, assigns
+Node Numbers; together, the two form a Fully Qualified Node Number
+(FQNN).
+
+This document requests the creation of ipn.arpa, an infrastructure
+namespace in which each FQNN has one canonical DNS name,
+`N.A.ipn.arpa.` ({{discovery-model}}).  A BP Agent can optionally
+query directly beneath that name for records defined by a
+convergence-layer (CL) specification, such as SRV or SVCB records, to
+learn CL connection information for a destination node.  The
+advertised endpoint can belong to the destination node itself or to a
+relay that accepts Bundles for onward forwarding.
+
+This mechanism supplies candidate next hops ({{candidates}}).  It is
+not a BP routing protocol and does not perform contact planning; path
+selection and forwarding decisions remain with the BP Agent and its
+configured policy.
+
+This document specifies public provisioning in ipn.arpa for eligible
+Allocator Identifiers ({{allocator-dns-provisioning}}) and excludes
+other identifiers, including Allocator Identifier zero and Experimental
+Use identifiers, from the public hierarchy
+({{publication-restrictions}}).  Deployments can also use explicitly
+configured locally served namespaces ({{locally-served}}).
 
 
 # Conventions and Definitions
@@ -181,14 +212,17 @@ Because the DNS base name is constructed from the parsed numeric
 components rather than from the text of the URI, equivalent
 representations of the same FQNN produce the same DNS base name.  For
 example, `ipn:16384.345` and `ipn:0.16384.345` both identify the FQNN
-(0,16384).  Likewise, the two-element and three-element CBOR encodings
-of an ipn EID ({{Section 6.4 of RFC9758}}) produce the same DNS base
-name.
+(0,16384).  Likewise, equivalent two-element and three-element CBOR
+encodings of the same ipn EID ({{Section 6.4 of RFC9758}}) produce the
+same DNS base name.
 
 Names for Allocator Identifier zero, such as `16384.0.ipn.arpa.`, and
 for Experimental Use Allocator Identifiers are constructed by the same
-rule.  They are usable in locally served instances, but they are not
-published in the global DNS (see {{publication-restrictions}}).
+rule.  This includes Private Use Node Numbers, which exist only under
+Allocator Identifier zero ({{Section 3.4.3 of RFC9758}}).  Such names
+are not published in the public hierarchy
+({{publication-restrictions}}) but can be used in locally served
+instances ({{locally-served}}).
 
 The DNS base name is distinct from the CL-specific query name at
 which a BP Agent queries for records.  For example, a BP Agent
@@ -229,13 +263,6 @@ does not reserve Node Number 0 or Node Number 4294967295 under any
 other Allocator Identifier.  For example, the FQNNs (978879,0) and
 (978879,4294967295) are processed like any other FQNN.
 
-Private Use Node Numbers ({{Section 3.4.3 of RFC9758}} and
-{{Section 5.5 of RFC9758}}) exist only under Allocator Identifier zero,
-so their DNS base names fall beneath 0.ipn.arpa.  Their public DNS
-publication is therefore excluded, and they can be resolved only in
-locally served instances (see {{allocator-zero}},
-{{publication-restrictions}}, and {{locally-served}}).
-
 ## Examples {#examples}
 
 The examples in this section describe one deployment: a fictional
@@ -245,7 +272,11 @@ as a distinct relay for each node or direct publication of a node's
 own endpoints; nothing in this document requires the architecture
 shown here.
 
-The agency administers Allocator Identifier 978879.  Its example
+The agency administers Allocator Identifier 978879.  This identifier,
+and those used in {{managing-allocator-ranges}}, are from the range
+reserved for examples ({{Section 9.1 of RFC9758}}).  The zone excerpts
+illustrate the mechanism; they do not request public provisioning of
+these identifiers (see {{allocator-dns-provisioning}}).  Its example
 destinations are:
 
 | FQNN | Destination | DNS base name |
@@ -328,8 +359,9 @@ that uses TCPCLv4 {{TCPCL}}:
 5. attempts a TCPCLv4 connection to `[2001:db8::10]:4556` or
    `192.0.2.10:4556`.  If that relay cannot be reached, the BP Agent
    can try the other candidate, `relay-b.space-agency.example.`
-   (`[2001:db8::11]:4556` or `192.0.2.11:4556`).  Once a session is
-   established, it transfers the Bundle.
+   (`[2001:db8::11]:4556` or `192.0.2.11:4556`).  If a session is
+   established with a peer acceptable under the BP Agent's policy
+   ({{forwarding-policy}}), it transfers the Bundle.
 
 ### Example B: Service Lookup Redirected through a CNAME
 
@@ -379,9 +411,9 @@ aliases, and the set of relays can be changed in
 
 The following points apply to both configurations:
 
-* Equal SRV priorities and weights provide approximately balanced
-  relay selection across connection attempts {{RFC2782}}.  They do
-  not guarantee equal bundle volume, because a session can carry any
+* Equal SRV priorities and weights express equal preference among the
+  relays; selection follows the procedure of {{RFC2782}}.  They do not
+  guarantee equal bundle volume, because a session can carry any
   number of Bundles, and they do not indicate current server load.
 
 * Multiple destination FQNNs can share the same discovery result.
@@ -393,52 +425,51 @@ The following points apply to both configurations:
   Node ID (see {{cl-peer-identity}}).
 
 * After accepting a Bundle, a relay forwards it using the agency's
-  configured onward routes and contact arrangements.  A successful
-  connection to a relay does not imply that the destination
-  spacecraft is currently reachable.
+  configured onward routes and contact arrangements (see also
+  {{candidates}}).
 
 * The example uses a single public DNS view.  The agency's internal
   forwarding arrangements are configured in its BP Agents rather than
   in DNS, so they require no internal DNS overrides.
 
 * The public records expose the advertised FQNNs, their association
-  with the ingress service, and the relay addresses.  They do not
-  describe the agency's ground facilities or contact arrangements.
-  The example limits disclosure of internal topology; it does not
-  provide confidentiality for the published data.
+  with the ingress service, and the relay addresses, but not the
+  agency's ground facilities or contact arrangements (see
+  {{privacy}}).
 
 ## DNS Constraints {#dns-constraints}
 
 The following DNS behaviors apply to the configurations above:
 
-* A CNAME aliases only its own owner name {{Section 3.6.2 of RFC1034}}.
+* A CNAME aliases only its own owner name
+  ({{Section 3.6.2 of RFC1034}}).
   To redirect the service lookup, the CNAME is placed at the complete
   service owner name (e.g., `_dtn-bundle._tcp.2.978879.ipn.arpa.`).
   A CNAME at the bare node name (e.g., `2.978879.ipn.arpa.`) does not
   alias its descendants and so does not redirect the service lookup.
 
 * A CNAME record and an SRV RRset cannot coexist at the same owner
-  name {{Section 3.6.2 of RFC1034}}.
+  name ({{Section 3.6.2 of RFC1034}}).
 
-* The Target of the SRV record eventually obtained must have one or
-  more address records and must not be an alias {{RFC2782}}.
+* The Target of the SRV record eventually obtained, unless it is ".",
+  must have one or more address records and must not be an alias
+  ({{RFC2782}}; see also {{Section 5.1 of RFC6672}}).
 
 ## Other Convergence Layers {#other-cls}
 
 Each CL specification that uses DNS for discovery defines its own
 service query names and record types (e.g., SRV or SVCB records)
 relative to the DNS base name.  Appropriately capable BP Agents query
-for those records using the same DNS base name.
+for those records using the same DNS base name.  TCPCLv4 SRV discovery
+is this document's worked example; {{TCPCL}} registers the
+"dtn-bundle" service name and port 4556 but does not itself define
+DNS discovery.
 
 # Operational Considerations
 
-TODO Operational
-
-Note that use of DNS may not be appropriate for all network
-environments. Any deployments where querying DNS might not align
-with reliability or performance requirements are recommended to
-obtain BP FIB information by other mechanisms (out of scope of
-this document).
+Deployments for which DNS does not meet reliability or performance
+requirements, particularly during disruption, can obtain forwarding
+information by other means.
 
 ## Discovery Results and Failures {#discovery-results}
 
@@ -468,7 +499,8 @@ Unsuccessful lookups are distinguished using existing DNS terminology
 {{RFC2308}}:
 
 NXDOMAIN:
-: The relevant DNS name does not exist.
+: The name at which resolution terminated, possibly the target of an
+  alias, does not exist.
 
 NODATA:
 : The name exists, but no records of the requested type exist.
@@ -487,19 +519,50 @@ independently obtained forwarding information, such as configured
 routes or information from other discovery or routing mechanisms, and
 does not require deletion of a Bundle.  Those mechanisms remain
 governed by the BP Agent's existing policies; this document does not
-define retry timers, route precedence, or cache retention.  DNSSEC
-result handling is described in {{bpa-validation}}.
+define retry timers or route precedence.  Caching is discussed in
+{{caching}} and DNSSEC result handling in {{bpa-validation}}.
+
+## Caching and Operation During Disruption {#caching}
+
+Ordinary positive and negative DNS caching follow existing DNS
+specifications, including {{RFC2308}} for negative answers.
+
+A discovery result retained by a BP Agent depends on the remaining
+lifetimes of the records used to obtain it, which can include aliases,
+SRV or SVCB records, and address records.  These records need not have
+identical TTLs.  Copying a result into forwarding information should
+not silently make it permanent configuration.  This document does not
+require a particular cache representation or a new lookup before each
+Bundle transfer.
+
+DNS TTL expiry does not by itself require closing an established CL
+session or deleting a Bundle.  Refreshing discovery information
+affects subsequent connection attempts; session management remains
+governed by the applicable CL specification.
+
+When refresh is unavailable, a deployment can use independently
+configured forwarding information or other routing mechanisms.
+Continued use of expired discovery information is governed by explicit
+operational policy, which accounts for possible changes to endpoints,
+aliases, or administrative control.  {{RFC8767}} describes how
+resolvers can serve stale DNS data; it does not specify retention of
+forwarding information by a BP Agent.
+
+TTL expiry is distinct from signature expiry.  An earlier successful
+validation does not establish indefinite validity: validation checks
+the RRSIG validity period ({{Section 5.3.1 of RFC4035}}), and the TTL
+of authenticated data is limited by the signature expiration time
+({{Section 5.3.3 of RFC4035}}).  Validation failures are handled as
+described in {{bpa-validation}}.
 
 ## Locally Served Namespaces {#locally-served}
 
 Deployments that use locally served instances of 0.ipn.arpa or of
 Experimental Use allocator subtrees (see {{publication-restrictions}})
-configure their DNS infrastructure using existing mechanisms.  Loading
+configure them explicitly through ordinary DNS administration: loading
 the zones, selecting authoritative servers, and configuring resolvers
-to forward queries for those names are ordinary DNS administration;
-this document defines no new procedure for them.  Local use depends on
-explicit configuration in each deployment.  This document does not
-request automatic resolver behavior or any addition to the IANA
+to forward queries for those names.  This document does not request
+automatic resolver behavior or any addition to the IANA
 "Locally-Served DNS Zones" registry {{RFC6303}}.
 
 The signed public ipn.arpa namespace does not supply a chain of trust
@@ -526,10 +589,9 @@ these locally served names remain within the intended administrative
 or experimental scope, including when local resolution fails.  Public
 resolution cannot provide the intended local discovery data, and
 queries that reach the public DNS can disclose the queried
-identifiers; {{RFC6303}} describes the motivation for containing such
-queries.  This is operational guidance, not a new resolver protocol,
-and it does not require Internet resolvers in general to recognize
-these namespaces.
+identifiers (see {{privacy}}); {{RFC6303}} describes the motivation
+for containing such queries.  This guidance does not require Internet
+resolvers in general to recognize these namespaces.
 
 ## Managing Allocator Ranges {#managing-allocator-ranges}
 
@@ -545,11 +607,8 @@ individually delegated zone for each one.  Alternatively, DNAME
 records {{RFC6672}} can redirect each allocator subtree into a common
 operator-managed zone.
 
-The following example uses Allocator Identifiers 974848 and 974849,
-from the example range in {{Section 9.1 of RFC9758}}.  They are
-additional illustrative allocator namespaces, and the example assumes
-that the agency of {{examples}} is also authorized to administer
-them.  The records are zone excerpts; routine zone infrastructure and
+The following example uses Allocator Identifiers 974848 and 974849
+and assumes that the agency of {{examples}} also administers them.  The records are zone excerpts; routine zone infrastructure and
 DNSSEC records are omitted.  The address records for the relays are
 those in {{relay-addresses}}.
 
@@ -636,14 +695,10 @@ The following constraints apply:
 See {{RFC6672}} for processing details and DNSSEC considerations
 ({{Section 5.3 of RFC6672}}).
 
-The same technique can redirect service subtrees beneath individual
-node names in 0.ipn.arpa (for example, with a DNAME at
-`N.0.ipn.arpa.`), subject to authorization by the administrator of
-that namespace.  Because populated subtrees beneath 0.ipn.arpa are
-not published in the public DNS, such DNAMEs exist only in locally
-served instances of that zone.  The same applies to DNAMEs for
-Experimental Use Allocator Identifiers (see
-{{publication-restrictions}}).
+Locally served instances of 0.ipn.arpa and of Experimental Use
+allocator subtrees ({{locally-served}}) can use DNAMEs in the same
+way, for example at `N.0.ipn.arpa.`, subject to authorization by the
+administrator of that namespace.
 
 ### Provisioning Tools
 
@@ -669,7 +724,7 @@ repetitive data.  Use of these facilities is optional.
 This section describes the trust model for forwarding information
 derived from DNS and the use of DNSSEC with this mechanism.
 
-## Discovery Yields Candidates
+## Discovery Yields Candidates {#candidates}
 
 The discovery procedure in {{concept-of-operations}} identifies
 candidate convergence-layer endpoints through which a destination
@@ -689,22 +744,27 @@ which a session is established is the entity it claims to be (see
 {{cl-peer-identity}}).  Authenticating one does not authenticate the
 other.
 
-A BP Agent uses DNS-derived forwarding information according to its
-configured forwarding policy.  That policy may permit automatic use of
-authenticated discovery mappings.  Discovery does not override
-configured forwarding policy or convergence-layer security policy;
-DNS-derived candidates are subject to the same policy as forwarding
-information from other sources.
+A BP Agent's configured forwarding and security policies govern the
+use of DNS-derived forwarding information.  Those policies may
+distinguish among sources of forwarding information, for example
+between configured routes and discovery results, or between
+authenticated and unauthenticated discovery results.  A BP Agent's
+configured forwarding policy may permit automatic use of authenticated
+discovery mappings, subject to the security requirements of the
+applicable convergence layer.  Authentic DNS data shows what the
+zone's administrator published; it does not by itself make a peer
+acceptable for particular traffic, whether that peer is the
+destination node or a relay.
 
 ## DNSSEC {#dnssec}
 
 Forged discovery information can redirect connection attempts, and
 therefore bundle transfers, to endpoints chosen by an attacker.
 DNSSEC {{RFC9364}} provides data origin authentication and integrity
-for DNS data.  It does not establish the identity of the live
-convergence-layer peer at the resulting address and port, and it
-does not guarantee that the advertised service is available.  ENUM
-makes similar observations ({{Section 7.1 of RFC6116}}).
+for DNS data.  It neither authenticates the convergence-layer peer
+({{forwarding-policy}}) nor guarantees that the advertised service is
+available; ENUM makes similar observations
+({{Section 7.1 of RFC6116}}).
 
 Operators publishing discovery data for this mechanism in the public
 DNS SHOULD provide DNSSEC authentication of that data, including the
@@ -755,8 +815,7 @@ indication does not by itself establish which of these cases applies.
 This document does not impose a universal policy of accepting only
 secure results.  Acceptance of insecure results, and of results whose
 security status is unknown to the application, is subject to the BP
-Agent's configured policy.  The absence of an authentication
-indication does not by itself establish that a result is insecure.
+Agent's configured policy.
 
 A known validation failure is a failure of the affected discovery
 path (see {{discovery-results}}).  It should not lead to automatic
@@ -776,41 +835,54 @@ in {{Section 4.4 of TCPCL}}, and the handling of the peer's Node ID
 is specified in {{Section 4.6 of TCPCL}}.  This document does not
 modify those procedures.
 
-The name queried in ipn.arpa identifies the destination node, not the
-convergence-layer peer, and is not the name of the host to which a
-connection is made.  In {{examples}}, the peer is one of the relays,
-`relay-a.space-agency.example.` or `relay-b.space-agency.example.`,
-each a separate BP node with its own Node ID, distinct from the
-destination's.  The Bundle's destination EID remains
-`ipn:978879.2.345` regardless of the session peer's identity.  A BP
-Agent therefore needs to distinguish the destination EID from the
-Node ID that the peer presents.  {{Section 4.6 of TCPCL}} describes
+Discovery names are derived from the destination FQNN, whereas the
+selected session peer can be the destination node or a relay.  In
+{{examples}}, the peer is one of the relays, each a separate BP node
+with its own Node ID; other deployments publish a destination node's
+own endpoints.  A discovery name can also serve as the effective
+connection target, for example when a ServiceMode SVCB record has a
+TargetName of "." ({{Section 2.5.2 of RFC9460}}).  In every case, the
+Bundle's destination EID is unchanged, and a BP Agent distinguishes it
+from the Node ID that the peer presents.  Discovery does not by itself
+supply an expected peer Node ID; {{Section 4.6 of TCPCL}} describes
 the handling of a peer Node ID that differs from the one intended,
 and of a peer Node ID that is not authenticated.
 
-## Open Items {#security-open-items}
+## Privacy {#privacy}
 
-TODO: Address caching of discovery results, operation during
-disruption, and other remaining security considerations.
+Discovery records published in the public DNS can reveal destination
+identifiers, their association with services and relays, and
+connection endpoints.  Queries for those records can reveal to
+resolvers and other observers which destinations a BP Agent is trying
+to reach, and when.  DNSSEC provides authentication and integrity, not
+confidentiality.  {{RFC9076}} describes DNS privacy threats and
+mitigations, such as resolver selection and encrypted DNS transports.
+Operators can limit what published records disclose (as in
+{{shared-ingress}}) and keep queries for locally served names within
+their intended scope ({{locally-served}}).
+
+## Resource Consumption {#resource-consumption}
+
+Bundles addressed to many distinct destination FQNNs, whether
+malicious or not, can induce corresponding DNS queries, retained
+discovery state, and connection attempts.  Implementations SHOULD
+bound outstanding discovery work, retained discovery state, and
+connection attempts, using existing mechanisms such as resolver limits,
+queueing, and connection management.
 
 
 # IAB Considerations
 
 In accordance with the procedure in {{Section 3 of RFC3172}}, the IAB
 is requested to approve the zone "ipn.arpa" as an infrastructure
-namespace derived from IPN identifiers.  Names in this
-zone are constructed from IPN Allocator Identifiers and Node Numbers
-and are usable for service discovery, such as locating the CL
-endpoint(s) of the BP Agent responsible for a given IPN node (see
-{{concept-of-operations}}).
+namespace derived from IPN identifiers.  Names in this zone are
+constructed from FQNNs ({{discovery-model}}) and are usable for
+discovering CL endpoints for reaching IPN nodes
+({{concept-of-operations}}).
 
 This follows the precedent of e164.arpa {{RFC6116}}, in which names
 are derived from E.164 telephone numbers and queried directly for
 service records (NAPTR).
-
-Per {{Section 3.3.1 of RFC9758}}, the FQNN of a node comprises a
-32-bit Allocator Identifier and a 32-bit Node Number.  Those two
-components determine the DNS base name (see {{discovery-model}}).
 
 # IANA Considerations
 
@@ -818,9 +890,8 @@ components determine the DNS base name (see {{discovery-model}}).
 
 Following approval by the IAB in accordance with
 {{Section 3 of RFC3172}}, IANA is requested to add "ipn.arpa" to the
-".arpa" domain.  This namespace supports DNS names derived from IPN
-Allocator Identifiers and Node Numbers, as specified in this document
-(see {{concept-of-operations}}).
+".arpa" domain.  Names in ipn.arpa are constructed as specified in
+{{discovery-model}}.
 
 IANA is requested to arrange the ongoing administration of ipn.arpa,
 consistent with the arrangements approved by the IAB under
@@ -840,19 +911,20 @@ concerning discovery data in delegated allocator zones and in other
 namespaces are addressed to the operators of those zones and are
 given in {{dnssec}}.
 
-The following subsections establish restrictions on publishing
-discovery data in the global DNS for two sets of names beneath
-ipn.arpa.  These restrictions are established by this document; they
-concern only the DNS discovery mechanism specified here and do not
-alter any allocation or its Bundle Protocol semantics.
+The following subsections restrict publication of discovery data for
+two sets of names in the public ipn.arpa hierarchy.  The restrictions
+are established by this document, not by {{RFC9758}}; they concern
+only the DNS discovery mechanism specified here and do not alter any
+allocation or its Bundle Protocol semantics.
 
 ### Allocator Identifier Zero {#allocator-zero}
 
 "0.ipn.arpa" corresponds to Allocator Identifier zero, the Default
 Allocator ({{Section 3.2.2 of RFC9758}}).  Public DNS discovery for
 FQNNs with Allocator Identifier zero is intentionally outside the
-scope of this document.  A populated "0.ipn.arpa" zone MUST NOT ever
-be published in the global DNS.  A "0.ipn.arpa" zone MAY exist in
+scope of this document.  A populated "0.ipn.arpa" zone MUST NOT be
+published in the public ipn.arpa hierarchy specified by this document.
+A "0.ipn.arpa" zone MAY exist in
 local DNS resolvers or servers that serve it authoritatively as a
 locally served zone {{RFC6303}}, much as the IN-ADDR.ARPA zones for
 the private address space of {{RFC1918}} are served locally
@@ -889,20 +961,15 @@ mapping from such an identifier to discovery data would therefore be
 inappropriate.
 
 For each Experimental Use Allocator Identifier A, a populated subtree
-beneath "A.ipn.arpa" MUST NOT be published in the global DNS.
-Locally scoped DNS discovery for Experimental Use Allocator
-Identifiers is permitted: names beneath "A.ipn.arpa" MAY be served by
-local DNS resolvers or servers within the scope of an experiment.
-
-This DNS publication restriction is established by this document.
-{{RFC9758}} designates the Experimental Use range but does not itself
-restrict DNS publication.
+beneath "A.ipn.arpa" MUST NOT be published in the public ipn.arpa
+hierarchy.  Names beneath "A.ipn.arpa" MAY be served by local DNS
+resolvers or servers within the scope of an experiment.
 
 ### Scope of the Publication Restrictions {#publication-restrictions}
 
 The restrictions in {{allocator-zero}} and {{experimental-allocators}}
 apply to every means of placing discovery data for the affected FQNNs
-in the global DNS, including:
+in the public ipn.arpa hierarchy, including:
 
 * discovery records, such as SRV, SVCB, or CNAME records, at or
   beneath "0.ipn.arpa" or "A.ipn.arpa" for an Experimental Use
@@ -937,11 +1004,20 @@ DNS provisioning is optional.  It can be requested when an Allocator
 Identifier is assigned or at any later time.  Having a DNS entry is
 not a condition for the validity or use of an allocator assignment.
 
-These procedures apply only to eligible assigned Allocator
-Identifiers.  Allocator Identifier zero and Experimental Use Allocator
-Identifiers are not eligible for public publication (see
-{{publication-restrictions}}), and this document does not request any
-public provisioning beneath their names.
+Eligible Allocator Identifiers are those assigned for operational use
+in the "'ipn' Scheme URI Allocator Identifiers" registry, subject to
+the exclusions in this document.  Ordinary public provisioning is not
+requested for:
+
+* Allocator Identifier zero ({{allocator-zero}});
+
+* Experimental Use Allocator Identifiers
+  ({{experimental-allocators}});
+
+* unassigned or reserved Allocator Identifiers; or
+
+* Allocator Identifiers 974848 through 978943, reserved for
+  documentation examples ({{Section 9.1 of RFC9758}}).
 
 ### Request Authorization {#request-authorization}
 
@@ -999,9 +1075,7 @@ coordinating changes to its signing keys with updates to the
 corresponding DS records in ipn.arpa.
 
 This provides support for secure delegations; it does not require
-that every delegated allocator zone be signed.  This document does
-not specify the operational interface for these requests or the
-format in which DS data is stored.
+that every delegated allocator zone be signed.
 
 DS procedures apply to NS delegations.  A DNAME in ipn.arpa (see
 {{managing-allocator-ranges}}) is not a delegation: it is signed as
@@ -1019,11 +1093,3 @@ provisioning requests under its published operational procedures.
 IANA's technical requirements for delegations in the zones it manages
 {{IANA-NS-REQS}} are relevant background.  DNAME provisioning is
 subject to the requirements of {{RFC6672}}.
-
-
---- back
-
-# Acknowledgments
-{:numbered="false"}
-
-TODO acknowledge.
