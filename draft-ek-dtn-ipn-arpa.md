@@ -74,12 +74,9 @@ namespace for the IPN node identifiers used by the Bundle Protocol (BP).
 Each Fully Qualified Node Number has a canonical name of the form
 N.A.ipn.arpa, where A is the Allocator Identifier and N is the Node
 Number.  A BP Agent can query directly beneath that name for records
-defined by a convergence-layer specification, such as SRV or SVCB
+specified by a convergence-layer discovery binding, such as SRV or SVCB
 records.  The DNS records identify convergence-layer endpoints
-advertised for reaching a destination, including relays.  A BP Agent's
-configured forwarding policy may permit automatic use of authenticated
-discovery mappings, subject to the security requirements of the
-applicable convergence layer.
+advertised for reaching a destination, including relays.
 
 --- middle
 
@@ -152,10 +149,11 @@ DNS base name:
   as specified in {{discovery-model}}.
 
 CL-specific query name:
-: A DNS name, defined by a CL specification relative to a DNS base
-  name, at which a BP Agent queries for the records needed to reach
-  the node using that CL.  For example, the TCPCLv4 query name is
-  formed by prepending `_dtn-bundle._tcp` to the DNS base name.
+: A DNS name, defined relative to a DNS base name by this document
+  or the discovery specification applicable to another CL, at which a
+  BP Agent queries for the records needed to reach the node using that
+  CL.  The TCPCLv4 query name prepends `_dtn-bundle._tcp` to the DNS
+  base name ({{discovery-model}}).
 
 # Concept of Operations {#concept-of-operations}
 
@@ -224,11 +222,19 @@ are not published in the public hierarchy
 ({{publication-restrictions}}) but can be used in locally served
 instances ({{locally-served}}).
 
-The DNS base name is distinct from the CL-specific query name at
-which a BP Agent queries for records.  For example, a BP Agent
-discovering TCPCLv4 {{TCPCL}} service for the FQNN (978879,2)
-prepends `_dtn-bundle._tcp` to the DNS base name and queries for SRV
-records {{RFC2782}} at:
+This document defines TCPCLv4 {{TCPCL}} discovery using SRV records
+at the CL-specific query name:
+
+~~~
+_dtn-bundle._tcp.N.A.ipn.arpa.
+~~~
+
+Here, `N.A.ipn.arpa.` is the DNS base name constructed by the rules
+above.  SRV processing follows {{RFC2782}}, including priority,
+weight, port, and target processing.  DNS discovery is optional;
+retention and refresh of discovery results follow {{caching}}.
+
+For example, the TCPCLv4 query name for the FQNN (978879,2) is:
 
 ~~~
 _dtn-bundle._tcp.2.978879.ipn.arpa.
@@ -457,13 +463,13 @@ The following DNS behaviors apply to the configurations above:
 
 ## Other Convergence Layers {#other-cls}
 
-Each CL specification that uses DNS for discovery defines its own
-service query names and record types (e.g., SRV or SVCB records)
-relative to the DNS base name.  Appropriately capable BP Agents query
-for those records using the same DNS base name.  TCPCLv4 SRV discovery
-is this document's worked example; {{TCPCL}} registers the
-"dtn-bundle" service name and port 4556 but does not itself define
-DNS discovery.
+For other CLs, the applicable discovery specification defines service
+query names and record types (e.g., SRV or SVCB records) relative to
+the DNS base name.  Appropriately capable BP Agents query for those
+records using the same DNS base name.  The TCPCLv4 SRV discovery
+binding is specified in {{discovery-model}}; {{TCPCL}} specifies
+TCPCLv4 and registers the "dtn-bundle" service name and port 4556,
+but does not itself define this DNS discovery procedure.
 
 # Operational Considerations
 
@@ -474,11 +480,12 @@ information by other means.
 ## Discovery Results and Failures {#discovery-results}
 
 Discovery succeeds when a BP Agent obtains usable connection
-information as defined by the applicable convergence-layer
-specification, which determines the query names, record types,
-processing rules, and required connection parameters (see
-{{other-cls}}).  A syntactically valid DNS answer does not necessarily
-contain a binding that the requesting implementation can use;
+information under the applicable discovery binding: the TCPCLv4
+binding in {{discovery-model}}, or the specification applicable to
+another CL ({{other-cls}}).  The binding determines the query names,
+record types, processing rules, and required connection parameters.
+A syntactically valid DNS answer does not necessarily contain a binding
+that the requesting implementation can use;
 candidate selection and compatibility checks follow the applicable
 record-type and CL specifications.  This document does not require a
 BP Agent to query for every CL it supports, and it does not prescribe
@@ -751,18 +758,14 @@ between configured routes and discovery results, or between
 authenticated and unauthenticated discovery results.  A BP Agent's
 configured forwarding policy may permit automatic use of authenticated
 discovery mappings, subject to the security requirements of the
-applicable convergence layer.  Authentic DNS data shows what the
-zone's administrator published; it does not by itself make a peer
-acceptable for particular traffic, whether that peer is the
-destination node or a relay.
+applicable convergence layer.
 
 ## DNSSEC {#dnssec}
 
 Forged discovery information can redirect connection attempts, and
 therefore bundle transfers, to endpoints chosen by an attacker.
 DNSSEC {{RFC9364}} provides data origin authentication and integrity
-for DNS data.  It neither authenticates the convergence-layer peer
-({{forwarding-policy}}) nor guarantees that the advertised service is
+for DNS data.  It does not guarantee that the advertised service is
 available; ENUM makes similar observations
 ({{Section 7.1 of RFC6116}}).
 
@@ -788,9 +791,8 @@ authenticate records in delegated zones or external target
 namespaces; each record used in discovery has its own security
 status.
 
-Validation of these records follows standard DNSSEC processing; this
-document does not define a new validation procedure.  For example, a
-CNAME synthesized from a validated DNAME does not require its own
+Validation of these records follows standard DNSSEC processing.  For
+example, a CNAME synthesized from a validated DNAME does not require its own
 signature ({{Section 3.1 of RFC6672}} and
 {{Section 5.3.1 of RFC6672}}).
 
