@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-11-15T04:29:29.656569+00:00",
+  "timestamp": "2026-11-17T06:11:34.561456+00:00",
   "repo": "ekline/draft-dtn-ipn-arpa",
   "labels": [
     {
@@ -49,6 +49,23 @@
       "color": "ffffff"
     }
   ],
-  "issues": [],
+  "issues": [
+    {
+      "number": 1,
+      "id": "I_kwDOOCB1Bs8AAAABfyd-Pg",
+      "title": "TTL values recommendation",
+      "url": "https://github.com/ekline/draft-dtn-ipn-arpa/issues/1",
+      "state": "OPEN",
+      "author": "ekline",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "Juan Fraire [mentions](https://mailarchive.ietf.org/arch/msg/dtn/1kbYa0GQjJaUX9d30V4zrggkyQE/):\n\n```\nOn Section 4.2, accuracy depends on the TTL relative to how often a binding changes. A sentence advising operators to set TTLs from the expected change rate might help anyone publishing records for mobile or frequently re-homed nodes.\n```\n",
+      "createdAt": "2026-11-16T18:47:35Z",
+      "updatedAt": "2026-11-16T18:47:35Z",
+      "closedAt": null,
+      "comments": []
+    }
+  ],
   "pulls": []
 }
