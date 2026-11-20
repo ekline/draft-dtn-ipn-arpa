@@ -8,13 +8,12 @@
 <meta content="Erik Kline" name="author">
 <meta content="
        This document requests the creation of ipn.arpa, an infrastructure DNS
-namespace for the IPN node identifiers of the Bundle Protocol (BP).
-Each Fully Qualified Node Number has a DNS base name of the form
-N.A.ipn.arpa, where A is the Allocator Identifier and N is the Node
-Number.  A BP Agent can query beneath that name for the records that a
-convergence-layer discovery binding specifies, such as SRV or SVCB
-records.  These records identify the convergence-layer endpoints,
-including relays, that are advertised for reaching a destination. 
+namespace for the Bundle Protocol (BP).  It maps a Fully Qualified
+Node Number to the DNS base name  N.A.ipn.arpa. , where N is the Node
+Number and A is the Allocator Identifier.  A BP Agent can use that
+name to discover a convergence-layer endpoint at the destination or
+at a relay.  This document specifies an SRV binding for version 4 of
+the TCP Convergence-Layer Protocol (TCPCLv4). 
     " name="description">
 <meta content="xml2rfc 3.35.0" name="generator">
 <meta content="DTN" name="keyword">
@@ -1087,13 +1086,12 @@ svg {
 <section id="section-abstract">
       <h2 id="abstract"><a href="#abstract" class="selfRef">Abstract</a></h2>
 <p id="section-abstract-1">This document requests the creation of ipn.arpa, an infrastructure DNS
-namespace for the IPN node identifiers of the Bundle Protocol (BP).
-Each Fully Qualified Node Number has a DNS base name of the form
-N.A.ipn.arpa, where A is the Allocator Identifier and N is the Node
-Number.  A BP Agent can query beneath that name for the records that a
-convergence-layer discovery binding specifies, such as SRV or SVCB
-records.  These records identify the convergence-layer endpoints,
-including relays, that are advertised for reaching a destination.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
+namespace for the Bundle Protocol (BP).  It maps a Fully Qualified
+Node Number to the DNS base name <code>N.A.ipn.arpa.</code>, where N is the Node
+Number and A is the Allocator Identifier.  A BP Agent can use that
+name to discover a convergence-layer endpoint at the destination or
+at a relay.  This document specifies an SRV binding for version 4 of
+the TCP Convergence-Layer Protocol (TCPCLv4).<a href="#section-abstract-1" class="pilcrow">¶</a></p>
 </section>
 <section class="note rfcEditorRemove" id="section-note.1">
       <h2 id="name-about-this-document">
@@ -1301,29 +1299,20 @@ including relays, that are advertised for reaching a destination.<a href="#secti
 <a href="#section-1" class="section-number selfRef">1. </a><a href="#name-introduction" class="section-name selfRef">Introduction</a>
       </h2>
 <p id="section-1-1">The Bundle Protocol (BP) <span>[<a href="#RFC9171" class="cite xref">RFC9171</a>]</span> supports communication in networks
-that are subject to delay and disruption.  The ipn URI scheme
-<span>[<a href="#RFC9758" class="cite xref">RFC9758</a>]</span> identifies BP nodes and services with numbers.  An
-Allocator assigns Node Numbers, and IANA assigns an Allocator
-Identifier to each Allocator.  The Allocator Identifier and the Node
-Number together form a Fully Qualified Node Number (FQNN).<a href="#section-1-1" class="pilcrow">¶</a></p>
+subject to delay and disruption.  In the ipn URI scheme <span>[<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>,
+IANA assigns Allocator Identifiers, and Allocators assign Node Numbers.
+An Allocator can hold more than one identifier.  The pair of Allocator
+Identifier and Node Number forms a Fully Qualified Node Number (FQNN).<a href="#section-1-1" class="pilcrow">¶</a></p>
 <p id="section-1-2">A BP Agent can know an IPN destination without knowing a DNS domain
 associated with its allocator.  The ipn.arpa namespace provides a
 common starting point for discovery and links DNS administration to
-allocator assignments.  Each FQNN has one DNS base name,
-<code>N.A.ipn.arpa.</code> (<a href="#discovery-model" class="auto internal xref">Section 3.1</a>).  A BP Agent can query beneath
-that name for the records that a convergence-layer (CL) discovery
-binding defines.  These records advertise CL endpoints of the
-destination node or of a relay that accepts Bundles for onward
-forwarding.<a href="#section-1-2" class="pilcrow">¶</a></p>
-<p id="section-1-3">DNS discovery is optional, and it supplies only candidate next hops
-(<a href="#discovery-results" class="auto internal xref">Section 4.1</a>).  It is not a BP routing protocol, and it does
-not do contact planning.  The BP Agent and its configured policy
-select paths and make forwarding decisions.<a href="#section-1-3" class="pilcrow">¶</a></p>
-<p id="section-1-4">Public provisioning is limited to eligible Allocator Identifiers
-(<a href="#allocator-dns-provisioning" class="auto internal xref">Section 7.3</a>).  Names for Allocator Identifier zero
-and Experimental Use Allocator Identifiers are served only by
-explicitly configured local DNS (<a href="#publication-restrictions" class="auto internal xref">Section 7.2</a>,
-<a href="#locally-served" class="auto internal xref">Section 4.3</a>).<a href="#section-1-4" class="pilcrow">¶</a></p>
+allocator assignments.  The FQNN determines the DNS base name
+(<a href="#discovery-model" class="auto internal xref">Section 3.1</a>); the convergence-layer (CL) discovery binding
+determines which name and record type to query.<a href="#section-1-2" class="pilcrow">¶</a></p>
+<p id="section-1-3">Discovery is optional.  It supplies candidate next hops, not routes
+or contact plans.  The BP Agent makes forwarding decisions under its
+configured policy.  Not all FQNNs have public discovery data
+(<a href="#publication-restrictions" class="auto internal xref">Section 7.2</a>).<a href="#section-1-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="conventions-and-definitions">
@@ -1351,10 +1340,8 @@ an Allocator (<span><a href="https://rfc-editor.org/rfc/rfc9758#section-3.3" cla
         <dd class="break"></dd>
 <dt id="section-2-3.5">Fully Qualified Node Number (FQNN):</dt>
         <dd style="margin-left: 1.5em" id="section-2-3.6">
-          <p id="section-2-3.6.1">The combination of an Allocator Identifier and a Node Number, which
-identifies one node (<span><a href="https://rfc-editor.org/rfc/rfc9758#section-3.3.1" class="relref">Section 3.3.1</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>).  This document
-writes an FQNN as (Allocator Identifier, Node Number), for example
-(978879,2).<a href="#section-2-3.6.1" class="pilcrow">¶</a></p>
+          <p id="section-2-3.6.1">The pair (Allocator Identifier, Node Number), for example (978879,2)
+(<span><a href="https://rfc-editor.org/rfc/rfc9758#section-3.3.1" class="relref">Section 3.3.1</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>).<a href="#section-2-3.6.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 <dt id="section-2-3.7">Service Number:</dt>
@@ -1388,14 +1375,15 @@ This document specifies the TCPCLv4 binding (<a href="#tcpcl-binding" class="aut
         <dd class="break"></dd>
 <dt id="section-2-5.5">CL-specific query name:</dt>
         <dd style="margin-left: 1.5em" id="section-2-5.6">
-          <p id="section-2-5.6.1">The DNS name, relative to a DNS base name, at which a discovery
-binding queries for records.<a href="#section-2-5.6.1" class="pilcrow">¶</a></p>
+          <p id="section-2-5.6.1">The name at or beneath the DNS base name that a BP Agent queries
+first under a discovery binding.  Alias and service targets can be
+elsewhere.<a href="#section-2-5.6.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 <dt id="section-2-5.7">ipn.arpa operator:</dt>
         <dd style="margin-left: 1.5em" id="section-2-5.8">
-          <p id="section-2-5.8.1">The entity that does the DNS provisioning and operational functions
-for the ipn.arpa zone (<a href="#creation-of-ipn-arpa" class="auto internal xref">Section 7.1</a>).<a href="#section-2-5.8.1" class="pilcrow">¶</a></p>
+          <p id="section-2-5.8.1">The entity that provisions and operates the ipn.arpa zone
+(<a href="#creation-of-ipn-arpa" class="auto internal xref">Section 7.1</a>).<a href="#section-2-5.8.1" class="pilcrow">¶</a></p>
 </dd>
       <dd class="break"></dd>
 </dl>
@@ -1406,36 +1394,33 @@ for the ipn.arpa zone (<a href="#creation-of-ipn-arpa" class="auto internal xref
       <h2 id="name-concept-of-operations">
 <a href="#section-3" class="section-number selfRef">3. </a><a href="#name-concept-of-operations" class="section-name selfRef">Concept of Operations</a>
       </h2>
-<p id="section-3-1">A BP Agent populates its Forwarding Information Base (FIB) from
-configuration and from other sources.  It can also create FIB entries
-from DNS records, as this section describes.<a href="#section-3-1" class="pilcrow">¶</a></p>
+<p id="section-3-1">A BP Agent can use DNS discovery alongside configuration and other
+sources to populate its forwarding information base.<a href="#section-3-1" class="pilcrow">¶</a></p>
 <div id="discovery-model">
 <section id="section-3.1">
         <h3 id="name-discovery-model">
 <a href="#section-3.1" class="section-number selfRef">3.1. </a><a href="#name-discovery-model" class="section-name selfRef">Discovery Model</a>
         </h3>
-<p id="section-3.1-1">Discovery uses the FQNN of the destination node.<a href="#section-3.1-1" class="pilcrow">¶</a></p>
-<p id="section-3.1-2">Before constructing a DNS name, a BP Agent <span class="bcp14">MUST</span> parse and interpret
-the destination ipn URI or ipn EID according to <span>[<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>.  This
-includes the text syntax of <span><a href="https://rfc-editor.org/rfc/rfc9758#section-4" class="relref">Section 4</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span> and the CBOR
-decoding of <span><a href="https://rfc-editor.org/rfc/rfc9758#section-6.2" class="relref">Section 6.2</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>.  The result is a numeric
-Allocator Identifier, Node Number, and Service Number.  An Allocator
-Identifier that the text form omits has the value zero
-(<span><a href="https://rfc-editor.org/rfc/rfc9758#section-3.2.2" class="relref">Section 3.2.2</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>); the DNS name still contains the
-allocator label.<a href="#section-3.1-2" class="pilcrow">¶</a></p>
-<p id="section-3.1-3">For Allocator Identifier A and Node Number N, the DNS base name <span class="bcp14">MUST</span>
-be:<a href="#section-3.1-3" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-3.1-4">
+<p id="section-3.1-1">Before constructing a DNS name, a BP Agent <span class="bcp14">MUST</span> parse and interpret
+the destination ipn URI or ipn EID according to <span>[<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>.  In the
+two-field text form, the omitted Allocator Identifier is zero; the
+DNS name still includes the label <code>0</code> (<span><a href="https://rfc-editor.org/rfc/rfc9758#section-4" class="relref">Section 4</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>).
+In the two-element CBOR scheme-specific part, the first integer
+encodes both the Allocator Identifier and the Node Number
+(<span><a href="https://rfc-editor.org/rfc/rfc9758#section-6.2" class="relref">Section 6.2</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>).<a href="#section-3.1-1" class="pilcrow">¶</a></p>
+<p id="section-3.1-2">For Allocator Identifier A and Node Number N, the DNS base name <span class="bcp14">MUST</span>
+be:<a href="#section-3.1-2" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-3.1-3">
 <pre>
 N.A.ipn.arpa.
-</pre><a href="#section-3.1-4" class="pilcrow">¶</a>
+</pre><a href="#section-3.1-3" class="pilcrow">¶</a>
 </div>
-<p id="section-3.1-5">Each of N and A <span class="bcp14">MUST</span> be represented as a single label containing its
+<p id="section-3.1-4">Each of N and A <span class="bcp14">MUST</span> be represented as a single label containing its
 unsigned decimal value, using ASCII digits without leading zeroes.
-The value zero is the single digit "0".  The labels are not padded and
-are not split into individual digits.<a href="#section-3.1-5" class="pilcrow">¶</a></p>
-<p id="section-3.1-6">The Service Number is not part of the name, so all ipn URIs with the
-same FQNN map to the same DNS base name:<a href="#section-3.1-6" class="pilcrow">¶</a></p>
+Zero is the single digit <code>0</code>.  Neither label is padded or split.<a href="#section-3.1-4" class="pilcrow">¶</a></p>
+<p id="section-3.1-5">The Service Number is not part of the DNS base name.  URIs with the
+same FQNN give the same name, regardless of the Service Number or
+the encoding of the FQNN (<span><a href="https://rfc-editor.org/rfc/rfc9758#section-6.4" class="relref">Section 6.4</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>):<a href="#section-3.1-5" class="pilcrow">¶</a></p>
 <span id="name-example-dns-base-names"></span><table class="center" id="table-1">
           <caption>
 <a href="#table-1" class="selfRef">Table 1</a>:
@@ -1482,28 +1467,27 @@ same FQNN map to the same DNS base name:<a href="#section-3.1-6" class="pilcrow"
             </tr>
           </tbody>
         </table>
-<p id="section-3.1-8">The name comes from the parsed numbers, not from the text of the URI.
-Equivalent representations of an FQNN therefore give the same name.
-This includes <code>ipn:16384.345</code> and <code>ipn:0.16384.345</code>, and the
-two-element and three-element CBOR encodings of an ipn EID
-(<span><a href="https://rfc-editor.org/rfc/rfc9758#section-6.4" class="relref">Section 6.4</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>).<a href="#section-3.1-8" class="pilcrow">¶</a></p>
-<p id="section-3.1-9">The same rule constructs names for Allocator Identifier zero,
-including Private Use Node Numbers, and for Experimental Use Allocator
-Identifiers.  These names are not in the public hierarchy
-(<a href="#publication-restrictions" class="auto internal xref">Section 7.2</a>), but local DNS can serve them
-(<a href="#locally-served" class="auto internal xref">Section 4.3</a>).<a href="#section-3.1-9" class="pilcrow">¶</a></p>
-<p id="section-3.1-10">The Null ipn URI (<span><a href="https://rfc-editor.org/rfc/rfc9758#section-3.1" class="relref">Section 3.1</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>) and LocalNode ipn URIs
-(<span><a href="https://rfc-editor.org/rfc/rfc9758#section-3.4.2" class="relref">Section 3.4.2</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>) do not identify a remote destination.
-A BP Agent <span class="bcp14">MUST NOT</span> perform DNS discovery for the Null ipn URI or for
-a LocalNode ipn URI.  The BP Agent identifies these cases from the
-complete FQNN after interpretation: (0,0) is the Null ipn URI, and
-(0,4294967295) is a LocalNode ipn URI.  For example, an ipn URI with a
-zero Allocator Identifier, a zero Node Number, and a non-zero Service
-Number is the Null ipn URI (<span><a href="https://rfc-editor.org/rfc/rfc9758#section-3.4.1" class="relref">Section 3.4.1</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>).  Node
-Numbers 0 and 4294967295 have no special meaning under other Allocator
-Identifiers; (978879,0) is an ordinary FQNN.
-<span><a href="https://rfc-editor.org/rfc/rfc9758#section-5.4" class="relref">Section 5.4</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span> also prohibits the publication of LocalNode
-ipn EIDs in any node identification directory, such as DNS.<a href="#section-3.1-10" class="pilcrow">¶</a></p>
+<p id="section-3.1-7">The last two rows are usable in locally served instances, not for
+public discovery.  The same local scope applies to discovery for
+Experimental Use Allocator Identifiers (<a href="#publication-restrictions" class="auto internal xref">Section 7.2</a>,
+<a href="#locally-served" class="auto internal xref">Section 4.3</a>).<a href="#section-3.1-7" class="pilcrow">¶</a></p>
+<p id="section-3.1-8">A BP Agent <span class="bcp14">MUST NOT</span> perform DNS discovery for the Null ipn URI or a
+LocalNode ipn URI.  Neither identifies a remote destination.  The BP
+Agent tests the interpreted pair (A,N), not the Node Number alone:<a href="#section-3.1-8" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-3.1-9.1">
+            <p id="section-3.1-9.1.1">(0,0): <code>ipn:0.0.0</code> is the Null ipn URI (<span><a href="https://rfc-editor.org/rfc/rfc9758#section-3.1" class="relref">Section 3.1</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>).
+A URI with this FQNN and a nonzero Service Number is invalid;
+<span><a href="https://rfc-editor.org/rfc/rfc9758#section-3.4.1" class="relref">Section 3.4.1</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span> requires processors to treat it as Null.<a href="#section-3.1-9.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-3.1-9.2">
+            <p id="section-3.1-9.2.1">(0,4294967295): a LocalNode ipn URI identifies a resource on the
+local node (<span><a href="https://rfc-editor.org/rfc/rfc9758#section-3.4.2" class="relref">Section 3.4.2</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>).  <span><a href="https://rfc-editor.org/rfc/rfc9758#section-5.4" class="relref">Section 5.4</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>
+prohibits publication of LocalNode ipn EIDs in node identification
+directories, including DNS.<a href="#section-3.1-9.2.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-3.1-10">Neither special case applies under a nonzero Allocator Identifier.<a href="#section-3.1-10" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="tcpcl-binding">
@@ -1518,36 +1502,20 @@ ipn EIDs in any node identification directory, such as DNS.<a href="#section-3.1
 _dtn-bundle._tcp.N.A.ipn.arpa.
 </pre><a href="#section-3.2-2" class="pilcrow">¶</a>
 </div>
-<p id="section-3.2-3">For example, the query name for the FQNN (978879,2) is
-<code>_dtn-bundle._tcp.2.978879.ipn.arpa.</code>.  <span>[<a href="#TCPCL" class="cite xref">TCPCL</a>]</span> registers the
-"dtn-bundle" service name and TCP port 4556, but it does not define
-this discovery procedure.<a href="#section-3.2-3" class="pilcrow">¶</a></p>
-<p id="section-3.2-4">The BP Agent constructs the query name directly.  Unlike conventional
-reverse DNS in in-addr.arpa and ip6.arpa, this procedure needs no
-preliminary PTR lookup.<a href="#section-3.2-4" class="pilcrow">¶</a></p>
-<p id="section-3.2-5">SRV processing follows <span>[<a href="#RFC2782" class="cite xref">RFC2782</a>]</span>, including priority, weight, port,
-and target processing.  The following rules apply to this binding:<a href="#section-3.2-5" class="pilcrow">¶</a></p>
-<ul class="normal">
-<li class="normal" id="section-3.2-6.1">
-            <p id="section-3.2-6.1.1">A new TCPCLv4 discovery result requires a usable SRV record.  If
-the lookup obtains no usable SRV record, discovery supplies no new
-candidate.<a href="#section-3.2-6.1.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-3.2-6.2">
-            <p id="section-3.2-6.2.1">The address-record fallback in the usage rules of <span>[<a href="#RFC2782" class="cite xref">RFC2782</a>]</span> does
-not apply.  After an unsuccessful SRV lookup, a BP Agent <span class="bcp14">MUST NOT</span>
-resolve the DNS base name for address records and connect to TCP
-port 4556 as part of this binding.<a href="#section-3.2-6.2.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-3.2-6.3">
-            <p id="section-3.2-6.3.1">An SRV Target of "." indicates that the service is not available at
-that domain (<span>[<a href="#RFC2782" class="cite xref">RFC2782</a>]</span>).<a href="#section-3.2-6.3.1" class="pilcrow">¶</a></p>
-</li>
-        </ul>
-<p id="section-3.2-7">These rules apply only to this binding; other bindings define their
-own rules (<a href="#other-cls" class="auto internal xref">Section 3.5</a>).  The rules do not affect independently
-obtained forwarding information or retained discovery results
-(<a href="#discovery-results" class="auto internal xref">Section 4.1</a>, <a href="#caching" class="auto internal xref">Section 4.2</a>).<a href="#section-3.2-7" class="pilcrow">¶</a></p>
+<p id="section-3.2-3">The BP Agent constructs this name directly from the FQNN.  It needs no
+preliminary PTR lookup as used in in-addr.arpa or ip6.arpa.<a href="#section-3.2-3" class="pilcrow">¶</a></p>
+<p id="section-3.2-4">The registered service name for TCP port 4556 is <code>dtn-bundle</code>
+(<span><a href="https://rfc-editor.org/rfc/rfc9174#section-8.1" class="relref">Section 8.1</a> of [<a href="#TCPCL" class="cite xref">TCPCL</a>]</span>).  The BP Agent uses priority and weight to
+select an SRV record under <span>[<a href="#RFC2782" class="cite xref">RFC2782</a>]</span>, then uses its Target and Port.
+The Port need not be 4556.  A Target of <code>.</code> indicates that the
+specified service is unavailable at that domain.<a href="#section-3.2-4" class="pilcrow">¶</a></p>
+<p id="section-3.2-5">Without a usable SRV record, this binding supplies no new candidate.
+After an unsuccessful SRV lookup, the BP Agent <span class="bcp14">MUST NOT</span> fall back to
+resolving the DNS base name for addresses and connecting to TCP port
+4556 as part of this binding.  This exception to the suggested usage
+in <span>[<a href="#RFC2782" class="cite xref">RFC2782</a>]</span> does not affect other bindings, independently obtained
+forwarding information, or retained results (<a href="#other-cls" class="auto internal xref">Section 3.5</a>,
+<a href="#discovery-results" class="auto internal xref">Section 4.1</a>, <a href="#caching" class="auto internal xref">Section 4.2</a>).<a href="#section-3.2-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="examples">
@@ -1555,16 +1523,11 @@ obtained forwarding information or retained discovery results
         <h3 id="name-examples">
 <a href="#section-3.3" class="section-number selfRef">3.3. </a><a href="#name-examples" class="section-name selfRef">Examples</a>
         </h3>
-<p id="section-3.3-1">The examples describe one deployment: a fictional space agency that
-offers a shared public ingress service.  Other deployments can use a
-separate relay for each node, or publish the endpoints of each node.
-This document does not require the architecture shown here.<a href="#section-3.3-1" class="pilcrow">¶</a></p>
-<p id="section-3.3-2">The agency administers Allocator Identifier 978879.  This identifier,
-and the identifiers in <a href="#managing-allocator-ranges" class="auto internal xref">Section 4.4</a>, are from the
-range that <span><a href="https://rfc-editor.org/rfc/rfc9758#section-9.1" class="relref">Section 9.1</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span> reserves for examples.  The
-excerpts do not request public provisioning of these identifiers.
-They omit routine zone infrastructure, such as SOA and NS records, and
-DNSSEC records.<a href="#section-3.3-2" class="pilcrow">¶</a></p>
+<p id="section-3.3-1">In this deployment, a fictional space agency offers one public ingress
+service for three destinations.  Its Allocator Identifier, 978879,
+and the identifiers in <a href="#managing-allocator-ranges" class="auto internal xref">Section 4.4</a> come from the
+Example Range in <span><a href="https://rfc-editor.org/rfc/rfc9758#section-9.1" class="relref">Section 9.1</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>.  The zone excerpts omit
+routine SOA, NS, and DNSSEC records.<a href="#section-3.3-1" class="pilcrow">¶</a></p>
 <span id="name-example-destinations"></span><table class="center" id="table-2">
           <caption>
 <a href="#table-2" class="selfRef">Table 2</a>:
@@ -1601,21 +1564,15 @@ DNSSEC records.<a href="#section-3.3-2" class="pilcrow">¶</a></p>
             </tr>
           </tbody>
         </table>
-<p id="section-3.3-4">The destination names are descriptive labels.  They do not depend on
-the Node Numbers.<a href="#section-3.3-4" class="pilcrow">¶</a></p>
-<p id="section-3.3-5">Two relay BP Agents, <code>relay-a.space-agency.example.</code> and
-<code>relay-b.space-agency.example.</code>, provide the ingress service for all
-three destinations.  Each relay is a separate BP node with its own
-Node ID, and each relay has onward routes to all three destinations.
-Onward forwarding uses the cislunar and deep-space ground facilities,
-routes, and contact arrangements of the agency.  These are not shown.<a href="#section-3.3-5" class="pilcrow">¶</a></p>
-<p id="section-3.3-6">Example A and Example B are alternative configurations of the
-allocator's zone.  The agency publishes only one of them, because a
-CNAME and an SRV RRset cannot coexist at the same owner name
-(<a href="#dns-constraints" class="auto internal xref">Section 3.4</a>).  Both configurations use these address records:<a href="#section-3.3-6" class="pilcrow">¶</a></p>
+<p id="section-3.3-3">The agency chose the destination names independently of the Node
+Numbers.  Its two ingress relays are separate BP nodes with their own
+Node IDs.  Both have onward routes to all three destinations through
+the agency's cislunar and deep-space ground facilities.<a href="#section-3.3-3" class="pilcrow">¶</a></p>
+<p id="section-3.3-4">Examples A and B are alternative configurations of the allocator's
+zone (<a href="#dns-constraints" class="auto internal xref">Section 3.4</a>).  Both use these relay addresses:<a href="#section-3.3-4" class="pilcrow">¶</a></p>
 <span id="name-relay-address-records"></span><div id="relay-addresses">
 <figure id="figure-1">
-          <div class="lang-dns sourcecode" id="section-3.3-7.1">
+          <div class="lang-dns sourcecode" id="section-3.3-5.1">
 <pre>
 $ORIGIN space-agency.example.
 $TTL 3600
@@ -1651,34 +1608,14 @@ _dtn-bundle._tcp.3 IN SRV 10 1 4556 relay-a.space-agency.example.
 _dtn-bundle._tcp.3 IN SRV 10 1 4556 relay-b.space-agency.example.
 </pre><a href="#section-3.3.1-2" class="pilcrow">¶</a>
 </div>
-<p id="section-3.3.1-3">A BP Agent that uses TCPCLv4 to reach <code>ipn:978879.2.345</code>:<a href="#section-3.3.1-3" class="pilcrow">¶</a></p>
-<ol start="1" type="1" class="normal type-1" id="section-3.3.1-4">
-<li id="section-3.3.1-4.1">
-              <p id="section-3.3.1-4.1.1">constructs the query name <code>_dtn-bundle._tcp.2.978879.ipn.arpa.</code>;<a href="#section-3.3.1-4.1.1" class="pilcrow">¶</a></p>
-</li>
-            <li id="section-3.3.1-4.2">
-              <p id="section-3.3.1-4.2.1">receives two SRV records, with the targets
-<code>relay-a.space-agency.example.</code> and
-<code>relay-b.space-agency.example.</code>, each with priority 10, weight 1,
-and port 4556;<a href="#section-3.3.1-4.2.1" class="pilcrow">¶</a></p>
-</li>
-            <li id="section-3.3.1-4.3">
-              <p id="section-3.3.1-4.3.1">orders the candidates as specified in <span>[<a href="#RFC2782" class="cite xref">RFC2782</a>]</span>; because the
-priorities and weights are equal, either relay can be first;<a href="#section-3.3.1-4.3.1" class="pilcrow">¶</a></p>
-</li>
-            <li id="section-3.3.1-4.4">
-              <p id="section-3.3.1-4.4.1">resolves the selected target; for <code>relay-a.space-agency.example.</code>,
-it receives <code>192.0.2.10</code> and <code>2001:db8::10</code>; and<a href="#section-3.3.1-4.4.1" class="pilcrow">¶</a></p>
-</li>
-            <li id="section-3.3.1-4.5">
-              <p id="section-3.3.1-4.5.1">attempts a TCPCLv4 connection to <code>[2001:db8::10]:4556</code> or
-<code>192.0.2.10:4556</code>.  If the attempt fails, it can try
-<code>relay-b.space-agency.example.</code> (<code>[2001:db8::11]:4556</code> or
-<code>192.0.2.11:4556</code>).  If it establishes a session with a peer that
-its policy accepts (<a href="#forwarding-policy" class="auto internal xref">Section 5.1</a>), it transfers the
-Bundle.<a href="#section-3.3.1-4.5.1" class="pilcrow">¶</a></p>
-</li>
-          </ol>
+<p id="section-3.3.1-3">For a bundle destined for <code>ipn:978879.2.345</code>, the BP Agent queries
+for SRV at <code>_dtn-bundle._tcp.2.978879.ipn.arpa.</code> and orders the two
+relay candidates according to <span>[<a href="#RFC2782" class="cite xref">RFC2782</a>]</span>.  If it selects
+<code>relay-a.space-agency.example.</code>, it resolves that target and attempts
+a TCPCLv4 connection to <code>[2001:db8::10]:4556</code> or <code>192.0.2.10:4556</code>.
+If it cannot reach that relay, it can try the other.  The BP Agent
+transfers the bundle over a session that its policy accepts
+(<a href="#forwarding-policy" class="auto internal xref">Section 5.1</a>).<a href="#section-3.3.1-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="example-b-service-lookup-redirected-through-a-cname">
@@ -1686,9 +1623,8 @@ Bundle.<a href="#section-3.3.1-4.5.1" class="pilcrow">¶</a></p>
           <h4 id="name-example-b-service-lookup-re">
 <a href="#section-3.3.2" class="section-number selfRef">3.3.2. </a><a href="#name-example-b-service-lookup-re" class="section-name selfRef">Example B: Service Lookup Redirected through a CNAME</a>
           </h4>
-<p id="section-3.3.2-1">Instead of SRV records, the allocator's zone contains a CNAME for each
-destination.  Each CNAME points to one shared name in the agency's
-zone:<a href="#section-3.3.2-1" class="pilcrow">¶</a></p>
+<p id="section-3.3.2-1">Instead of publishing an SRV RRset at each service name, the agency
+makes each name an alias for the same SRV owner:<a href="#section-3.3.2-1" class="pilcrow">¶</a></p>
 <div class="lang-dns sourcecode" id="section-3.3.2-2">
 <pre>
 $ORIGIN 978879.ipn.arpa.
@@ -1714,13 +1650,9 @@ _dtn-bundle._tcp.ingress IN SRV (
     10 1 4556 relay-b.space-agency.example. )
 </pre><a href="#section-3.3.2-4" class="pilcrow">¶</a>
 </div>
-<p id="section-3.3.2-5">The BP Agent sends the same query as in Example A.  Ordinary DNS
-resolution follows the CNAME and returns the shared SRV RRset, which
-contains the same two relays.  The remaining steps are the same as in
-Example A.<a href="#section-3.3.2-5" class="pilcrow">¶</a></p>
-<p id="section-3.3.2-6">The agency maintains the relay selection in one SRV RRset.  It can
-change the relays in <code>space-agency.example.</code> without changes to the
-allocator's zone.<a href="#section-3.3.2-6" class="pilcrow">¶</a></p>
+<p id="section-3.3.2-5">The BP Agent sends the same query as in Example A.  DNS resolution
+follows the CNAME to the shared SRV RRset.  The agency can now change
+the relay selection for all three destinations in one place.<a href="#section-3.3.2-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="shared-ingress">
@@ -1728,30 +1660,17 @@ allocator's zone.<a href="#section-3.3.2-6" class="pilcrow">¶</a></p>
           <h4 id="name-shared-ingress-behavior">
 <a href="#section-3.3.3" class="section-number selfRef">3.3.3. </a><a href="#name-shared-ingress-behavior" class="section-name selfRef">Shared Ingress Behavior</a>
           </h4>
-<p id="section-3.3.3-1">The following points apply to both configurations:<a href="#section-3.3.3-1" class="pilcrow">¶</a></p>
-<ul class="normal">
-<li class="normal" id="section-3.3.3-2.1">
-              <p id="section-3.3.3-2.1.1">Equal SRV priorities and weights express equal preference
-(<span>[<a href="#RFC2782" class="cite xref">RFC2782</a>]</span>).  They do not give equal bundle volume, because one
-session can carry many Bundles.  They do not indicate server load.<a href="#section-3.3.3-2.1.1" class="pilcrow">¶</a></p>
-</li>
-            <li class="normal" id="section-3.3.3-2.2">
-              <p id="section-3.3.3-2.2.1">Several FQNNs can share one discovery result, but each Bundle keeps
-its destination EID.  For example, a Bundle for the mars-orbiter is
-destined for <code>ipn:978879.2.345</code> when a relay receives it.  Each
-relay presents its own Node ID (<a href="#cl-peer-identity" class="auto internal xref">Section 5.3</a>).<a href="#section-3.3.3-2.2.1" class="pilcrow">¶</a></p>
-</li>
-            <li class="normal" id="section-3.3.3-2.3">
-              <p id="section-3.3.3-2.3.1">The example uses one public DNS view.  The agency configures its
-internal forwarding in its BP Agents, not in DNS, so it needs no
-internal DNS overrides.<a href="#section-3.3.3-2.3.1" class="pilcrow">¶</a></p>
-</li>
-            <li class="normal" id="section-3.3.3-2.4">
-              <p id="section-3.3.3-2.4.1">The public records show the advertised FQNNs, the ingress service,
-and the relay addresses.  They do not show the ground facilities or
-contact arrangements (<a href="#privacy" class="auto internal xref">Section 5.4</a>).<a href="#section-3.3.3-2.4.1" class="pilcrow">¶</a></p>
-</li>
-          </ul>
+<p id="section-3.3.3-1">Equal SRV priorities and weights give roughly balanced relay selection
+across connection attempts (<span>[<a href="#RFC2782" class="cite xref">RFC2782</a>]</span>).  They neither guarantee equal
+traffic volume nor indicate current relay load.<a href="#section-3.3.3-1" class="pilcrow">¶</a></p>
+<p id="section-3.3.3-2">The three destinations share relay endpoints, not identities.  Each
+bundle keeps its destination EID.  After accepting it, the relay uses
+the agency's routes and contact arrangements.  A connection to the
+relay does not imply that a spacecraft is currently reachable.<a href="#section-3.3.3-2" class="pilcrow">¶</a></p>
+<p id="section-3.3.3-3">The agency uses one public DNS view and needs no internal DNS
+overrides.  Its records expose the advertised FQNNs, their association
+with the ingress service, and the relay addresses, but not the internal
+routes or contacts (<a href="#privacy" class="auto internal xref">Section 5.4</a>).<a href="#section-3.3.3-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -1761,24 +1680,13 @@ contact arrangements (<a href="#privacy" class="auto internal xref">Section 5.4<
         <h3 id="name-dns-constraints">
 <a href="#section-3.4" class="section-number selfRef">3.4. </a><a href="#name-dns-constraints" class="section-name selfRef">DNS Constraints</a>
         </h3>
-<p id="section-3.4-1">The following DNS rules apply to the configurations above:<a href="#section-3.4-1" class="pilcrow">¶</a></p>
-<ul class="normal">
-<li class="normal" id="section-3.4-2.1">
-            <p id="section-3.4-2.1.1">A CNAME aliases only its own owner name
-(<span><a href="https://rfc-editor.org/rfc/rfc1034#section-3.6.2" class="relref">Section 3.6.2</a> of [<a href="#RFC1034" class="cite xref">RFC1034</a>]</span>).  To redirect a service lookup, the
-CNAME is at the complete service owner name, such as
-<code>_dtn-bundle._tcp.2.978879.ipn.arpa.</code>.  A CNAME at
-<code>2.978879.ipn.arpa.</code> does not redirect the lookup.<a href="#section-3.4-2.1.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-3.4-2.2">
-            <p id="section-3.4-2.2.1">A CNAME record and an SRV RRset cannot coexist at the same owner
-name (<span><a href="https://rfc-editor.org/rfc/rfc1034#section-3.6.2" class="relref">Section 3.6.2</a> of [<a href="#RFC1034" class="cite xref">RFC1034</a>]</span>).<a href="#section-3.4-2.2.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-3.4-2.3">
-            <p id="section-3.4-2.3.1">An SRV Target other than "." must have address records and must not
-be an alias (<span>[<a href="#RFC2782" class="cite xref">RFC2782</a>]</span>; <span><a href="https://rfc-editor.org/rfc/rfc6672#section-5.1" class="relref">Section 5.1</a> of [<a href="#RFC6672" class="cite xref">RFC6672</a>]</span>).<a href="#section-3.4-2.3.1" class="pilcrow">¶</a></p>
-</li>
-        </ul>
+<p id="section-3.4-1">A CNAME redirects only its owner name (<span><a href="https://rfc-editor.org/rfc/rfc1034#section-3.6.2" class="relref">Section 3.6.2</a> of [<a href="#RFC1034" class="cite xref">RFC1034</a>]</span>).
+In Example B the CNAME is at the full service name.  A CNAME at
+<code>2.978879.ipn.arpa.</code> would not redirect the SRV lookup.  A CNAME
+record and an SRV RRset cannot coexist at the same owner name.<a href="#section-3.4-1" class="pilcrow">¶</a></p>
+<p id="section-3.4-2">The SRV lookup can follow a CNAME or DNAME.  In contrast, an SRV
+Target other than <code>.</code> must have address records at that name, without
+CNAME or DNAME redirection (<span>[<a href="#RFC2782" class="cite xref">RFC2782</a>]</span>; <span><a href="https://rfc-editor.org/rfc/rfc6672#section-5.1" class="relref">Section 5.1</a> of [<a href="#RFC6672" class="cite xref">RFC6672</a>]</span>).<a href="#section-3.4-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="other-cls">
@@ -1786,16 +1694,14 @@ be an alias (<span>[<a href="#RFC2782" class="cite xref">RFC2782</a>]</span>; <s
         <h3 id="name-other-convergence-layers">
 <a href="#section-3.5" class="section-number selfRef">3.5. </a><a href="#name-other-convergence-layers" class="section-name selfRef">Other Convergence Layers</a>
         </h3>
-<p id="section-3.5-1">The discovery binding for another CL defines its query names, record
-types, processing rules, and fallback behavior relative to the DNS
-base name.  If a binding uses SVCB records, <span>[<a href="#RFC9460" class="cite xref">RFC9460</a>]</span> and the
-binding govern AliasMode, ServiceMode, parameter compatibility,
-endpoint selection, and fallback.  SRV rules do not apply to other
-record types.  For example, a ServiceMode SVCB TargetName of "."
-means the owner name of the record (<span><a href="https://rfc-editor.org/rfc/rfc9460#section-2.5.2" class="relref">Section 2.5.2</a> of [<a href="#RFC9460" class="cite xref">RFC9460</a>]</span>),
-not that the service is unavailable.<a href="#section-3.5-1" class="pilcrow">¶</a></p>
-<p id="section-3.5-2">This document does not require a BP Agent to query for every CL that
-it supports, and it does not specify an order in which to try CLs.<a href="#section-3.5-2" class="pilcrow">¶</a></p>
+<p id="section-3.5-1">Other CLs can define bindings that use the same DNS base name.  For
+SVCB, <span>[<a href="#RFC9460" class="cite xref">RFC9460</a>]</span> and the applicable binding govern AliasMode,
+ServiceMode, parameter compatibility, endpoint selection, and fallback.
+SRV rules do not carry over: in ServiceMode, an SVCB TargetName of
+<code>.</code> denotes the record's owner name in the response, not service
+unavailability (<span><a href="https://rfc-editor.org/rfc/rfc9460#section-2.5.2" class="relref">Section 2.5.2</a> of [<a href="#RFC9460" class="cite xref">RFC9460</a>]</span>).<a href="#section-3.5-1" class="pilcrow">¶</a></p>
+<p id="section-3.5-2">A BP Agent need not query for every CL it supports.  This document
+specifies no order in which to try them.<a href="#section-3.5-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -1805,55 +1711,40 @@ it supports, and it does not specify an order in which to try CLs.<a href="#sect
       <h2 id="name-operational-considerations">
 <a href="#section-4" class="section-number selfRef">4. </a><a href="#name-operational-considerations" class="section-name selfRef">Operational Considerations</a>
       </h2>
-<p id="section-4-1">If DNS does not meet the reliability or performance requirements of a
-deployment, particularly during disruption, the deployment can obtain
-forwarding information by other means.<a href="#section-4-1" class="pilcrow">¶</a></p>
 <div id="discovery-results">
 <section id="section-4.1">
         <h3 id="name-discovery-results-and-failu">
 <a href="#section-4.1" class="section-number selfRef">4.1. </a><a href="#name-discovery-results-and-failu" class="section-name selfRef">Discovery Results and Failures</a>
         </h3>
 <p id="section-4.1-1">Discovery succeeds when a BP Agent obtains usable connection
-information under the applicable discovery binding (<a href="#tcpcl-binding" class="auto internal xref">Section 3.2</a>,
-<a href="#other-cls" class="auto internal xref">Section 3.5</a>).  A syntactically valid DNS answer does not always
-contain usable connection information.  The binding and the
-record-type specification define candidate selection and
-compatibility checks.<a href="#section-4.1-1" class="pilcrow">¶</a></p>
-<p id="section-4.1-2">A discovery result identifies candidate CL endpoints.  A candidate can
-be the destination node or a relay that accepts Bundles for onward
-forwarding.  A result does not show that the destination is reachable
-now, that a candidate will accept a session or a Bundle, or that the
-Bundle will be delivered.<a href="#section-4.1-2" class="pilcrow">¶</a></p>
-<p id="section-4.1-3">DNS terminology <span>[<a href="#RFC2308" class="cite xref">RFC2308</a>]</span> distinguishes these unsuccessful
-outcomes:<a href="#section-4.1-3" class="pilcrow">¶</a></p>
-<span class="break"></span><dl class="dlParallel" id="section-4.1-4">
-          <dt id="section-4.1-4.1">NXDOMAIN:</dt>
-          <dd style="margin-left: 1.5em" id="section-4.1-4.2">
-            <p id="section-4.1-4.2.1">The name at which resolution stopped, possibly the target of an
-alias, does not exist.<a href="#section-4.1-4.2.1" class="pilcrow">¶</a></p>
+information.  A valid DNS answer need not contain a usable candidate:
+the discovery binding and the record-type specification determine
+compatibility and candidate selection (<a href="#tcpcl-binding" class="auto internal xref">Section 3.2</a>,
+<a href="#other-cls" class="auto internal xref">Section 3.5</a>).  A candidate is an endpoint at the destination or at a
+relay.  Discovery does not guarantee current reachability, acceptance
+of a session or bundle, or eventual delivery.<a href="#section-4.1-1" class="pilcrow">¶</a></p>
+<p id="section-4.1-2">Negative answers concern the name at the end of any alias chain
+(<span><a href="https://rfc-editor.org/rfc/rfc2308#section-2" class="relref">Section 2</a> of [<a href="#RFC2308" class="cite xref">RFC2308</a>]</span>):<a href="#section-4.1-2" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-4.1-3">
+          <dt id="section-4.1-3.1">NXDOMAIN:</dt>
+          <dd style="margin-left: 1.5em" id="section-4.1-3.2">
+            <p id="section-4.1-3.2.1">That name does not exist.<a href="#section-4.1-3.2.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-4.1-4.3">NODATA:</dt>
-          <dd style="margin-left: 1.5em" id="section-4.1-4.4">
-            <p id="section-4.1-4.4.1">The name exists, but it has no records of the requested type.<a href="#section-4.1-4.4.1" class="pilcrow">¶</a></p>
-</dd>
-          <dd class="break"></dd>
-<dt id="section-4.1-4.5">SERVFAIL, timeout, and other resolution failures:</dt>
-          <dd style="margin-left: 1.5em" id="section-4.1-4.6">
-            <p id="section-4.1-4.6.1">The lookup did not complete.  This does not show that the service
-is absent.<a href="#section-4.1-4.6.1" class="pilcrow">¶</a></p>
+<dt id="section-4.1-3.3">NODATA:</dt>
+          <dd style="margin-left: 1.5em" id="section-4.1-3.4">
+            <p id="section-4.1-3.4.1">That name exists, but has no RRset of the requested type.  The
+response code is NOERROR; the answer can still contain aliases.<a href="#section-4.1-3.4.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 </dl>
-<p id="section-4.1-5">These outcomes apply only to the DNS discovery attempt.  They do not
-show that the FQNN is invalid or that other means cannot reach it.
-The absence of discovery records for one CL does not show the absence
-of service for another CL.  <a href="#tcpcl-binding" class="auto internal xref">Section 3.2</a> specifies the TCPCLv4
-result when no usable SRV record exists.<a href="#section-4.1-5" class="pilcrow">¶</a></p>
-<p id="section-4.1-6">An unsuccessful discovery attempt does not invalidate forwarding
-information from other sources, such as configured routes or other
-routing mechanisms.  It does not require deletion of a Bundle.  The
-existing policies of the BP Agent govern retries and route precedence.<a href="#section-4.1-6" class="pilcrow">¶</a></p>
+<p id="section-4.1-4">A SERVFAIL response, a timeout, or another resolution failure gives no
+answer about service availability.  None of these outcomes makes the
+FQNN invalid.  Absence of one CL's records does not rule out another
+CL's service.<a href="#section-4.1-4" class="pilcrow">¶</a></p>
+<p id="section-4.1-5">An unsuccessful lookup does not invalidate independently obtained
+forwarding information or require deletion of a bundle.  The BP
+Agent's existing policies govern retries and route precedence.<a href="#section-4.1-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="caching">
@@ -1861,27 +1752,24 @@ existing policies of the BP Agent govern retries and route precedence.<a href="#
         <h3 id="name-caching-and-operation-durin">
 <a href="#section-4.2" class="section-number selfRef">4.2. </a><a href="#name-caching-and-operation-durin" class="section-name selfRef">Caching and Operation During Disruption</a>
         </h3>
-<p id="section-4.2-1">Positive and negative DNS caching follow the existing DNS
-specifications, including <span>[<a href="#RFC2308" class="cite xref">RFC2308</a>]</span>.<a href="#section-4.2-1" class="pilcrow">¶</a></p>
-<p id="section-4.2-2">A retained discovery result depends on the remaining TTLs of the
-records that produced it: aliases, SRV or SVCB records, and address
-records.  These TTLs can be different.  Copying a result into
-forwarding information should not silently make it permanent
-configuration.  A BP Agent does not need to repeat the lookup before
-each Bundle transfer.  TTL expiry does not require it to close an
-established CL session or to delete a Bundle; refreshed information
-affects later connection attempts.<a href="#section-4.2-2" class="pilcrow">¶</a></p>
-<p id="section-4.2-3">If refresh is not possible, explicit operational policy governs any
-continued use of expired discovery information.  That policy considers
-possible changes to endpoints, aliases, or administrative control.
-<span>[<a href="#RFC8767" class="cite xref">RFC8767</a>]</span> describes how resolvers can serve stale DNS data; it does
-not specify how a BP Agent retains forwarding information.<a href="#section-4.2-3" class="pilcrow">¶</a></p>
-<p id="section-4.2-4">TTL expiry is different from signature expiry.  Validation checks the
-RRSIG validity period (<span><a href="https://rfc-editor.org/rfc/rfc4035#section-5.3.1" class="relref">Section 5.3.1</a> of [<a href="#RFC4035" class="cite xref">RFC4035</a>]</span>), and the
+<p id="section-4.2-1">Resolvers cache positive answers (<span>[<a href="#RFC1034" class="cite xref">RFC1034</a>]</span>), negative answers
+(<span>[<a href="#RFC2308" class="cite xref">RFC2308</a>]</span>), and resolution failures (<span>[<a href="#RFC9520" class="cite xref">RFC9520</a>]</span>).  A negative
+answer to a refresh is a completed lookup, not a resolution failure.<a href="#section-4.2-1" class="pilcrow">¶</a></p>
+<p id="section-4.2-2">A BP Agent need not repeat discovery for each bundle.  For a retained
+candidate, the first TTL to expire among the RRsets used to obtain it
+limits its freshness.  These can include alias, service, and address
+RRsets.  Copying the candidate into a forwarding table does not
+refresh it.  TTL expiry does not require closing an established CL
+session or deleting a bundle; refreshed data informs later connections.<a href="#section-4.2-2" class="pilcrow">¶</a></p>
+<p id="section-4.2-3">If the BP Agent cannot refresh an expired result, explicit operational
+policy governs its continued use.  Endpoints, aliases, or administrative
+control may have changed.  This differs from a resolver serving stale
+DNS data under <span>[<a href="#RFC8767" class="cite xref">RFC8767</a>]</span>.<a href="#section-4.2-3" class="pilcrow">¶</a></p>
+<p id="section-4.2-4">TTL expiry also differs from signature expiry.  DNSSEC validation
+checks the RRSIG validity period (<span><a href="https://rfc-editor.org/rfc/rfc4035#section-5.3.1" class="relref">Section 5.3.1</a> of [<a href="#RFC4035" class="cite xref">RFC4035</a>]</span>); the
 signature expiration time limits the TTL of authenticated data
-(<span><a href="https://rfc-editor.org/rfc/rfc4035#section-5.3.3" class="relref">Section 5.3.3</a> of [<a href="#RFC4035" class="cite xref">RFC4035</a>]</span>).  An earlier successful validation
-therefore does not stay valid indefinitely.  <a href="#bpa-validation" class="auto internal xref">Section 5.2.1</a>
-describes the handling of validation failures.<a href="#section-4.2-4" class="pilcrow">¶</a></p>
+(<span><a href="https://rfc-editor.org/rfc/rfc4035#section-5.3.3" class="relref">Section 5.3.3</a> of [<a href="#RFC4035" class="cite xref">RFC4035</a>]</span>).  Retaining a candidate does not extend
+that validity period (<a href="#bpa-validation" class="auto internal xref">Section 5.2.1</a>).<a href="#section-4.2-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="locally-served">
@@ -1889,36 +1777,25 @@ describes the handling of validation failures.<a href="#section-4.2-4" class="pi
         <h3 id="name-locally-served-namespaces">
 <a href="#section-4.3" class="section-number selfRef">4.3. </a><a href="#name-locally-served-namespaces" class="section-name selfRef">Locally Served Namespaces</a>
         </h3>
-<p id="section-4.3-1">A deployment that uses a local instance of 0.ipn.arpa or of an
-Experimental Use allocator subtree (<a href="#publication-restrictions" class="auto internal xref">Section 7.2</a>)
-configures it explicitly with ordinary DNS administration.  The
-administrator loads the zones, selects authoritative servers, and
-configures resolvers to forward queries for those names.  This
-document does not request automatic resolver behavior or additions to
-the IANA "Locally-Served DNS Zones" registry <span>[<a href="#RFC6303" class="cite xref">RFC6303</a>]</span>.<a href="#section-4.3-1" class="pilcrow">¶</a></p>
-<p id="section-4.3-2">The signed public ipn.arpa namespace does not give a chain of trust to
-independently administered local data.  If the public namespace does
-not contain a name, normal DNSSEC processing can authenticate the
-nonexistence of that name.  A validator that uses only the public
-chain therefore cannot authenticate a conflicting local answer.  A
-validator can authenticate a signed local zone with a configured local
-trust anchor (<span><a href="https://rfc-editor.org/rfc/rfc6303#section-7" class="relref">Section 7</a> of [<a href="#RFC6303" class="cite xref">RFC6303</a>]</span>).  <span><a href="https://rfc-editor.org/rfc/rfc6840#section-5.10" class="relref">Section 5.10</a> of [<a href="#RFC6840" class="cite xref">RFC6840</a>]</span>
-describes how a validator selects among nested trust anchors.  The
-trust anchor is necessary wherever validation occurs: in a trusted
-validating resolver (<a href="#bpa-validation" class="auto internal xref">Section 5.2.1</a>) or in a BP Agent that
-validates independently.<a href="#section-4.3-2" class="pilcrow">¶</a></p>
-<p id="section-4.3-3">A deployment can also accept unsigned local data under explicit local
-policy.  This acceptance is a policy decision, not a successful DNSSEC
-validation.  Local resolution and trust settings are best limited to
-the relevant subtrees, without disabling validation for all of
-ipn.arpa.<a href="#section-4.3-3" class="pilcrow">¶</a></p>
-<p id="section-4.3-4">Administrators should configure resolution so that queries for these
-names stay within the intended administrative or experimental scope,
-also when local resolution fails.  Public resolution cannot supply the
-local data, and queries that reach the public DNS can disclose the
-queried identifiers (<a href="#privacy" class="auto internal xref">Section 5.4</a>).  <span>[<a href="#RFC6303" class="cite xref">RFC6303</a>]</span> describes the reasons
-to contain such queries.  This guidance does not require resolvers in
-general to recognize these namespaces.<a href="#section-4.3-4" class="pilcrow">¶</a></p>
+<p id="section-4.3-1">Local discovery under <code>0.ipn.arpa.</code> or an Experimental Use allocator
+subtree (<a href="#publication-restrictions" class="auto internal xref">Section 7.2</a>) requires explicit DNS
+configuration.  A resolver can serve the local zone itself or send
+queries to a configured server for that subtree.  This document
+requests neither automatic resolver behavior nor additions to the
+IANA "Locally-Served DNS Zones" registry <span>[<a href="#RFC6303" class="cite xref">RFC6303</a>]</span>.<a href="#section-4.3-1" class="pilcrow">¶</a></p>
+<p id="section-4.3-2">The signed public hierarchy can authenticate the absence of a name in
+public DNS, but not a conflicting local answer.  A validator can
+authenticate a signed local zone with a configured local trust anchor
+(<span><a href="https://rfc-editor.org/rfc/rfc6303#section-7" class="relref">Section 7</a> of [<a href="#RFC6303" class="cite xref">RFC6303</a>]</span>; for nested anchors, see
+<span><a href="https://rfc-editor.org/rfc/rfc6840#section-5.10" class="relref">Section 5.10</a> of [<a href="#RFC6840" class="cite xref">RFC6840</a>]</span>).  The trust configuration belongs where
+validation takes place: at the trusted resolver (<a href="#bpa-validation" class="auto internal xref">Section 5.2.1</a>)
+or at a BP Agent that validates independently.<a href="#section-4.3-2" class="pilcrow">¶</a></p>
+<p id="section-4.3-3">A deployment can accept unsigned local data under explicit policy;
+that is not successful DNSSEC validation.  Administrators should scope
+local resolution and trust settings to the relevant subtrees, not to
+all of ipn.arpa.  Queries should stay within that scope even when local
+resolution fails.  Public fallback cannot supply the local data and
+can disclose the queried identifiers (<span>[<a href="#RFC6303" class="cite xref">RFC6303</a>]</span>; <a href="#privacy" class="auto internal xref">Section 5.4</a>).<a href="#section-4.3-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="managing-allocator-ranges">
@@ -1984,18 +1861,13 @@ repetitive zone-file entries.  They produce ordinary DNS records.<a href="#secti
         <h3 id="name-authentication-and-forwardi">
 <a href="#section-5.1" class="section-number selfRef">5.1. </a><a href="#name-authentication-and-forwardi" class="section-name selfRef">Authentication and Forwarding Policy</a>
         </h3>
-<p id="section-5.1-1">The use of DNS-derived forwarding information involves two separate
-authentication questions.  DNSSEC authenticates the DNS data
-(<a href="#dnssec" class="auto internal xref">Section 5.2</a>).  The CL authenticates the session peer
-(<a href="#cl-peer-identity" class="auto internal xref">Section 5.3</a>).  The authentication of one does not
-authenticate the other.<a href="#section-5.1-1" class="pilcrow">¶</a></p>
-<p id="section-5.1-2">The configured forwarding and security policies of the BP Agent govern
-the use of DNS-derived forwarding information.  These policies can
-distinguish sources of forwarding information, for example configured
-routes and discovery results, or authenticated and unauthenticated
-results.  A BP Agent's configured forwarding policy may permit
-automatic use of authenticated discovery mappings, subject to the
-security requirements of the applicable CL.<a href="#section-5.1-2" class="pilcrow">¶</a></p>
+<p id="section-5.1-1">DNSSEC authenticates DNS data (<a href="#dnssec" class="auto internal xref">Section 5.2</a>), not the live session peer.
+The CL specification and configured security policy govern peer
+authentication (<a href="#cl-peer-identity" class="auto internal xref">Section 5.3</a>).<a href="#section-5.1-1" class="pilcrow">¶</a></p>
+<p id="section-5.1-2">A BP Agent uses DNS-derived forwarding information according to its
+configured forwarding policy.  That policy may permit automatic use
+of authenticated discovery mappings, subject to the security
+requirements of the applicable CL.<a href="#section-5.1-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="dnssec">
@@ -2003,37 +1875,23 @@ security requirements of the applicable CL.<a href="#section-5.1-2" class="pilcr
         <h3 id="name-dnssec">
 <a href="#section-5.2" class="section-number selfRef">5.2. </a><a href="#name-dnssec" class="section-name selfRef">DNSSEC</a>
         </h3>
-<p id="section-5.2-1">Forged discovery information can redirect connection attempts, and
-thus bundle transfers, to endpoints that an attacker selects.  DNSSEC
-<span>[<a href="#RFC9364" class="cite xref">RFC9364</a>]</span> gives data origin authentication and integrity for DNS
-data.  It does not show that the advertised service is available;
-ENUM makes a similar observation (<span><a href="https://rfc-editor.org/rfc/rfc6116#section-7.1" class="relref">Section 7.1</a> of [<a href="#RFC6116" class="cite xref">RFC6116</a>]</span>).<a href="#section-5.2-1" class="pilcrow">¶</a></p>
+<p id="section-5.2-1">Forged discovery information can redirect connection attempts and
+bundle transfers to an endpoint an attacker selects.  DNSSEC
+<span>[<a href="#RFC9364" class="cite xref">RFC9364</a>]</span> provides data origin authentication and integrity, not a
+guarantee of service availability (see also <span><a href="https://rfc-editor.org/rfc/rfc6116#section-7.1" class="relref">Section 7.1</a> of [<a href="#RFC6116" class="cite xref">RFC6116</a>]</span>
+on ENUM).<a href="#section-5.2-1" class="pilcrow">¶</a></p>
 <p id="section-5.2-2">Operators publishing discovery data for this mechanism in the public
 DNS <span class="bcp14">SHOULD</span> provide DNSSEC authentication of that data, including the
-necessary chain of trust.  This recommendation applies to all DNS
-records relied upon in discovery, including records published outside
-ipn.arpa:<a href="#section-5.2-2" class="pilcrow">¶</a></p>
-<ul class="normal">
-<li class="normal" id="section-5.2-3.1">
-            <p id="section-5.2-3.1.1">aliases and redirections, such as CNAME, DNAME, and SVCB AliasMode
-records;<a href="#section-5.2-3.1.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-5.2-3.2">
-            <p id="section-5.2-3.2.1">service records and other records that carry connection parameters,
-such as SRV and SVCB ServiceMode records; and<a href="#section-5.2-3.2.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-5.2-3.3">
-            <p id="section-5.2-3.3.1">address records for the resulting targets.<a href="#section-5.2-3.3.1" class="pilcrow">¶</a></p>
-</li>
-        </ul>
-<p id="section-5.2-4">The ipn.arpa operator signs ipn.arpa (<a href="#creation-of-ipn-arpa" class="auto internal xref">Section 7.1</a>), and
-DS records can link delegated allocator zones into that chain of trust
-(<a href="#ds-management" class="auto internal xref">Section 7.3.3</a>).  The signature on ipn.arpa does not authenticate
-records in delegated zones or in external target namespaces.  Each
-record has its own security status.<a href="#section-5.2-4" class="pilcrow">¶</a></p>
-<p id="section-5.2-5">Validation follows standard DNSSEC processing.  For example, a CNAME
-synthesized from a validated DNAME needs no signature of its own
-(<span><a href="https://rfc-editor.org/rfc/rfc6672#section-3.1" class="relref">Section 3.1</a> of [<a href="#RFC6672" class="cite xref">RFC6672</a>]</span>; <span><a href="https://rfc-editor.org/rfc/rfc6672#section-5.3.1" class="relref">Section 5.3.1</a> of [<a href="#RFC6672" class="cite xref">RFC6672</a>]</span>).<a href="#section-5.2-5" class="pilcrow">¶</a></p>
+necessary chain of trust.  This includes every RRset used for discovery,
+even outside ipn.arpa: aliases and redirections (CNAME, DNAME, or SVCB
+AliasMode), service and connection parameters (such as SRV or SVCB
+ServiceMode), and addresses.<a href="#section-5.2-2" class="pilcrow">¶</a></p>
+<p id="section-5.2-3">Signing ipn.arpa (<a href="#creation-of-ipn-arpa" class="auto internal xref">Section 7.1</a>) does not authenticate data
+in delegated zones or external target namespaces.  Likewise, validating
+a service RRset does not authenticate address RRsets supplied with it.
+A CNAME synthesized from a validated DNAME needs no signature of its
+own.  The validator checks the substitution
+(<span><a href="https://rfc-editor.org/rfc/rfc6672#section-5.3.1" class="relref">Section 5.3.1</a> of [<a href="#RFC6672" class="cite xref">RFC6672</a>]</span>).<a href="#section-5.2-3" class="pilcrow">¶</a></p>
 <div id="bpa-validation">
 <section id="section-5.2.1">
           <h4 id="name-validation-by-bp-agents">
@@ -2044,28 +1902,23 @@ either locally or through a trusted validating resolver.  When a BP
 Agent relies on validation by another resolver, the resolver and the
 channel to it need to satisfy the trust requirements of
 <span><a href="https://rfc-editor.org/rfc/rfc4035#section-4.9.3" class="relref">Section 4.9.3</a> of [<a href="#RFC4035" class="cite xref">RFC4035</a>]</span>.<a href="#section-5.2.1-1" class="pilcrow">¶</a></p>
-<p id="section-5.2.1-2"><span><a href="https://rfc-editor.org/rfc/rfc4035#section-4.3" class="relref">Section 4.3</a> of [<a href="#RFC4035" class="cite xref">RFC4035</a>]</span> defines the security states secure,
-insecure, bogus, and indeterminate.  An insecure result means that the
-validator has established that no chain of trust exists from a
-configured trust anchor to the RRset.  For example, normal DNSSEC
-processing proves that the delegation to the target zone is unsigned.
-An insecure result does not mean that the validator failed to build a
-chain.  Missing signatures where a secure chain requires them can
-produce a bogus result.  A zone can contain signatures and still be
-insecure if no chain of trust reaches it.<a href="#section-5.2.1-2" class="pilcrow">¶</a></p>
-<p id="section-5.2.1-3">An application can also receive a result whose security status is
-unknown to it, for example from a resolver that does not report
-validation results.  The absence of an authentication indication does
-not establish that a result is insecure.<a href="#section-5.2.1-3" class="pilcrow">¶</a></p>
-<p id="section-5.2.1-4">This document does not require a policy of accepting only secure
-results.  The configured policy of the BP Agent governs the acceptance
-of insecure results and of results with unknown status.<a href="#section-5.2.1-4" class="pilcrow">¶</a></p>
-<p id="section-5.2.1-5">A known validation failure is a failure of the affected discovery path
-(<a href="#discovery-results" class="auto internal xref">Section 4.1</a>).  It should not lead to automatic acceptance
-of the same data without validation, for example through a query on a
-non-validating path.  A BP Agent can still retrieve DNSSEC data to
-validate it independently.  <a href="#locally-served" class="auto internal xref">Section 4.3</a> describes validation
-for locally served namespaces.<a href="#section-5.2.1-5" class="pilcrow">¶</a></p>
+<p id="section-5.2.1-2"><span><a href="https://rfc-editor.org/rfc/rfc4035#section-4.3" class="relref">Section 4.3</a> of [<a href="#RFC4035" class="cite xref">RFC4035</a>]</span> distinguishes secure, insecure, bogus, and
+indeterminate RRsets.  Insecure means the validator has established
+that no chain of trust reaches the RRset from any configured trust
+anchor, for example through proof of an unsigned delegation.  An
+insecure RRset can still have signatures.  Missing signatures where
+a secure chain requires them can make the result bogus.  If the
+validator cannot determine whether to expect signatures, the status
+is indeterminate.<a href="#section-5.2.1-2" class="pilcrow">¶</a></p>
+<p id="section-5.2.1-3">A BP Agent may not know the resolver's validation result.  A missing
+authentication indication does not establish that an RRset is insecure.
+The BP Agent's configured policy governs acceptance of insecure results
+and results whose status it does not know.<a href="#section-5.2.1-3" class="pilcrow">¶</a></p>
+<p id="section-5.2.1-4">A known validation failure is a failure of that discovery path
+(<a href="#discovery-results" class="auto internal xref">Section 4.1</a>).  It should not trigger automatic acceptance
+of the same data through an unvalidated path.  The BP Agent can still
+retrieve DNSSEC data for independent validation.  For local trust
+configuration, see <a href="#locally-served" class="auto internal xref">Section 4.3</a>.<a href="#section-5.2.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -2075,39 +1928,29 @@ for locally served namespaces.<a href="#section-5.2.1-5" class="pilcrow">¶</a><
         <h3 id="name-convergence-layer-peer-iden">
 <a href="#section-5.3" class="section-number selfRef">5.3. </a><a href="#name-convergence-layer-peer-iden" class="section-name selfRef">Convergence-Layer Peer Identity</a>
         </h3>
-<p id="section-5.3-1">The applicable CL specification and the configured security policy
-govern authentication of the CL peer.  For TCPCLv4,
-<span><a href="https://rfc-editor.org/rfc/rfc9174#section-4.4" class="relref">Section 4.4</a> of [<a href="#TCPCL" class="cite xref">TCPCL</a>]</span> specifies session security, including
-certificate-based peer identification, and <span><a href="https://rfc-editor.org/rfc/rfc9174#section-4.6" class="relref">Section 4.6</a> of [<a href="#TCPCL" class="cite xref">TCPCL</a>]</span>
-specifies the handling of the peer Node ID.  This document does not
-change these procedures.<a href="#section-5.3-1" class="pilcrow">¶</a></p>
-<p id="section-5.3-2">A TCPCLv4 discovery result involves three different identifiers.  In
-Example A (<a href="#examples" class="auto internal xref">Section 3.3</a>):<a href="#section-5.3-2" class="pilcrow">¶</a></p>
+<p id="section-5.3-1">For TCPCLv4, <span><a href="https://rfc-editor.org/rfc/rfc9174#section-4.4" class="relref">Section 4.4</a> of [<a href="#TCPCL" class="cite xref">TCPCL</a>]</span> specifies session security.  In
+Example A (<a href="#examples" class="auto internal xref">Section 3.3</a>), three identifiers have different roles:<a href="#section-5.3-1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-5.3-3.1">
-            <p id="section-5.3-3.1.1">The discovery name, <code>_dtn-bundle._tcp.2.978879.ipn.arpa.</code>, comes
-from the destination FQNN.<a href="#section-5.3-3.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-5.3-2.1">
+            <p id="section-5.3-2.1.1"><code>_dtn-bundle._tcp.2.978879.ipn.arpa.</code> is the SRV query name.  It
+comes from the destination FQNN.<a href="#section-5.3-2.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-5.3-3.2">
-            <p id="section-5.3-3.2.1">The selected SRV Target, <code>relay-a.space-agency.example.</code>, is the DNS
-name that the BP Agent resolves to make the TCP connection.  If the
-configured policy invokes network-level authentication
-(<span><a href="https://rfc-editor.org/rfc/rfc9174#section-4.4.4.2" class="relref">Section 4.4.4.2</a> of [<a href="#TCPCL" class="cite xref">TCPCL</a>]</span>), this name is the DNS-ID reference
-identifier.  It is also the HostName in the TLS server_name
-extension (<span><a href="https://rfc-editor.org/rfc/rfc9174#section-4.4.3" class="relref">Section 4.4.3</a> of [<a href="#TCPCL" class="cite xref">TCPCL</a>]</span>).<a href="#section-5.3-3.2.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-5.3-2.2">
+            <p id="section-5.3-2.2.1">If the BP Agent selects <code>relay-a.space-agency.example.</code>, it resolves
+that SRV Target to establish the TCP connection.  When policy calls
+for network-level authentication, that host name is the DNS-ID
+reference identifier (<span><a href="https://rfc-editor.org/rfc/rfc9174#section-4.4.4.2" class="relref">Section 4.4.4.2</a> of [<a href="#TCPCL" class="cite xref">TCPCL</a>]</span>).  If the TLS
+client sends the server_name extension, it uses the relay host name,
+not the query name (<span><a href="https://rfc-editor.org/rfc/rfc9174#section-4.4.3" class="relref">Section 4.4.3</a> of [<a href="#TCPCL" class="cite xref">TCPCL</a>]</span>).<a href="#section-5.3-2.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-5.3-3.3">
-            <p id="section-5.3-3.3.1">The peer Node ID is the Node ID of the relay, which the relay sends
-in its SESS_INIT message (<span><a href="https://rfc-editor.org/rfc/rfc9174#section-4.6" class="relref">Section 4.6</a> of [<a href="#TCPCL" class="cite xref">TCPCL</a>]</span>).<a href="#section-5.3-3.3.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-5.3-2.3">
+            <p id="section-5.3-2.3.1">The relay can supply its own Node ID in SESS_INIT.  The DNS-ID check
+does not authenticate that Node ID, and discovery supplies no
+expected peer Node ID.  <span><a href="https://rfc-editor.org/rfc/rfc9174#section-4.6" class="relref">Section 4.6</a> of [<a href="#TCPCL" class="cite xref">TCPCL</a>]</span> specifies how to
+handle absent, unexpected, or unauthenticated peer Node IDs.<a href="#section-5.3-2.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-5.3-4">Network-level authentication of <code>relay-a.space-agency.example.</code>
-authenticates the host name only.  It does not authenticate the Node
-ID of the relay.  The destination EID of the Bundle stays
-<code>ipn:978879.2.345</code>.  Discovery does not supply an expected peer Node
-ID.  <span><a href="https://rfc-editor.org/rfc/rfc9174#section-4.6" class="relref">Section 4.6</a> of [<a href="#TCPCL" class="cite xref">TCPCL</a>]</span> describes the handling of a peer Node ID
-that is different from the intended Node ID or that is not
-authenticated.<a href="#section-5.3-4" class="pilcrow">¶</a></p>
+<p id="section-5.3-3">The bundle's destination EID remains <code>ipn:978879.2.345</code>.<a href="#section-5.3-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="privacy">
@@ -2115,15 +1958,12 @@ authenticated.<a href="#section-5.3-4" class="pilcrow">¶</a></p>
         <h3 id="name-privacy">
 <a href="#section-5.4" class="section-number selfRef">5.4. </a><a href="#name-privacy" class="section-name selfRef">Privacy</a>
         </h3>
-<p id="section-5.4-1">Public discovery records can reveal destination identifiers, their
-association with services and relays, and connection endpoints.
-Queries for these records can reveal to resolvers and other observers
-which destinations a BP Agent tries to reach, and when.  DNSSEC does
-not provide confidentiality.  <span>[<a href="#RFC9076" class="cite xref">RFC9076</a>]</span> describes DNS privacy threats
-and mitigations, such as resolver selection and encrypted DNS
-transports.  Operators can limit what published records disclose
-(<a href="#shared-ingress" class="auto internal xref">Section 3.3.3</a>), and they can keep queries for locally served
-names within their intended scope (<a href="#locally-served" class="auto internal xref">Section 4.3</a>).<a href="#section-5.4-1" class="pilcrow">¶</a></p>
+<p id="section-5.4-1">Public records can associate destination identifiers with services,
+relays, and addresses (<a href="#shared-ingress" class="auto internal xref">Section 3.3.3</a>).  Queries can reveal to
+resolvers and other observers which destinations a BP Agent tries to
+reach and when.  DNSSEC does not provide confidentiality.  <span>[<a href="#RFC9076" class="cite xref">RFC9076</a>]</span>
+discusses resolver selection and encrypted DNS transports;
+<a href="#locally-served" class="auto internal xref">Section 4.3</a> covers containment of local queries.<a href="#section-5.4-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="resource-consumption">
@@ -2131,12 +1971,10 @@ names within their intended scope (<a href="#locally-served" class="auto interna
         <h3 id="name-resource-consumption">
 <a href="#section-5.5" class="section-number selfRef">5.5. </a><a href="#name-resource-consumption" class="section-name selfRef">Resource Consumption</a>
         </h3>
-<p id="section-5.5-1">Bundles addressed to many distinct FQNNs, whether malicious or not,
-can cause many DNS queries, much retained discovery state, and many
-connection attempts.  Implementations <span class="bcp14">SHOULD</span> bound outstanding
+<p id="section-5.5-1">Traffic for many distinct FQNNs can consume resolver, memory, and
+connection resources.  Implementations <span class="bcp14">SHOULD</span> bound outstanding
 discovery work, retained discovery state, and connection attempts,
-using existing mechanisms such as resolver limits, queueing, and
-connection management.<a href="#section-5.5-1" class="pilcrow">¶</a></p>
+for example with resolver, queue, and connection limits.<a href="#section-5.5-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -2146,14 +1984,12 @@ connection management.<a href="#section-5.5-1" class="pilcrow">¶</a></p>
       <h2 id="name-iab-considerations">
 <a href="#section-6" class="section-number selfRef">6. </a><a href="#name-iab-considerations" class="section-name selfRef">IAB Considerations</a>
       </h2>
-<p id="section-6-1">In accordance with <span><a href="https://rfc-editor.org/rfc/rfc3172#section-3" class="relref">Section 3</a> of [<a href="#RFC3172" class="cite xref">RFC3172</a>]</span>, the IAB is requested to
-approve the zone "ipn.arpa" as an infrastructure namespace derived
-from IPN identifiers.  Names in this zone are constructed from FQNNs
-(<a href="#discovery-model" class="auto internal xref">Section 3.1</a>).  BP Agents use them to discover CL endpoints for
-reaching IPN nodes.<a href="#section-6-1" class="pilcrow">¶</a></p>
-<p id="section-6-2">This follows the precedent of e164.arpa <span>[<a href="#RFC6116" class="cite xref">RFC6116</a>]</span>, in which names
-are derived from E.164 telephone numbers and queried directly for
-service records (NAPTR).<a href="#section-6-2" class="pilcrow">¶</a></p>
+<p id="section-6-1">This document requests IAB approval for ipn.arpa as an infrastructure
+namespace under <span><a href="https://rfc-editor.org/rfc/rfc3172#section-3" class="relref">Section 3</a> of [<a href="#RFC3172" class="cite xref">RFC3172</a>]</span>.  The two 32-bit components
+of an FQNN, the Allocator Identifier and Node Number, determine the
+DNS base name for discovery (<a href="#discovery-model" class="auto internal xref">Section 3.1</a>).  The precedent is
+e164.arpa: an ENUM client derives a name from an E.164 telephone
+number and queries it for NAPTR records <span>[<a href="#RFC6116" class="cite xref">RFC6116</a>]</span>.<a href="#section-6-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="iana-considerations">
@@ -2166,21 +2002,17 @@ service records (NAPTR).<a href="#section-6-2" class="pilcrow">¶</a></p>
         <h3 id="name-creation-of-ipnarpa">
 <a href="#section-7.1" class="section-number selfRef">7.1. </a><a href="#name-creation-of-ipnarpa" class="section-name selfRef">Creation of ipn.arpa</a>
         </h3>
-<p id="section-7.1-1">Following approval by the IAB in accordance with
-<span><a href="https://rfc-editor.org/rfc/rfc3172#section-3" class="relref">Section 3</a> of [<a href="#RFC3172" class="cite xref">RFC3172</a>]</span>, IANA is requested to add "ipn.arpa" to the
-".arpa" domain.  <a href="#discovery-model" class="auto internal xref">Section 3.1</a> specifies the names in ipn.arpa.<a href="#section-7.1-1" class="pilcrow">¶</a></p>
-<p id="section-7.1-2">IANA is requested to arrange the ongoing administration of ipn.arpa,
-consistent with the arrangements that the IAB approves under
-<span>[<a href="#RFC3172" class="cite xref">RFC3172</a>]</span>.  Administration includes the processing of the requests
-in <a href="#allocator-dns-provisioning" class="auto internal xref">Section 7.3</a>.  Administration is separate from the
-operation of the authoritative DNS servers for ipn.arpa, and this
-document does not require IANA itself to operate those servers.  The
-ipn.arpa operator does the DNS provisioning and operational functions
-under these arrangements.<a href="#section-7.1-2" class="pilcrow">¶</a></p>
+<p id="section-7.1-1">Following IAB approval under <span><a href="https://rfc-editor.org/rfc/rfc3172#section-3" class="relref">Section 3</a> of [<a href="#RFC3172" class="cite xref">RFC3172</a>]</span>, IANA is
+requested to add ipn.arpa to the arpa domain for names derived from
+FQNNs (<a href="#discovery-model" class="auto internal xref">Section 3.1</a>).<a href="#section-7.1-1" class="pilcrow">¶</a></p>
+<p id="section-7.1-2">IANA is requested to arrange ongoing administration, including request
+processing (<a href="#allocator-dns-provisioning" class="auto internal xref">Section 7.3</a>), as approved by the IAB.
+The ipn.arpa operator provisions and operates the zone; IANA need not
+operate the authoritative servers itself.<a href="#section-7.1-2" class="pilcrow">¶</a></p>
 <p id="section-7.1-3">The ipn.arpa operator <span class="bcp14">MUST</span> sign the public ipn.arpa zone using DNSSEC
-and maintain a chain of trust through the arpa zone.  This requirement
-applies only to the ipn.arpa zone.  <a href="#dnssec" class="auto internal xref">Section 5.2</a> gives recommendations
-for the operators of delegated allocator zones and other namespaces.<a href="#section-7.1-3" class="pilcrow">¶</a></p>
+and maintain a chain of trust through the arpa zone.  For the
+recommendation to operators of delegated zones and other namespaces,
+see <a href="#dnssec" class="auto internal xref">Section 5.2</a>.<a href="#section-7.1-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="publication-restrictions">
@@ -2188,64 +2020,41 @@ for the operators of delegated allocator zones and other namespaces.<a href="#se
         <h3 id="name-publication-restrictions">
 <a href="#section-7.2" class="section-number selfRef">7.2. </a><a href="#name-publication-restrictions" class="section-name selfRef">Publication Restrictions</a>
         </h3>
-<p id="section-7.2-1">This document restricts the publication of discovery data for two sets
-of names in the public ipn.arpa hierarchy.  These restrictions come
-from this document, not from <span>[<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>.  They apply only to DNS
-discovery, and they do not change any allocation or its Bundle
-Protocol semantics.<a href="#section-7.2-1" class="pilcrow">¶</a></p>
-<p id="section-7.2-2">The restrictions apply to every means of placing discovery data for
-the affected FQNNs in the public ipn.arpa hierarchy:<a href="#section-7.2-2" class="pilcrow">¶</a></p>
-<ul class="normal">
-<li class="normal" id="section-7.2-3.1">
-            <p id="section-7.2-3.1.1">discovery records, such as SRV, SVCB, or CNAME records, at or
-beneath the restricted names;<a href="#section-7.2-3.1.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-7.2-3.2">
-            <p id="section-7.2-3.2.1">NS delegations of the restricted names, or of names beneath them,
-to servers that publish such discovery data; and<a href="#section-7.2-3.2.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-7.2-3.3">
-            <p id="section-7.2-3.3.1">CNAME or DNAME records at or beneath the restricted names that
-redirect discovery queries to data published elsewhere in the global
-DNS.<a href="#section-7.2-3.3.1" class="pilcrow">¶</a></p>
-</li>
-        </ul>
-<p id="section-7.2-4">Names in these subtrees are absent from the public zone.  They receive
-ordinary negative answers with normal DNSSEC processing.  This document
-requests no special public delegation for them.  For comparison,
-home.arpa has an insecure public delegation to accommodate validators
-without local trust configuration (<span><a href="https://rfc-editor.org/rfc/rfc8375#section-6.2" class="relref">Section 6.2</a> of [<a href="#RFC8375" class="cite xref">RFC8375</a>]</span>;
-<span><a href="https://rfc-editor.org/rfc/rfc8375#section-7" class="relref">Section 7</a> of [<a href="#RFC8375" class="cite xref">RFC8375</a>]</span>).  This document does not request that
-arrangement.  <a href="#locally-served" class="auto internal xref">Section 4.3</a> gives operational guidance for local
-instances.<a href="#section-7.2-4" class="pilcrow">¶</a></p>
+<p id="section-7.2-1">This document excludes two sets of names from public DNS discovery.
+The restrictions do not change any allocation or its Bundle Protocol
+semantics under <span>[<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>.  At or beneath each restricted name,
+they cover discovery records, NS delegations to servers that publish
+such records, and CNAME or DNAME redirections that expose discovery
+data elsewhere in the global DNS.<a href="#section-7.2-1" class="pilcrow">¶</a></p>
+<p id="section-7.2-2">The public ipn.arpa zone omits these allocator names and their
+descendants.  Queries for them receive ordinary DNS negative answers
+with normal DNSSEC processing.  For home.arpa, an insecure
+public delegation accommodates validators without local trust
+configuration (<span><a href="https://rfc-editor.org/rfc/rfc8375#section-6.2" class="relref">Section 6.2</a> of [<a href="#RFC8375" class="cite xref">RFC8375</a>]</span>; <span><a href="https://rfc-editor.org/rfc/rfc8375#section-7" class="relref">Section 7</a> of [<a href="#RFC8375" class="cite xref">RFC8375</a>]</span>);
+this document requests no such delegation.  See <a href="#locally-served" class="auto internal xref">Section 4.3</a>
+for local resolution and trust configuration.<a href="#section-7.2-2" class="pilcrow">¶</a></p>
 <div id="allocator-zero">
 <section id="section-7.2.1">
           <h4 id="name-allocator-identifier-zero">
 <a href="#section-7.2.1" class="section-number selfRef">7.2.1. </a><a href="#name-allocator-identifier-zero" class="section-name selfRef">Allocator Identifier Zero</a>
           </h4>
-<p id="section-7.2.1-1">"0.ipn.arpa" corresponds to Allocator Identifier zero, the Default
-Allocator (<span><a href="https://rfc-editor.org/rfc/rfc9758#section-3.2.2" class="relref">Section 3.2.2</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>).  Public DNS discovery for
-FQNNs with Allocator Identifier zero is intentionally outside the
-scope of this document.  A populated "0.ipn.arpa" zone <span class="bcp14">MUST NOT</span> be
-published in the public ipn.arpa hierarchy specified by this document.
-A "0.ipn.arpa" zone <span class="bcp14">MAY</span> exist in local DNS resolvers or servers that
-serve it authoritatively as a locally served zone <span>[<a href="#RFC6303" class="cite xref">RFC6303</a>]</span>, much as
-the IN-ADDR.ARPA zones for the private address space of <span>[<a href="#RFC1918" class="cite xref">RFC1918</a>]</span>
-are served locally (<span><a href="https://rfc-editor.org/rfc/rfc6303#section-4.1" class="relref">Section 4.1</a> of [<a href="#RFC6303" class="cite xref">RFC6303</a>]</span>).<a href="#section-7.2.1-1" class="pilcrow">¶</a></p>
-<p id="section-7.2.1-2">The restriction covers every Node Number under Allocator Identifier
-zero.  This includes the Private Use Node Numbers 1 through 16383
-(<span><a href="https://rfc-editor.org/rfc/rfc9758#section-3.4.3" class="relref">Section 3.4.3</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>) and the Node Numbers 2097152 through
-268435455 reserved for Private or Experimental Use
-(<span><a href="https://rfc-editor.org/rfc/rfc7116#section-3.2.1" class="relref">Section 3.2.1</a> of [<a href="#RFC7116" class="cite xref">RFC7116</a>]</span>; <span><a href="https://rfc-editor.org/rfc/rfc9758#section-9.2" class="relref">Section 9.2</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>).<a href="#section-7.2.1-2" class="pilcrow">¶</a></p>
-<p id="section-7.2.1-3">The restriction does not mean that Allocator Identifier zero has only
-local significance.  The registry of the Default Allocator
-(<span><a href="https://rfc-editor.org/rfc/rfc9758#section-9.2" class="relref">Section 9.2</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>) also contains assigned Node Numbers.
-Public support would need administration and delegation procedures for
-these allocations, and a treatment of the private ranges and of
-locally served DNS data.<a href="#section-7.2.1-3" class="pilcrow">¶</a></p>
-<p id="section-7.2.1-4">Note to the Working Group (to be removed before publication as an
+<p id="section-7.2.1-1">Allocator Identifier zero denotes the Default Allocator
+(<span><a href="https://rfc-editor.org/rfc/rfc9758#section-3.2.2" class="relref">Section 3.2.2</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>).  Public DNS discovery for its FQNNs is
+outside this document's scope.  A populated <code>0.ipn.arpa.</code> zone
+<span class="bcp14">MUST NOT</span> be published in the public ipn.arpa hierarchy.  Local
+resolvers or servers <span class="bcp14">MAY</span> serve it authoritatively, as with the reverse
+zones for <span>[<a href="#RFC1918" class="cite xref">RFC1918</a>]</span> private address space
+(<span><a href="https://rfc-editor.org/rfc/rfc6303#section-4.1" class="relref">Section 4.1</a> of [<a href="#RFC6303" class="cite xref">RFC6303</a>]</span>).<a href="#section-7.2.1-1" class="pilcrow">¶</a></p>
+<p id="section-7.2.1-2">The restriction covers assigned Node Numbers as well as Private Use
+Node Numbers 1 through 16383 (<span><a href="https://rfc-editor.org/rfc/rfc9758#section-3.4.3" class="relref">Section 3.4.3</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>) and Node
+Numbers 2097152 through 268435455 reserved for Private or Experimental
+Use (<span><a href="https://rfc-editor.org/rfc/rfc7116#section-3.2.1" class="relref">Section 3.2.1</a> of [<a href="#RFC7116" class="cite xref">RFC7116</a>]</span>; <span><a href="https://rfc-editor.org/rfc/rfc9758#section-9.2" class="relref">Section 9.2</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>).
+Public support would require administration and delegation procedures
+for existing assignments and a way to handle private ranges and
+locally served data.<a href="#section-7.2.1-2" class="pilcrow">¶</a></p>
+<p id="section-7.2.1-3">Note to the Working Group (to be removed before publication as an
 RFC): The working group can reconsider public DNS support for
-Allocator Identifier zero if it chooses to take on that scope.<a href="#section-7.2.1-4" class="pilcrow">¶</a></p>
+Allocator Identifier zero if it chooses to take on that scope.<a href="#section-7.2.1-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="experimental-allocators">
@@ -2255,14 +2064,13 @@ Allocator Identifier zero if it chooses to take on that scope.<a href="#section-
           </h4>
 <p id="section-7.2.2-1"><span><a href="https://rfc-editor.org/rfc/rfc9758#section-9.1" class="relref">Section 9.1</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span> designates Allocator Identifiers 1073741824
 through 2147483647 (0x40000000 through 0x7FFFFFFF) as Experimental
-Use.  Experimental Use values are not assigned to any party
-(<span><a href="https://rfc-editor.org/rfc/rfc8126#section-4.2" class="relref">Section 4.2</a> of [<a href="#RFC8126" class="cite xref">RFC8126</a>]</span>), so independent experiments can use the
-same identifier.  A globally authoritative mapping to discovery data
-is therefore not appropriate.<a href="#section-7.2.2-1" class="pilcrow">¶</a></p>
+Use.  Independent experiments can reuse these identifiers
+(<span><a href="https://rfc-editor.org/rfc/rfc8126#section-4.2" class="relref">Section 4.2</a> of [<a href="#RFC8126" class="cite xref">RFC8126</a>]</span>), so no single public mapping can
+represent them all.<a href="#section-7.2.2-1" class="pilcrow">¶</a></p>
 <p id="section-7.2.2-2">For each Experimental Use Allocator Identifier A, a populated subtree
-beneath "A.ipn.arpa" <span class="bcp14">MUST NOT</span> be published in the public ipn.arpa
-hierarchy.  Names beneath "A.ipn.arpa" <span class="bcp14">MAY</span> be served by local DNS
-resolvers or servers within the scope of an experiment.<a href="#section-7.2.2-2" class="pilcrow">¶</a></p>
+beneath <code>A.ipn.arpa.</code> <span class="bcp14">MUST NOT</span> be published in the public ipn.arpa
+hierarchy.  Local DNS resolvers or servers <span class="bcp14">MAY</span> serve names beneath
+<code>A.ipn.arpa.</code> within the scope of an experiment.<a href="#section-7.2.2-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -2273,37 +2081,22 @@ resolvers or servers within the scope of an experiment.<a href="#section-7.2.2-2
 <a href="#section-7.3" class="section-number selfRef">7.3. </a><a href="#name-allocator-dns-provisioning" class="section-name selfRef">Allocator DNS Provisioning</a>
         </h3>
 <p id="section-7.3-1">IANA and the ipn.arpa operator are requested to maintain a procedure
-that links requests for DNS provisioning at "A.ipn.arpa" to the entry
+that links each provisioning request for <code>A.ipn.arpa.</code> to the entry
 for Allocator Identifier A in the "'ipn' Scheme URI Allocator
-Identifiers" registry (<span><a href="https://rfc-editor.org/rfc/rfc9758#section-9.1" class="relref">Section 9.1</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>).  IANA and the
-ipn.arpa operator determine the storage format, the request interface,
-and the presentation of provisioning information.<a href="#section-7.3-1" class="pilcrow">¶</a></p>
-<p id="section-7.3-2">DNS provisioning is optional.  It can be requested when an Allocator
-Identifier is assigned or at any later time.  A DNS entry is not a
-condition for the validity or use of an allocator assignment.<a href="#section-7.3-2" class="pilcrow">¶</a></p>
-<p id="section-7.3-3">Eligible Allocator Identifiers are those assigned for operational use
-in the registry, subject to the exclusions in this document.  This
-document does not request public provisioning for:<a href="#section-7.3-3" class="pilcrow">¶</a></p>
-<ul class="normal">
-<li class="normal" id="section-7.3-4.1">
-            <p id="section-7.3-4.1.1">Allocator Identifier zero (<a href="#allocator-zero" class="auto internal xref">Section 7.2.1</a>);<a href="#section-7.3-4.1.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-7.3-4.2">
-            <p id="section-7.3-4.2.1">Experimental Use Allocator Identifiers
-(<a href="#experimental-allocators" class="auto internal xref">Section 7.2.2</a>);<a href="#section-7.3-4.2.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-7.3-4.3">
-            <p id="section-7.3-4.3.1">unassigned or reserved Allocator Identifiers; or<a href="#section-7.3-4.3.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-7.3-4.4">
-            <p id="section-7.3-4.4.1">Allocator Identifiers 974848 through 978943, which are reserved for
-documentation examples (<span><a href="https://rfc-editor.org/rfc/rfc9758#section-9.1" class="relref">Section 9.1</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>).<a href="#section-7.3-4.4.1" class="pilcrow">¶</a></p>
-</li>
-        </ul>
-<p id="section-7.3-5">The authorized DNS administrators of the allocator manage the records
-beneath the allocator name, such as node-level discovery records and
-further delegations.  These procedures do not require IANA or the
-ipn.arpa operator to provision individual Node Numbers.<a href="#section-7.3-5" class="pilcrow">¶</a></p>
+Identifiers" registry
+(<span><a href="https://rfc-editor.org/rfc/rfc9758#section-9.1" class="relref">Section 9.1</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>).  They determine the request interface,
+storage format, and presentation of provisioning information.<a href="#section-7.3-1" class="pilcrow">¶</a></p>
+<p id="section-7.3-2">A requester can seek DNS provisioning at assignment or later.  An
+allocator assignment remains valid and usable without a DNS entry.
+Only Allocator Identifiers assigned for operational use are eligible
+for public provisioning.  This excludes Allocator Identifier zero
+(<a href="#allocator-zero" class="auto internal xref">Section 7.2.1</a>), Experimental Use Allocator Identifiers
+(<a href="#experimental-allocators" class="auto internal xref">Section 7.2.2</a>), unassigned or reserved identifiers,
+and the Example Range, 974848 through 978943
+(<span><a href="https://rfc-editor.org/rfc/rfc9758#section-9.1" class="relref">Section 9.1</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>).<a href="#section-7.3-2" class="pilcrow">¶</a></p>
+<p id="section-7.3-3">The allocator's authorized DNS administrators manage node-level records
+and further delegations.  Neither IANA nor the ipn.arpa operator needs
+to provision individual Node Numbers.<a href="#section-7.3-3" class="pilcrow">¶</a></p>
 <div id="request-authorization">
 <section id="section-7.3.1">
           <h4 id="name-request-authorization">
@@ -2323,7 +2116,7 @@ apply to a conversion between NS delegation and DNAME redirection.<a href="#sect
           <h4 id="name-provisioning-alternatives">
 <a href="#section-7.3.2" class="section-number selfRef">7.3.2. </a><a href="#name-provisioning-alternatives" class="section-name selfRef">Provisioning Alternatives</a>
           </h4>
-<p id="section-7.3.2-1">The parent-zone configuration at "A.ipn.arpa" is one of the following:<a href="#section-7.3.2-1" class="pilcrow">¶</a></p>
+<p id="section-7.3.2-1">A requester chooses one parent-zone configuration for <code>A.ipn.arpa.</code>:<a href="#section-7.3.2-1" class="pilcrow">¶</a></p>
 <span class="break"></span><dl class="dlParallel" id="section-7.3.2-2">
             <dt id="section-7.3.2-2.1">NS delegation:</dt>
             <dd style="margin-left: 1.5em" id="section-7.3.2-2.2">
@@ -2339,13 +2132,11 @@ nameservers, any addresses needed for glue, and any DS records
 </dd>
           <dd class="break"></dd>
 </dl>
-<p id="section-7.3.2-3">A DNAME at the allocator name does not coexist with an NS delegation,
-or with the DS records of a delegation, at that name
-(<span><a href="https://rfc-editor.org/rfc/rfc6672#section-2.3" class="relref">Section 2.3</a> of [<a href="#RFC6672" class="cite xref">RFC6672</a>]</span>).<a href="#section-7.3.2-3" class="pilcrow">¶</a></p>
-<p id="section-7.3.2-4">One request can cover several Allocator Identifiers within the
-allocation of the requester.  The request identifies each Allocator
-Identifier and its configuration.  Each allocator name still has its
-own parent-zone records; DNS has no numeric-range syntax.<a href="#section-7.3.2-4" class="pilcrow">¶</a></p>
+<p id="section-7.3.2-3">A parent-side DNAME cannot coexist with a delegation NS RRset or its
+DS records at the same name (<span><a href="https://rfc-editor.org/rfc/rfc6672#section-2.3" class="relref">Section 2.3</a> of [<a href="#RFC6672" class="cite xref">RFC6672</a>]</span>).<a href="#section-7.3.2-3" class="pilcrow">¶</a></p>
+<p id="section-7.3.2-4">One request can cover several identifiers in the requester's
+allocation.  It specifies the configuration for each identifier;
+each allocator name has its own parent-zone records.<a href="#section-7.3.2-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="ds-management">
@@ -2355,15 +2146,14 @@ own parent-zone records; DNS has no numeric-range syntax.<a href="#section-7.3.2
           </h4>
 <p id="section-7.3.3-1">The ipn.arpa operator <span class="bcp14">MUST</span> support authenticated requests to add,
 update, and remove DS records for delegated allocator zones.
-<a href="#request-authorization" class="auto internal xref">Section 7.3.1</a> applies to these requests.  The operator of
-a delegated allocator zone coordinates changes to its signing keys
-with updates to the DS records in ipn.arpa.<a href="#section-7.3.3-1" class="pilcrow">¶</a></p>
-<p id="section-7.3.3-2">This support enables secure delegations.  It does not require that
-every delegated allocator zone be signed.<a href="#section-7.3.3-2" class="pilcrow">¶</a></p>
-<p id="section-7.3.3-3">DS records apply only to NS delegations.  A DNAME in ipn.arpa is not a
-delegation.  The ipn.arpa operator signs it as ordinary data in the
-ipn.arpa zone, and the target namespace has its own DNSSEC chain of
-trust.<a href="#section-7.3.3-3" class="pilcrow">¶</a></p>
+<a href="#request-authorization" class="auto internal xref">Section 7.3.1</a> applies to these requests.  The child-zone
+operator coordinates signing-key changes that affect a parent DS
+record with updates to that record.  Support for DS does not require
+every delegated zone to be signed.<a href="#section-7.3.3-1" class="pilcrow">¶</a></p>
+<p id="section-7.3.3-2">DS records apply to NS delegations, not parent-side DNAMEs.  The
+ipn.arpa operator signs a DNAME as data in ipn.arpa.  Authentication
+of data at its target depends on the target namespace's own chain of
+trust.<a href="#section-7.3.3-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="request-validation">
@@ -2371,14 +2161,11 @@ trust.<a href="#section-7.3.3-3" class="pilcrow">¶</a></p>
           <h4 id="name-request-validation-and-allo">
 <a href="#section-7.3.4" class="section-number selfRef">7.3.4. </a><a href="#name-request-validation-and-allo" class="section-name selfRef">Request Validation and Allocation Review</a>
           </h4>
-<p id="section-7.3.4-1">The allocation procedures of <span><a href="https://rfc-editor.org/rfc/rfc9758#section-9.1" class="relref">Section 9.1</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>, including
-Expert Review, continue to apply to numeric assignments of Allocator
-Identifiers (<a href="#request-authorization" class="auto internal xref">Section 7.3.1</a>).<a href="#section-7.3.4-1" class="pilcrow">¶</a></p>
-<p id="section-7.3.4-2">The ipn.arpa operator does the applicable DNS technical checks on
-provisioning requests under its published operational procedures.
-The technical requirements of IANA for delegations in the zones that
-it manages <span>[<a href="#IANA-NS-REQS" class="cite xref">IANA-NS-REQS</a>]</span> are relevant background.  DNAME
-provisioning is subject to the requirements of <span>[<a href="#RFC6672" class="cite xref">RFC6672</a>]</span>.<a href="#section-7.3.4-2" class="pilcrow">¶</a></p>
+<p id="section-7.3.4-1"><span><a href="https://rfc-editor.org/rfc/rfc9758#section-9.1" class="relref">Section 9.1</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span> governs numeric assignments, including
+Expert Review.  The ipn.arpa operator checks DNS provisioning requests
+under its published technical procedures.  IANA's requirements for
+delegations <span>[<a href="#IANA-NS-REQS" class="cite xref">IANA-NS-REQS</a>]</span> provide background for NS requests;
+<span>[<a href="#RFC6672" class="cite xref">RFC6672</a>]</span> specifies the DNS requirements for DNAME redirection.<a href="#section-7.3.4-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -2498,8 +2285,12 @@ provisioning is subject to the requirements of <span>[<a href="#RFC6672" class="
 <span class="refAuthor">Wicinski, T., Ed.</span>, <span class="refTitle">"DNS Privacy Considerations"</span>, <span class="seriesInfo">RFC 9076</span>, <span class="seriesInfo">DOI 10.17487/RFC9076</span>, <time datetime="2021-07" class="refDate">July 2021</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9076">https://www.rfc-editor.org/rfc/rfc9076</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="RFC9171">[RFC9171]</dt>
-      <dd>
+        <dd>
 <span class="refAuthor">Burleigh, S.</span>, <span class="refAuthor">Fall, K.</span>, and <span class="refAuthor">E. Birrane, III</span>, <span class="refTitle">"Bundle Protocol Version 7"</span>, <span class="seriesInfo">RFC 9171</span>, <span class="seriesInfo">DOI 10.17487/RFC9171</span>, <time datetime="2022-01" class="refDate">January 2022</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9171">https://www.rfc-editor.org/rfc/rfc9171</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC9520">[RFC9520]</dt>
+      <dd>
+<span class="refAuthor">Wessels, D.</span>, <span class="refAuthor">Carroll, W.</span>, and <span class="refAuthor">M. Thomas</span>, <span class="refTitle">"Negative Caching of DNS Resolution Failures"</span>, <span class="seriesInfo">RFC 9520</span>, <span class="seriesInfo">DOI 10.17487/RFC9520</span>, <time datetime="2023-12" class="refDate">December 2023</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9520">https://www.rfc-editor.org/rfc/rfc9520</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 </dl>
 </section>
