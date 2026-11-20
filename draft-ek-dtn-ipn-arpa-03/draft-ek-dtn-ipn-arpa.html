@@ -1,0 +1,2324 @@
+<!DOCTYPE html>
+<html lang="en" class="Internet-Draft">
+<head>
+<meta charset="utf-8">
+<meta content="Common,Latin" name="scripts">
+<meta content="initial-scale=1.0" name="viewport">
+<title>The ipn.arpa Zone and IPN DNS Operations</title>
+<meta content="Erik Kline" name="author">
+<meta content="
+       This document requests the creation of ipn.arpa, an infrastructure DNS
+namespace for the Bundle Protocol (BP).  It maps a Fully Qualified
+Node Number to the DNS base name  N.A.ipn.arpa. , where N is the Node
+Number and A is the Allocator Identifier.  A BP Agent can use that
+name to discover a convergence-layer endpoint at the destination or
+at a relay.  This document specifies an SRV binding for version 4 of
+the TCP Convergence-Layer Protocol (TCPCLv4). 
+    " name="description">
+<meta content="xml2rfc 3.35.0" name="generator">
+<meta content="DTN" name="keyword">
+<meta content="BP" name="keyword">
+<meta content="IPN" name="keyword">
+<meta content="DNS" name="keyword">
+<meta content="draft-ek-dtn-ipn-arpa-latest" name="ietf.draft">
+<!-- Generator version information:
+  xml2rfc 3.35.0
+    Python 3.14.10
+    ConfigArgParse 1.10.1
+    google-i18n-address 3.1.1
+    intervaltree 3.2.1
+    Jinja2 3.1.6
+    lxml 6.1.1
+    natsort 8.4.0
+    platformdirs 4.14.7
+    pycountry 24.6.1
+    PyYAML 6.0.3
+    requests 2.33.1
+    wcwidth 0.9.4
+-->
+<link href="draft-ek-dtn-ipn-arpa.xml" rel="alternate" type="application/rfc+xml">
+<link href="#copyright" rel="license">
+<style type="text/css">@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-vietnamese.woff2') format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-cyrillic.woff2') format('woff2');
+  unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-vietnamese.woff2') format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-cyrillic.woff2') format('woff2');
+  unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-vietnamese.woff2') format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: local('Lora SemiBold'), local('Lora-SemiBold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-semibold-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Oxygen Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Oxygen Mono'), local('OxygenMono-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/oxygenmono-regular-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Oxygen Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Oxygen Mono'), local('OxygenMono-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/oxygenmono-regular-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-cyrillic.woff2') format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-greek.woff2') format('woff2');
+  unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-cyrillic.woff2') format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-greek.woff2') format('woff2');
+  unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+:root {
+  color-scheme: light dark;
+  --background-color: #fff;
+  --text-color: #222;
+  --title-color: #191919;
+  --link-color: #2a6496;
+  --highlight-color: #f9f9f9;
+  --line-color: #eee;
+  --pilcrow-weak: #ddd;
+  --pilcrow-strong: #bbb;
+  --small-font-size: 14.5px;
+  --font-mono: 'Oxygen Mono', monospace;
+  --font-title: "Sofia Sans Semi Condensed", sans-serif;
+  scrollbar-color: #bbb #eee;
+}
+body {
+  max-width: 600px;
+  margin: 75px auto;
+  padding: 0 5px;
+  color: var(--text-color);
+  background-color: var(--background-color);
+  font: 16px/22px "Lora", serif;
+  scroll-behavior: smooth;
+}
+
+.ears {
+  display: none;
+}
+
+/* headings */
+section {
+  clear: both;
+}
+.section-number {
+  padding-right: 0.5em;
+}
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-title);
+  font-weight: 680;
+  margin: 0.8em 0 0.3em;
+  font-size-adjust: 0.5;
+  color: var(--title-color);
+}
+h1 {
+  &#title {
+    font-size: 32px;
+    line-height: 40px;
+    clear: both;
+    margin: 1.5em 0 0.2em;
+  }
+  &#rfcnum {
+    margin: 1.5em 0 0.2em;
+    & + h1#title {
+      margin: 0.2em 0;
+    }
+  }
+}
+
+h1, h2, h3 {
+  font-size: 22px;
+  line-height: 27px;
+}
+h4, h5, h6 {
+  font-size: 20px;
+  line-height: 24px;
+}
+
+/* general structure */
+.author {
+  padding-bottom: 0.3em;
+  vertical-align: top;
+}
+#abstract+p {
+  font-size: 18px;
+  line-height: 24px;
+  & code, & samp, & tt {
+    font-size: 16px;
+    line-height: 0;
+  }
+}
+
+p {
+  padding: 0;
+  margin: 0.5em 0;
+  text-align: left;
+}
+div {
+  margin: 0;
+}
+.alignRight {
+  margin: 1em 0;
+  &.art-text {
+    background-color: var(--highlight-color);
+    border: 1px solid var(--line-color);
+    border-radius: 3px;
+    padding: 0.5em 1em 0;
+    margin-bottom: 0.5em;
+    & pre {
+      padding: 0;
+      width: auto;
+    }
+  }
+  & > *:first-child {
+    border: none;
+    margin: 0;
+    float: right;
+    clear: both;
+  }
+  & > *:nth-child(2) {
+    clear: both;
+    display: block;
+    border: none;
+  }
+}
+svg {
+  display: block;
+  /* font-family isn't space-separated, but =~ will have to do */
+  &[font-family~="monospace" i], & [font-family~="monospace" i] {
+    font-family: var(--font-mono);
+  }
+}
+.alignCenter {
+  margin: 1em 0;
+  &.art-text {
+    background-color: var(--highlight-color);
+    border: 1px solid var(--line-color);
+    border-radius: 3px;
+    padding: 0.5em 1em 0;
+    margin-bottom: 0.5em;
+    & pre {
+      padding: 0;
+      width: auto;
+    }
+  }
+  & > *:first-child {
+    border: none;
+    /* this isn't optimal, but it's an existence proof.  PrinceXML doesn't
+       support flexbox yet.
+    */
+    display: table;
+    margin: 0 auto;
+  }
+}
+
+/* lists */
+ol, ul {
+  padding: 0;
+  margin: 0 0 0.5em 2em;
+  & :is(ol, ul) {
+    margin-left: 1em;
+  }
+}
+li {
+  margin: 0 0 0.25em 0;
+}
+ul.empty, .ulEmpty {
+  list-style-type: none;
+  & li {
+    margin-top: 0.5em;
+  }
+}
+:is(ul, ol).compact, .ulCompact, .olCompact {
+  margin: 0 0 0 2em;
+  & li {
+    margin: 0;
+    & :first-child { margin-top: 0; }
+    & :last-child { margin-bottom: 0; }
+  }
+}
+
+/* definition lists */
+dl {
+  clear: left;
+  --indent: 3ch;
+  /* --indent: attr(indent ch); not supported in any browser, but we can dream */
+  &.olPercent {
+    --indent: 5ch;
+    & > dt {
+      min-width: calc(var(--indent) - 2ch);
+      float: none;
+    }
+  }
+
+  dl > dd > & {
+    margin-top: 0.5em;
+    margin-bottom: 0;
+  }
+
+  &:not(.dlNewline) > dt {
+    float: left;
+    margin-right: 2ch;
+    min-width: 8ch;
+  }
+  & > dd {
+    margin-bottom: .8em;
+    margin-left: var(--indent) !important; /* stupid element overrides */
+    min-height: 2ex;
+  }
+}
+:is(dl.compact, .dlCompact) > dd {
+  margin-bottom: 0;
+  & > :is(:first-child, .break:first-child + *) {
+    margin-top: 0;
+  }
+  & > :is(:last-child) {
+    margin-bottom: 0;
+  }
+}
+:is(dd, span).break {
+  display: none;
+}
+
+/* links */
+a {
+  text-decoration: none;
+  &[href] {
+    color: var(--link-color);
+    &:hover { text-decoration: underline; }
+    &.selfRef {
+      color: var(--text-color);
+      &:hover {
+        text-decoration: none;
+        background-color: var(--highlight-color);
+      }
+    }
+  }
+}
+.iref + a[href].internal {
+  color: var(--text-color);
+}
+a.xref:is(.cite, .auto), :is(#status-of-memo, #copyright) a {
+  white-space: nowrap;
+}
+
+/* Figures */
+tt, code, pre {
+  background-color: var(--highlight-color);
+  font: 14px/22px var(--font-mono);
+}
+tt, code {
+  /* changing the font for inline elements leads to different ascender
+     and descender heights; as we want to retain baseline alignment,
+     remove leading to avoid altering the final height of lines
+     note: this fails if these blocks take an entire line,
+     a different solution would be great */
+  line-height: 0;
+}
+:is(h1, h2, h3, h4, h5, h6) :is(tt, code) {
+  font-size: 84%;
+}
+pre {
+  border: 1px solid var(--line-color);
+  font-size: 13.5px;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  margin: 5px;
+  padding: 5px;
+}
+img {
+  max-width: 100%;
+}
+figure {
+  margin: 0.5em 0;
+  padding: 0;
+  & blockquote {
+    margin: 0.8em 0.4em 0.4em;
+  }
+}
+figcaption, caption {
+  font-style: italic;
+  margin: 0.5em 1.5em;
+  text-align: left;
+  caption-side: bottom;
+}
+@media screen {
+  /* Auto-collapse boilerplate. */
+  :is(#status-of-memo, #copyright) {
+    & p {
+      margin: -2px 0;
+      max-height: 0;
+      transition: max-height 2s ease, margin 0.5s ease 0.5s;
+      overflow: hidden;
+    }
+    &:hover p,
+    & h2:target ~ p {
+      margin: 0.5em 0;
+      max-height: 500px;
+      overflow: auto;
+    }
+  }
+  pre, svg {
+    display: inline-block;
+    /* In the horizontal direction, sometimes people make over-sized figures.
+       Scrollbars for those is therefore necessary: auto adds them as necessary..
+       In the vertical direction, the line-height can combine with the font
+       asender/descender height to produce scrollbars: hidden avoids that. */
+    overflow: auto hidden;
+  }
+  pre {
+    max-width: 100%;
+    width: calc(100% - 22px - 1em);
+  }
+  svg {
+    max-width: calc(100% - 22px - 1em);
+  }
+  figure pre {
+    display: block;
+    width: calc(100% - 25px);
+  }
+  :is(pre, svg) + .pilcrow {
+    display: inline-block;
+    vertical-align: text-bottom;
+    padding-bottom: 8px;
+  }
+}
+
+/* aside, blockquote */
+aside, blockquote {
+  margin-left: 0;
+  padding: 0 2em;
+  font-style: italic;
+}
+blockquote {
+  margin: 1em 0;
+  border-left: 2px var(--pilcrow-strong) solid;
+}
+cite {
+  display: block;
+  text-align: right;
+  font-style: italic;
+}
+
+/* tables */
+table {
+  width: auto;
+  max-width: 100%;
+  margin: 0 0 1em;
+  border-collapse: collapse;
+  &.right { margin-left: auto; }
+  &.center { margin-left: auto; margin-right: auto; }
+  &.left { margin-right: auto; }
+  & .text-left { text-align: left; }
+  & .text-center { text-align: center; }
+  & .text-right { text-align: right; }
+  & caption {
+    margin: 0;
+    padding: 3px 0 3px 1em;
+  }
+  & p { margin: 0; }
+}
+
+thead, tbody {
+  border: 1px solid var(--line-color);
+}
+th, td {
+  text-align: left;
+  vertical-align: top;
+  padding: 5px 10px;
+}
+th {
+  background-color: var(--line-color);
+}
+:is(tr:nth-child(2n), thead+tbody > tr:nth-child(2n+1)) > td {
+  background-color: var(--background-color);
+}
+:is(tr:nth-child(2n+1), thead+tbody > tr:nth-child(2n)) > td {
+  background-color: var(--highlight-color);
+}
+
+/* pilcrow */
+a.pilcrow {
+  margin-left: 3px;
+  opacity: 0.2;
+  user-select: none;
+  &[href] {
+    color: var(--pilcrow-weak);
+    &:hover { text-decoration: none; }
+  }
+  @media not print {
+    :hover > &, &:focus {
+      opacity: 1;
+    }
+    &[href]:hover {
+      color: var(--pilcrow-strong);
+      background-color: transparent;
+    }
+  }
+  @media print {
+    display: none;
+  }
+}
+
+/* misc */
+hr {
+  border: 0;
+  border-top: 1px solid var(--line-color);
+}
+.bcp14 {
+  font-variant: small-caps;
+  font-weight: 600;
+  font-size: var(--small-font-size);
+}
+.role {
+  font-variant: all-small-caps;
+}
+sub, sup {
+  line-height: 1;
+  font-size: 80%;
+}
+
+/* info block */
+#identifiers {
+  margin: 0;
+  font-size: var(--small-font-size);
+  line-height: 18px;
+  --identifier-width: 15ch;
+  & dt {
+    width: var(--identifier-width);
+    min-width: var(--identifier-width);
+    clear: left;
+    float: left;
+    text-align: right;
+    margin-right: 1ch;
+  }
+  & dd {
+    margin: 0;
+    margin-left: calc(1em + var(--identifier-width)) !important;
+    min-width: 5em;
+  }
+  & .authors {
+    & .author {
+      display: inline-block;
+      margin-right: 1.5em;
+    }
+    & .org {
+      font-style: italic;
+    }
+  }
+}
+
+/* The prepared/rendered info at the very bottom of the page */
+.docInfo {
+  color: #999;
+  font-size: 0.9em;
+  font-style: italic;
+  margin-top: 2em;
+  & .prepared {
+    float: right;
+  }
+}
+
+/* table of contents */
+#toc {
+  padding: 0.75em 0 2em 0;
+  margin-bottom: 1em;
+
+  & nav {
+    & ul {
+      margin: 0 0.5em 0 0;
+      padding: 0;
+      list-style: none;
+    }
+    & li {
+      line-height: 1.3em;
+      margin: 2px 0;
+      padding-left: 1.2em;
+      text-indent: -1.2em;
+    }
+  }
+  & a.xref {
+    white-space: normal;
+  }
+}
+
+.references {
+  & > dt {
+    text-align: right;
+    font-weight: bold;
+    min-width: 10ch;
+    margin-right: 1.5ch;
+    &:target::before {
+      content: "⇒";
+      margin: 0 10px 0 -25px;
+    }
+  }
+  & > dd {
+    margin-left: 12ch !important;
+    overflow: visible;
+    & .refInstance {
+      margin-bottom: 0.8em;
+    }
+    & .ascii {
+      margin-bottom: 0.25em;
+    }
+  }
+}
+
+#rfc\.index\.index + ul {
+  margin-left: 0;
+}
+
+/* authors */
+address.vcard {
+  font-style: normal;
+  max-width: 20em;
+  margin: 1em auto 1em 0;
+
+  & .nameRole {
+    font-weight: 700;
+    margin-left: 0;
+  }
+  & .label {
+    margin: 0.5em 0;
+  }
+  & .type {
+    display: none;
+  }
+  & .alternative-contact {
+    margin: 0.5em 0 0.25em 0;
+  }
+  & .non-ascii {
+    margin: 0 0 0 2em;
+  }
+  & div.left {
+    text-align: left;
+  }
+  & div.right {
+    text-align: right;
+  }
+}
+
+hr.addr {
+  border-top: 1px dashed;
+  margin: 0;
+  color: #ddd;
+  max-width: calc(100% - 16px);
+}
+@media (min-width: 500px) {
+  #authors-addresses {
+    & > section {
+      column-count: 2;
+      column-gap: 20px;
+    }
+    & > section > h2 {
+      column-span: all;
+    }
+    /* hack for break-inside: avoid-column */
+    & address {
+      display: inline-block;
+      break-inside: avoid-column;
+    }
+  }
+}
+
+/* Comments */
+.rfcEditorRemove {
+  & p:first-of-type {
+    font-style: italic;
+  }
+}
+.cref {
+  background-color: rgba(249, 232, 105, 0.3);
+  padding: 2px 4px;
+}
+.crefSource {
+  font-style: italic;
+}
+
+@media screen {
+  #toc {
+    & nav {
+      font-family: var(--font-title);
+      font-weight: 360;
+      & > ul { margin-bottom: 2em; }
+      & ul {
+        margin: 0 0 0 4px;
+        & :is(p, li) {
+          margin: 2px 0;
+        }
+      }
+    }
+    & a.toplink {
+      float: right;
+    }
+  }
+}
+@media not screen {
+  #toc a.toplink {
+    display: none;
+  }
+}
+
+
+/* TOC layout for smaller screens */
+@media screen and (max-width: 929px) {
+  #toc {
+    position: fixed;
+    z-index: 2;
+    top: 0;
+    right: 0;
+    padding: 1px 0 0 0;
+    margin: 0;
+    border-bottom: 1px solid #ccc;
+    opacity: 0.6;
+    & h2 {
+      margin: 0;
+      padding: 2px 0 2px 6px;
+      padding-right: 1em;
+      font-size: 18px;
+      line-height: 24px;
+      min-width: 190px;
+      text-align: right;
+      background-color: #444;
+      color: white;
+      cursor: pointer;
+      &::before { /* css hamburger */
+        float: right;
+        position: relative;
+        width: 1em;
+        height: 1px;
+        left: -164px;
+        margin: 8px 0 0 0;
+        background: white none repeat scroll 0 0;
+        box-shadow: 0 4px 0 0 white, 0 8px 0 0 white;
+        content: "";
+      }
+    }
+    & nav {
+      display: none;
+      background-color: var(--background-color);
+      padding: 0.5em 1em 1em;
+      overflow: auto;
+      overscroll-behavior: contain;
+      height: calc(100vh - 48px);
+      border-left: 1px solid #ddd;
+    }
+    &.active {
+      opacity: 1;
+      & nav { display: block; }
+    }
+    /* Make the collapsed ToC header render white on gray also when it's a link */
+    & h2 a,
+    & h2 a:is(:link, :focus, :hover),
+    & a.toplink,
+    & a.toplink:hover {
+      color: white;
+      background-color: #444;
+      text-decoration: none;
+    }
+    & a.toplink {
+      margin: 2px 0.5em 0;
+    }
+  }
+}
+
+/* TOC layout for wide screens */
+@media screen and (min-width: 930px) {
+  body {
+    padding-right: 360px;
+    padding-right: calc(min(180px + 20%, 500px));
+  }
+  #toc {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    right: calc(50vw - 480px);
+    width: 312px;
+    margin: 0;
+    padding: 0;
+    z-index: 1;
+    & h2 {
+      margin: 0;
+      padding: 0.25em 1em 1em 0;
+    }
+    & nav {
+      display: block;
+      height: calc(90vh - 84px);
+      bottom: 0;
+      padding: 0.5em 0 2em;
+      overflow: auto;
+      overscroll-behavior: contain;
+      scrollbar-width: thin;
+    }
+    & a.toplink {
+      margin: 8px 0.5em 0;
+    }
+  }
+  img { /* future proofing */
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+/* pagination */
+@media print {
+  body {
+    width: 100%;
+  }
+  p {
+    orphans: 3;
+    widows: 3;
+  }
+  #n-copyright-notice {
+    border-bottom: none;
+  }
+  #toc {
+    page-break-before: always;
+    border-top: none;
+    padding-top: 0;
+  }
+  #n-introduction {
+    page-break-before: always;
+  }
+  figure, pre, .vcard {
+    page-break-inside: avoid;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    page-break-after: avoid;
+  }
+  :is(h2, h3, h4, h5, h6)+*, dd {
+    page-break-before: avoid;
+  }
+  pre {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-size: 10pt;
+  }
+  table {
+    border: 1px solid #ddd;
+  }
+  td {
+    border-top: 1px solid #ddd;
+  }
+}
+
+@page :first {
+  padding-top: 0;
+  @top-left {
+    content: normal;
+    border: none;
+  }
+  @top-center {
+    content: normal;
+    border: none;
+  }
+  @top-right {
+    content: normal;
+    border: none;
+  }
+}
+
+@page {
+  size: A4;
+  margin-bottom: 45mm;
+  padding-top: 20px;
+}
+
+/* Dark mode. */
+@media (prefers-color-scheme: dark) {
+:root {
+  --background-color: #121212;
+  --text-color: #f0f0f0;
+  --title-color: #fff;
+  --link-color: #4da4f0;
+  --highlight-color: #282828;
+  --line-color: #444;
+  --pilcrow-weak: #444;
+  --pilcrow-strong: #666;
+  scrollbar-color: #777 #333;
+}
+}
+
+/* SVG Trick: a prefix match works because only black and white are allowed */
+svg {
+  & :is([stroke="black"], [stroke^="#000"]) {
+    stroke: var(--text-color);
+  }
+  & :is([stroke="white"], [stroke^="#fff"]) {
+    stroke: var(--background-color);
+  }
+  & :is([fill="black"], [fill^="#000"], :not([fill], [fill] *)) {
+    fill: var(--text-color);
+  }
+  & :is([fill="white"], [fill^="#fff"]) {
+    fill: var(--background-color);
+  }
+}
+</style>
+
+</head>
+<body class="xml2rfc">
+<table class="ears">
+<thead><tr>
+<td class="left">Internet-Draft</td>
+<td class="center">IPN dot ARPA</td>
+<td class="right">November 2026</td>
+</tr></thead>
+<tfoot><tr>
+<td class="left">Kline</td>
+<td class="center">Expires 24 May 2027</td>
+<td class="right">[Page]</td>
+</tr></tfoot>
+</table>
+<div id="external-metadata" class="document-information"></div>
+<div id="internal-metadata" class="document-information">
+<dl id="identifiers">
+<dt class="label-workgroup">Workgroup:</dt>
+<dd class="workgroup">Delay/Disruption Tolerant Networking</dd>
+<dt class="label-internet-draft">Internet-Draft:</dt>
+<dd class="internet-draft">draft-ek-dtn-ipn-arpa-latest</dd>
+<dt class="label-published">Published:</dt>
+<dd class="published">
+<time datetime="2026-11-20" class="published">20 November 2026</time>
+    </dd>
+<dt class="label-intended-status">Intended Status:</dt>
+<dd class="intended-status">Standards Track</dd>
+<dt class="label-expires">Expires:</dt>
+<dd class="expires"><time datetime="2027-05-24">24 May 2027</time></dd>
+<dt class="label-authors">Author:</dt>
+<dd class="authors">
+<div class="author">
+      <div class="author-name">E. Kline</div>
+<div class="org">Aalyria Technologies, LLC</div>
+</div>
+</dd>
+</dl>
+</div>
+<h1 id="title">The ipn.arpa Zone and IPN DNS Operations</h1>
+<section id="section-abstract">
+      <h2 id="abstract"><a href="#abstract" class="selfRef">Abstract</a></h2>
+<p id="section-abstract-1">This document requests the creation of ipn.arpa, an infrastructure DNS
+namespace for the Bundle Protocol (BP).  It maps a Fully Qualified
+Node Number to the DNS base name <code>N.A.ipn.arpa.</code>, where N is the Node
+Number and A is the Allocator Identifier.  A BP Agent can use that
+name to discover a convergence-layer endpoint at the destination or
+at a relay.  This document specifies an SRV binding for version 4 of
+the TCP Convergence-Layer Protocol (TCPCLv4).<a href="#section-abstract-1" class="pilcrow">¶</a></p>
+</section>
+<section class="note rfcEditorRemove" id="section-note.1">
+      <h2 id="name-about-this-document">
+<a href="#name-about-this-document" class="section-name selfRef">About This Document</a>
+      </h2>
+<p id="section-note.1-1">This note is to be removed before publishing as an RFC.<a href="#section-note.1-1" class="pilcrow">¶</a></p>
+<p id="section-note.1-2">
+        The latest revision of this draft can be found at <span><a href="https://ekline.github.io/draft-dtn-ipn-arpa/draft-ek-dtn-ipn-arpa.html">https://ekline.github.io/draft-dtn-ipn-arpa/draft-ek-dtn-ipn-arpa.html</a></span>.
+        Status information for this document may be found at <span><a href="https://datatracker.ietf.org/doc/draft-ek-dtn-ipn-arpa/">https://datatracker.ietf.org/doc/draft-ek-dtn-ipn-arpa/</a></span>.<a href="#section-note.1-2" class="pilcrow">¶</a></p>
+<p id="section-note.1-3">
+        Discussion of this document takes place on the
+        Delay/Disruption Tolerant Networking  mailing list (<span><a href="mailto:dtn@ietf.org">mailto:dtn@ietf.org</a></span>),
+        which is archived at <span><a href="https://mailarchive.ietf.org/arch/browse/dtn/">https://mailarchive.ietf.org/arch/browse/dtn/</a></span>.
+        Subscribe at <span><a href="https://www.ietf.org/mailman/listinfo/dtn/">https://www.ietf.org/mailman/listinfo/dtn/</a></span>.<a href="#section-note.1-3" class="pilcrow">¶</a></p>
+<p id="section-note.1-4">Source for this draft and an issue tracker can be found at
+        <span><a href="https://github.com/ekline/draft-dtn-ipn-arpa">https://github.com/ekline/draft-dtn-ipn-arpa</a></span>.<a href="#section-note.1-4" class="pilcrow">¶</a></p>
+</section>
+<div id="status-of-memo">
+<section id="section-boilerplate.1">
+        <h2 id="name-status-of-this-memo">
+<a href="#name-status-of-this-memo" class="section-name selfRef">Status of This Memo</a>
+        </h2>
+<p id="section-boilerplate.1-1">
+        This Internet-Draft is submitted in full conformance with the
+        provisions of BCP 78 and BCP 79.<a href="#section-boilerplate.1-1" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.1-2">
+        Internet-Drafts are working documents of the Internet Engineering Task
+        Force (IETF). Note that other groups may also distribute working
+        documents as Internet-Drafts. The list of current Internet-Drafts is
+        at <span><a href="https://datatracker.ietf.org/drafts/current/">https://datatracker.ietf.org/drafts/current/</a></span>.<a href="#section-boilerplate.1-2" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.1-3">
+        Internet-Drafts are draft documents valid for a maximum of six months
+        and may be updated, replaced, or obsoleted by other documents at any
+        time. It is inappropriate to use Internet-Drafts as reference
+        material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.1-4">
+        This Internet-Draft will expire on 24 May 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="copyright">
+<section id="section-boilerplate.2">
+        <h2 id="name-copyright-notice">
+<a href="#name-copyright-notice" class="section-name selfRef">Copyright Notice</a>
+        </h2>
+<p id="section-boilerplate.2-1">
+            Copyright (c) 2026 IETF Trust and the persons identified as the
+            document authors. All rights reserved.<a href="#section-boilerplate.2-1" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.2-2">
+            This document is subject to BCP 78 and the IETF Trust's Legal
+            Provisions Relating to IETF Documents
+            (<span><a href="https://trustee.ietf.org/license-info">https://trustee.ietf.org/license-info</a></span>) in effect on the date of
+            publication of this document. Please review these documents
+            carefully, as they describe your rights and restrictions with
+            respect to this document. Code Components extracted from this
+            document must include Revised BSD License text as described in
+            Section 4.e of the Trust Legal Provisions and are provided without
+            warranty as described in the Revised BSD License.<a href="#section-boilerplate.2-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="toc">
+<section id="section-toc.1">
+        <a href="#" onclick="scroll(0,0)" class="toplink">▲</a><h2 id="name-table-of-contents">
+<a href="#name-table-of-contents" class="section-name selfRef">Table of Contents</a>
+        </h2>
+<nav class="toc"><ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1">
+            <p id="section-toc.1-1.1.1" class="keepWithNext"><a href="#section-1" class="auto internal xref">1</a>.  <a href="#name-introduction" class="internal xref">Introduction</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2">
+            <p id="section-toc.1-1.2.1" class="keepWithNext"><a href="#section-2" class="auto internal xref">2</a>.  <a href="#name-conventions-and-definitions" class="internal xref">Conventions and Definitions</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3">
+            <p id="section-toc.1-1.3.1"><a href="#section-3" class="auto internal xref">3</a>.  <a href="#name-concept-of-operations" class="internal xref">Concept of Operations</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.1">
+                <p id="section-toc.1-1.3.2.1.1" class="keepWithNext"><a href="#section-3.1" class="auto internal xref">3.1</a>.  <a href="#name-discovery-model" class="internal xref">Discovery Model</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.2">
+                <p id="section-toc.1-1.3.2.2.1"><a href="#section-3.2" class="auto internal xref">3.2</a>.  <a href="#name-tcpclv4-discovery-binding" class="internal xref">TCPCLv4 Discovery Binding</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.3">
+                <p id="section-toc.1-1.3.2.3.1"><a href="#section-3.3" class="auto internal xref">3.3</a>.  <a href="#name-examples" class="internal xref">Examples</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.3.2.1">
+                    <p id="section-toc.1-1.3.2.3.2.1.1"><a href="#section-3.3.1" class="auto internal xref">3.3.1</a>.  <a href="#name-example-a-service-records-i" class="internal xref">Example A: Service Records in the Allocator's Zone</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.3.2.2">
+                    <p id="section-toc.1-1.3.2.3.2.2.1"><a href="#section-3.3.2" class="auto internal xref">3.3.2</a>.  <a href="#name-example-b-service-lookup-re" class="internal xref">Example B: Service Lookup Redirected through a CNAME</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.3.2.3">
+                    <p id="section-toc.1-1.3.2.3.2.3.1"><a href="#section-3.3.3" class="auto internal xref">3.3.3</a>.  <a href="#name-shared-ingress-behavior" class="internal xref">Shared Ingress Behavior</a></p>
+</li>
+                </ul>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.4">
+                <p id="section-toc.1-1.3.2.4.1"><a href="#section-3.4" class="auto internal xref">3.4</a>.  <a href="#name-dns-constraints" class="internal xref">DNS Constraints</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.5">
+                <p id="section-toc.1-1.3.2.5.1"><a href="#section-3.5" class="auto internal xref">3.5</a>.  <a href="#name-other-convergence-layers" class="internal xref">Other Convergence Layers</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4">
+            <p id="section-toc.1-1.4.1"><a href="#section-4" class="auto internal xref">4</a>.  <a href="#name-operational-considerations" class="internal xref">Operational Considerations</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.1">
+                <p id="section-toc.1-1.4.2.1.1"><a href="#section-4.1" class="auto internal xref">4.1</a>.  <a href="#name-discovery-results-and-failu" class="internal xref">Discovery Results and Failures</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.2">
+                <p id="section-toc.1-1.4.2.2.1"><a href="#section-4.2" class="auto internal xref">4.2</a>.  <a href="#name-caching-and-operation-durin" class="internal xref">Caching and Operation During Disruption</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.3">
+                <p id="section-toc.1-1.4.2.3.1"><a href="#section-4.3" class="auto internal xref">4.3</a>.  <a href="#name-locally-served-namespaces" class="internal xref">Locally Served Namespaces</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.4">
+                <p id="section-toc.1-1.4.2.4.1"><a href="#section-4.4" class="auto internal xref">4.4</a>.  <a href="#name-managing-allocator-ranges" class="internal xref">Managing Allocator Ranges</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5">
+            <p id="section-toc.1-1.5.1"><a href="#section-5" class="auto internal xref">5</a>.  <a href="#name-security-considerations" class="internal xref">Security Considerations</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.1">
+                <p id="section-toc.1-1.5.2.1.1"><a href="#section-5.1" class="auto internal xref">5.1</a>.  <a href="#name-authentication-and-forwardi" class="internal xref">Authentication and Forwarding Policy</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.2">
+                <p id="section-toc.1-1.5.2.2.1"><a href="#section-5.2" class="auto internal xref">5.2</a>.  <a href="#name-dnssec" class="internal xref">DNSSEC</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.2.2.1">
+                    <p id="section-toc.1-1.5.2.2.2.1.1"><a href="#section-5.2.1" class="auto internal xref">5.2.1</a>.  <a href="#name-validation-by-bp-agents" class="internal xref">Validation by BP Agents</a></p>
+</li>
+                </ul>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.3">
+                <p id="section-toc.1-1.5.2.3.1"><a href="#section-5.3" class="auto internal xref">5.3</a>.  <a href="#name-convergence-layer-peer-iden" class="internal xref">Convergence-Layer Peer Identity</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.4">
+                <p id="section-toc.1-1.5.2.4.1"><a href="#section-5.4" class="auto internal xref">5.4</a>.  <a href="#name-privacy" class="internal xref">Privacy</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.5">
+                <p id="section-toc.1-1.5.2.5.1"><a href="#section-5.5" class="auto internal xref">5.5</a>.  <a href="#name-resource-consumption" class="internal xref">Resource Consumption</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6">
+            <p id="section-toc.1-1.6.1"><a href="#section-6" class="auto internal xref">6</a>.  <a href="#name-iab-considerations" class="internal xref">IAB Considerations</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7">
+            <p id="section-toc.1-1.7.1"><a href="#section-7" class="auto internal xref">7</a>.  <a href="#name-iana-considerations" class="internal xref">IANA Considerations</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.1">
+                <p id="section-toc.1-1.7.2.1.1"><a href="#section-7.1" class="auto internal xref">7.1</a>.  <a href="#name-creation-of-ipnarpa" class="internal xref">Creation of ipn.arpa</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.2">
+                <p id="section-toc.1-1.7.2.2.1"><a href="#section-7.2" class="auto internal xref">7.2</a>.  <a href="#name-publication-restrictions" class="internal xref">Publication Restrictions</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.2.2.1">
+                    <p id="section-toc.1-1.7.2.2.2.1.1"><a href="#section-7.2.1" class="auto internal xref">7.2.1</a>.  <a href="#name-allocator-identifier-zero" class="internal xref">Allocator Identifier Zero</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.2.2.2">
+                    <p id="section-toc.1-1.7.2.2.2.2.1"><a href="#section-7.2.2" class="auto internal xref">7.2.2</a>.  <a href="#name-experimental-use-allocator-" class="internal xref">Experimental Use Allocator Identifiers</a></p>
+</li>
+                </ul>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.3">
+                <p id="section-toc.1-1.7.2.3.1"><a href="#section-7.3" class="auto internal xref">7.3</a>.  <a href="#name-allocator-dns-provisioning" class="internal xref">Allocator DNS Provisioning</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.3.2.1">
+                    <p id="section-toc.1-1.7.2.3.2.1.1"><a href="#section-7.3.1" class="auto internal xref">7.3.1</a>.  <a href="#name-request-authorization" class="internal xref">Request Authorization</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.3.2.2">
+                    <p id="section-toc.1-1.7.2.3.2.2.1"><a href="#section-7.3.2" class="auto internal xref">7.3.2</a>.  <a href="#name-provisioning-alternatives" class="internal xref">Provisioning Alternatives</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.3.2.3">
+                    <p id="section-toc.1-1.7.2.3.2.3.1"><a href="#section-7.3.3" class="auto internal xref">7.3.3</a>.  <a href="#name-ds-records-for-delegated-al" class="internal xref">DS Records for Delegated Allocator Zones</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.3.2.4">
+                    <p id="section-toc.1-1.7.2.3.2.4.1"><a href="#section-7.3.4" class="auto internal xref">7.3.4</a>.  <a href="#name-request-validation-and-allo" class="internal xref">Request Validation and Allocation Review</a></p>
+</li>
+                </ul>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8">
+            <p id="section-toc.1-1.8.1"><a href="#section-8" class="auto internal xref">8</a>.  <a href="#name-references" class="internal xref">References</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.1">
+                <p id="section-toc.1-1.8.2.1.1"><a href="#section-8.1" class="auto internal xref">8.1</a>.  <a href="#name-normative-references" class="internal xref">Normative References</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.2">
+                <p id="section-toc.1-1.8.2.2.1"><a href="#section-8.2" class="auto internal xref">8.2</a>.  <a href="#name-informative-references" class="internal xref">Informative References</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9">
+            <p id="section-toc.1-1.9.1"><a href="#appendix-A" class="auto internal xref"></a><a href="#name-authors-address" class="internal xref">Author's Address</a></p>
+</li>
+        </ul>
+</nav>
+</section>
+</div>
+<div id="introduction">
+<section id="section-1">
+      <h2 id="name-introduction">
+<a href="#section-1" class="section-number selfRef">1. </a><a href="#name-introduction" class="section-name selfRef">Introduction</a>
+      </h2>
+<p id="section-1-1">The Bundle Protocol (BP) <span>[<a href="#RFC9171" class="cite xref">RFC9171</a>]</span> supports communication in networks
+subject to delay and disruption.  In the ipn URI scheme <span>[<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>,
+IANA assigns Allocator Identifiers, and Allocators assign Node Numbers.
+An Allocator can hold more than one identifier.  The pair of Allocator
+Identifier and Node Number forms a Fully Qualified Node Number (FQNN).<a href="#section-1-1" class="pilcrow">¶</a></p>
+<p id="section-1-2">A BP Agent can know an IPN destination without knowing a DNS domain
+associated with its allocator.  The ipn.arpa namespace provides a
+common starting point for discovery and links DNS administration to
+allocator assignments.  The FQNN determines the DNS base name
+(<a href="#discovery-model" class="auto internal xref">Section 3.1</a>); the convergence-layer (CL) discovery binding
+determines which name and record type to query.<a href="#section-1-2" class="pilcrow">¶</a></p>
+<p id="section-1-3">Discovery is optional.  It supplies candidate next hops, not routes
+or contact plans.  The BP Agent makes forwarding decisions under its
+configured policy.  Not all FQNNs have public discovery data
+(<a href="#publication-restrictions" class="auto internal xref">Section 7.2</a>).<a href="#section-1-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="conventions-and-definitions">
+<section id="section-2">
+      <h2 id="name-conventions-and-definitions">
+<a href="#section-2" class="section-number selfRef">2. </a><a href="#name-conventions-and-definitions" class="section-name selfRef">Conventions and Definitions</a>
+      </h2>
+<p id="section-2-1">The key words "<span class="bcp14">MUST</span>", "<span class="bcp14">MUST NOT</span>", "<span class="bcp14">REQUIRED</span>", "<span class="bcp14">SHALL</span>", "<span class="bcp14">SHALL NOT</span>", "<span class="bcp14">SHOULD</span>", "<span class="bcp14">SHOULD NOT</span>", "<span class="bcp14">RECOMMENDED</span>", "<span class="bcp14">NOT RECOMMENDED</span>",
+"<span class="bcp14">MAY</span>", and "<span class="bcp14">OPTIONAL</span>" in this document are to be interpreted as
+described in BCP 14 <span>[<a href="#RFC2119" class="cite xref">RFC2119</a>]</span> <span>[<a href="#RFC8174" class="cite xref">RFC8174</a>]</span> when, and only when, they
+appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶</a></p>
+<p id="section-2-2">This document uses the following terms from <span>[<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>:<a href="#section-2-2" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-2-3">
+        <dt id="section-2-3.1">Allocator Identifier:</dt>
+        <dd style="margin-left: 1.5em" id="section-2-3.2">
+          <p id="section-2-3.2.1">A 32-bit unsigned integer that identifies the Allocator that
+assigned a Node Number (<span><a href="https://rfc-editor.org/rfc/rfc9758#section-3.2" class="relref">Section 3.2</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>).<a href="#section-2-3.2.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-2-3.3">Node Number:</dt>
+        <dd style="margin-left: 1.5em" id="section-2-3.4">
+          <p id="section-2-3.4.1">A 32-bit unsigned integer that identifies a node in the context of
+an Allocator (<span><a href="https://rfc-editor.org/rfc/rfc9758#section-3.3" class="relref">Section 3.3</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>).<a href="#section-2-3.4.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-2-3.5">Fully Qualified Node Number (FQNN):</dt>
+        <dd style="margin-left: 1.5em" id="section-2-3.6">
+          <p id="section-2-3.6.1">The pair (Allocator Identifier, Node Number), for example (978879,2)
+(<span><a href="https://rfc-editor.org/rfc/rfc9758#section-3.3.1" class="relref">Section 3.3.1</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>).<a href="#section-2-3.6.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-2-3.7">Service Number:</dt>
+        <dd style="margin-left: 1.5em" id="section-2-3.8">
+          <p id="section-2-3.8.1">An unsigned integer that identifies a service on a node
+(<span><a href="https://rfc-editor.org/rfc/rfc9758#section-3.5" class="relref">Section 3.5</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>).<a href="#section-2-3.8.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-2-3.9">ipn URI:</dt>
+        <dd style="margin-left: 1.5em" id="section-2-3.10">
+          <p id="section-2-3.10.1">A URI in the 'ipn' URI scheme.  It contains an FQNN and a Service
+Number (<span><a href="https://rfc-editor.org/rfc/rfc9758#section-3" class="relref">Section 3</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>).  An ipn URI used as a BP Endpoint
+Identifier (EID) is an "ipn EID" (<span><a href="https://rfc-editor.org/rfc/rfc9758#section-5" class="relref">Section 5</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>).<a href="#section-2-3.10.1" class="pilcrow">¶</a></p>
+</dd>
+      <dd class="break"></dd>
+</dl>
+<p id="section-2-4">This document defines the following terms:<a href="#section-2-4" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-2-5">
+        <dt id="section-2-5.1">DNS base name:</dt>
+        <dd style="margin-left: 1.5em" id="section-2-5.2">
+          <p id="section-2-5.2.1">The DNS name beneath ipn.arpa that represents an FQNN
+(<a href="#discovery-model" class="auto internal xref">Section 3.1</a>).<a href="#section-2-5.2.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-2-5.3">Discovery binding:</dt>
+        <dd style="margin-left: 1.5em" id="section-2-5.4">
+          <p id="section-2-5.4.1">The specification of DNS discovery for one CL.  It defines the
+query names, record types, processing rules, and fallback behavior.
+This document specifies the TCPCLv4 binding (<a href="#tcpcl-binding" class="auto internal xref">Section 3.2</a>).<a href="#section-2-5.4.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-2-5.5">CL-specific query name:</dt>
+        <dd style="margin-left: 1.5em" id="section-2-5.6">
+          <p id="section-2-5.6.1">The name at or beneath the DNS base name that a BP Agent queries
+first under a discovery binding.  Alias and service targets can be
+elsewhere.<a href="#section-2-5.6.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-2-5.7">ipn.arpa operator:</dt>
+        <dd style="margin-left: 1.5em" id="section-2-5.8">
+          <p id="section-2-5.8.1">The entity that provisions and operates the ipn.arpa zone
+(<a href="#creation-of-ipn-arpa" class="auto internal xref">Section 7.1</a>).<a href="#section-2-5.8.1" class="pilcrow">¶</a></p>
+</dd>
+      <dd class="break"></dd>
+</dl>
+</section>
+</div>
+<div id="concept-of-operations">
+<section id="section-3">
+      <h2 id="name-concept-of-operations">
+<a href="#section-3" class="section-number selfRef">3. </a><a href="#name-concept-of-operations" class="section-name selfRef">Concept of Operations</a>
+      </h2>
+<p id="section-3-1">A BP Agent can use DNS discovery alongside configuration and other
+sources to populate its forwarding information base.<a href="#section-3-1" class="pilcrow">¶</a></p>
+<div id="discovery-model">
+<section id="section-3.1">
+        <h3 id="name-discovery-model">
+<a href="#section-3.1" class="section-number selfRef">3.1. </a><a href="#name-discovery-model" class="section-name selfRef">Discovery Model</a>
+        </h3>
+<p id="section-3.1-1">Before constructing a DNS name, a BP Agent <span class="bcp14">MUST</span> parse and interpret
+the destination ipn URI or ipn EID according to <span>[<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>.  In the
+two-field text form, the omitted Allocator Identifier is zero; the
+DNS name still includes the label <code>0</code> (<span><a href="https://rfc-editor.org/rfc/rfc9758#section-4" class="relref">Section 4</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>).
+In the two-element CBOR scheme-specific part, the first integer
+encodes both the Allocator Identifier and the Node Number
+(<span><a href="https://rfc-editor.org/rfc/rfc9758#section-6.2" class="relref">Section 6.2</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>).<a href="#section-3.1-1" class="pilcrow">¶</a></p>
+<p id="section-3.1-2">For Allocator Identifier A and Node Number N, the DNS base name <span class="bcp14">MUST</span>
+be:<a href="#section-3.1-2" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-3.1-3">
+<pre>
+N.A.ipn.arpa.
+</pre><a href="#section-3.1-3" class="pilcrow">¶</a>
+</div>
+<p id="section-3.1-4">Each of N and A <span class="bcp14">MUST</span> be represented as a single label containing its
+unsigned decimal value, using ASCII digits without leading zeroes.
+Zero is the single digit <code>0</code>.  Neither label is padded or split.<a href="#section-3.1-4" class="pilcrow">¶</a></p>
+<p id="section-3.1-5">The Service Number is not part of the DNS base name.  URIs with the
+same FQNN give the same name, regardless of the Service Number or
+the encoding of the FQNN (<span><a href="https://rfc-editor.org/rfc/rfc9758#section-6.4" class="relref">Section 6.4</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>):<a href="#section-3.1-5" class="pilcrow">¶</a></p>
+<span id="name-example-dns-base-names"></span><table class="center" id="table-1">
+          <caption>
+<a href="#table-1" class="selfRef">Table 1</a>:
+<a href="#name-example-dns-base-names" class="selfRef">Example DNS Base Names</a>
+          </caption>
+<thead>
+            <tr>
+              <th class="text-left" rowspan="1" colspan="1">ipn URI</th>
+              <th class="text-left" rowspan="1" colspan="1">DNS base name</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>ipn:978879.2.345</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>2.978879.ipn.arpa.</code>
+</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>ipn:978879.2.0</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>2.978879.ipn.arpa.</code>
+</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>ipn:16384.345</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>16384.0.ipn.arpa.</code>
+</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>ipn:0.16384.345</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>16384.0.ipn.arpa.</code>
+</td>
+            </tr>
+          </tbody>
+        </table>
+<p id="section-3.1-7">The last two rows are usable in locally served instances, not for
+public discovery.  The same local scope applies to discovery for
+Experimental Use Allocator Identifiers (<a href="#publication-restrictions" class="auto internal xref">Section 7.2</a>,
+<a href="#locally-served" class="auto internal xref">Section 4.3</a>).<a href="#section-3.1-7" class="pilcrow">¶</a></p>
+<p id="section-3.1-8">A BP Agent <span class="bcp14">MUST NOT</span> perform DNS discovery for the Null ipn URI or a
+LocalNode ipn URI.  Neither identifies a remote destination.  The BP
+Agent tests the interpreted pair (A,N), not the Node Number alone:<a href="#section-3.1-8" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-3.1-9.1">
+            <p id="section-3.1-9.1.1">(0,0): <code>ipn:0.0.0</code> is the Null ipn URI (<span><a href="https://rfc-editor.org/rfc/rfc9758#section-3.1" class="relref">Section 3.1</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>).
+A URI with this FQNN and a nonzero Service Number is invalid;
+<span><a href="https://rfc-editor.org/rfc/rfc9758#section-3.4.1" class="relref">Section 3.4.1</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span> requires processors to treat it as Null.<a href="#section-3.1-9.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-3.1-9.2">
+            <p id="section-3.1-9.2.1">(0,4294967295): a LocalNode ipn URI identifies a resource on the
+local node (<span><a href="https://rfc-editor.org/rfc/rfc9758#section-3.4.2" class="relref">Section 3.4.2</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>).  <span><a href="https://rfc-editor.org/rfc/rfc9758#section-5.4" class="relref">Section 5.4</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>
+prohibits publication of LocalNode ipn EIDs in node identification
+directories, including DNS.<a href="#section-3.1-9.2.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-3.1-10">Neither special case applies under a nonzero Allocator Identifier.<a href="#section-3.1-10" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="tcpcl-binding">
+<section id="section-3.2">
+        <h3 id="name-tcpclv4-discovery-binding">
+<a href="#section-3.2" class="section-number selfRef">3.2. </a><a href="#name-tcpclv4-discovery-binding" class="section-name selfRef">TCPCLv4 Discovery Binding</a>
+        </h3>
+<p id="section-3.2-1">This document specifies TCPCLv4 <span>[<a href="#TCPCL" class="cite xref">TCPCL</a>]</span> discovery with SRV records
+<span>[<a href="#RFC2782" class="cite xref">RFC2782</a>]</span> at the following CL-specific query name:<a href="#section-3.2-1" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-3.2-2">
+<pre>
+_dtn-bundle._tcp.N.A.ipn.arpa.
+</pre><a href="#section-3.2-2" class="pilcrow">¶</a>
+</div>
+<p id="section-3.2-3">The BP Agent constructs this name directly from the FQNN.  It needs no
+preliminary PTR lookup as used in in-addr.arpa or ip6.arpa.<a href="#section-3.2-3" class="pilcrow">¶</a></p>
+<p id="section-3.2-4">The registered service name for TCP port 4556 is <code>dtn-bundle</code>
+(<span><a href="https://rfc-editor.org/rfc/rfc9174#section-8.1" class="relref">Section 8.1</a> of [<a href="#TCPCL" class="cite xref">TCPCL</a>]</span>).  The BP Agent uses priority and weight to
+select an SRV record under <span>[<a href="#RFC2782" class="cite xref">RFC2782</a>]</span>, then uses its Target and Port.
+The Port need not be 4556.  A Target of <code>.</code> indicates that the
+specified service is unavailable at that domain.<a href="#section-3.2-4" class="pilcrow">¶</a></p>
+<p id="section-3.2-5">Without a usable SRV record, this binding supplies no new candidate.
+After an unsuccessful SRV lookup, the BP Agent <span class="bcp14">MUST NOT</span> fall back to
+resolving the DNS base name for addresses and connecting to TCP port
+4556 as part of this binding.  This exception to the suggested usage
+in <span>[<a href="#RFC2782" class="cite xref">RFC2782</a>]</span> does not affect other bindings, independently obtained
+forwarding information, or retained results (<a href="#other-cls" class="auto internal xref">Section 3.5</a>,
+<a href="#discovery-results" class="auto internal xref">Section 4.1</a>, <a href="#caching" class="auto internal xref">Section 4.2</a>).<a href="#section-3.2-5" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="examples">
+<section id="section-3.3">
+        <h3 id="name-examples">
+<a href="#section-3.3" class="section-number selfRef">3.3. </a><a href="#name-examples" class="section-name selfRef">Examples</a>
+        </h3>
+<p id="section-3.3-1">In this deployment, a fictional space agency offers one public ingress
+service for three destinations.  Its Allocator Identifier, 978879,
+and the identifiers in <a href="#managing-allocator-ranges" class="auto internal xref">Section 4.4</a> come from the
+Example Range in <span><a href="https://rfc-editor.org/rfc/rfc9758#section-9.1" class="relref">Section 9.1</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>.  The zone excerpts omit
+routine SOA, NS, and DNSSEC records.<a href="#section-3.3-1" class="pilcrow">¶</a></p>
+<span id="name-example-destinations"></span><table class="center" id="table-2">
+          <caption>
+<a href="#table-2" class="selfRef">Table 2</a>:
+<a href="#name-example-destinations" class="selfRef">Example Destinations</a>
+          </caption>
+<thead>
+            <tr>
+              <th class="text-left" rowspan="1" colspan="1">FQNN</th>
+              <th class="text-left" rowspan="1" colspan="1">Destination</th>
+              <th class="text-left" rowspan="1" colspan="1">DNS base name</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">(978879,1)</td>
+              <td class="text-left" rowspan="1" colspan="1">mission operations center</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>1.978879.ipn.arpa.</code>
+</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">(978879,2)</td>
+              <td class="text-left" rowspan="1" colspan="1">mars-orbiter</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>2.978879.ipn.arpa.</code>
+</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">(978879,3)</td>
+              <td class="text-left" rowspan="1" colspan="1">lunar-lander</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>3.978879.ipn.arpa.</code>
+</td>
+            </tr>
+          </tbody>
+        </table>
+<p id="section-3.3-3">The agency chose the destination names independently of the Node
+Numbers.  Its two ingress relays are separate BP nodes with their own
+Node IDs.  Both have onward routes to all three destinations through
+the agency's cislunar and deep-space ground facilities.<a href="#section-3.3-3" class="pilcrow">¶</a></p>
+<p id="section-3.3-4">Examples A and B are alternative configurations of the allocator's
+zone (<a href="#dns-constraints" class="auto internal xref">Section 3.4</a>).  Both use these relay addresses:<a href="#section-3.3-4" class="pilcrow">¶</a></p>
+<span id="name-relay-address-records"></span><div id="relay-addresses">
+<figure id="figure-1">
+          <div class="lang-dns sourcecode" id="section-3.3-5.1">
+<pre>
+$ORIGIN space-agency.example.
+$TTL 3600
+
+relay-a IN A    192.0.2.10
+relay-a IN AAAA 2001:db8::10
+relay-b IN A    192.0.2.11
+relay-b IN AAAA 2001:db8::11
+</pre>
+</div>
+<figcaption><a href="#figure-1" class="selfRef">Figure 1</a>:
+<a href="#name-relay-address-records" class="selfRef">Relay Address Records</a>
+          </figcaption></figure>
+</div>
+<div id="example-a-service-records-in-the-allocators-zone">
+<section id="section-3.3.1">
+          <h4 id="name-example-a-service-records-i">
+<a href="#section-3.3.1" class="section-number selfRef">3.3.1. </a><a href="#name-example-a-service-records-i" class="section-name selfRef">Example A: Service Records in the Allocator's Zone</a>
+          </h4>
+<p id="section-3.3.1-1">The allocator's zone contains the SRV records for each destination:<a href="#section-3.3.1-1" class="pilcrow">¶</a></p>
+<div class="lang-dns sourcecode" id="section-3.3.1-2">
+<pre>
+$ORIGIN 978879.ipn.arpa.
+$TTL 3600
+
+_dtn-bundle._tcp.1 IN SRV 10 1 4556 relay-a.space-agency.example.
+_dtn-bundle._tcp.1 IN SRV 10 1 4556 relay-b.space-agency.example.
+
+_dtn-bundle._tcp.2 IN SRV 10 1 4556 relay-a.space-agency.example.
+_dtn-bundle._tcp.2 IN SRV 10 1 4556 relay-b.space-agency.example.
+
+_dtn-bundle._tcp.3 IN SRV 10 1 4556 relay-a.space-agency.example.
+_dtn-bundle._tcp.3 IN SRV 10 1 4556 relay-b.space-agency.example.
+</pre><a href="#section-3.3.1-2" class="pilcrow">¶</a>
+</div>
+<p id="section-3.3.1-3">For a bundle destined for <code>ipn:978879.2.345</code>, the BP Agent queries
+for SRV at <code>_dtn-bundle._tcp.2.978879.ipn.arpa.</code> and orders the two
+relay candidates according to <span>[<a href="#RFC2782" class="cite xref">RFC2782</a>]</span>.  If it selects
+<code>relay-a.space-agency.example.</code>, it resolves that target and attempts
+a TCPCLv4 connection to <code>[2001:db8::10]:4556</code> or <code>192.0.2.10:4556</code>.
+If it cannot reach that relay, it can try the other.  The BP Agent
+transfers the bundle over a session that its policy accepts
+(<a href="#forwarding-policy" class="auto internal xref">Section 5.1</a>).<a href="#section-3.3.1-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="example-b-service-lookup-redirected-through-a-cname">
+<section id="section-3.3.2">
+          <h4 id="name-example-b-service-lookup-re">
+<a href="#section-3.3.2" class="section-number selfRef">3.3.2. </a><a href="#name-example-b-service-lookup-re" class="section-name selfRef">Example B: Service Lookup Redirected through a CNAME</a>
+          </h4>
+<p id="section-3.3.2-1">Instead of publishing an SRV RRset at each service name, the agency
+makes each name an alias for the same SRV owner:<a href="#section-3.3.2-1" class="pilcrow">¶</a></p>
+<div class="lang-dns sourcecode" id="section-3.3.2-2">
+<pre>
+$ORIGIN 978879.ipn.arpa.
+$TTL 3600
+
+_dtn-bundle._tcp.1 IN CNAME (
+    _dtn-bundle._tcp.ingress.space-agency.example. )
+_dtn-bundle._tcp.2 IN CNAME (
+    _dtn-bundle._tcp.ingress.space-agency.example. )
+_dtn-bundle._tcp.3 IN CNAME (
+    _dtn-bundle._tcp.ingress.space-agency.example. )
+</pre><a href="#section-3.3.2-2" class="pilcrow">¶</a>
+</div>
+<p id="section-3.3.2-3">The agency publishes the shared SRV RRset in its own zone:<a href="#section-3.3.2-3" class="pilcrow">¶</a></p>
+<div class="lang-dns sourcecode" id="section-3.3.2-4">
+<pre>
+$ORIGIN space-agency.example.
+$TTL 3600
+
+_dtn-bundle._tcp.ingress IN SRV (
+    10 1 4556 relay-a.space-agency.example. )
+_dtn-bundle._tcp.ingress IN SRV (
+    10 1 4556 relay-b.space-agency.example. )
+</pre><a href="#section-3.3.2-4" class="pilcrow">¶</a>
+</div>
+<p id="section-3.3.2-5">The BP Agent sends the same query as in Example A.  DNS resolution
+follows the CNAME to the shared SRV RRset.  The agency can now change
+the relay selection for all three destinations in one place.<a href="#section-3.3.2-5" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="shared-ingress">
+<section id="section-3.3.3">
+          <h4 id="name-shared-ingress-behavior">
+<a href="#section-3.3.3" class="section-number selfRef">3.3.3. </a><a href="#name-shared-ingress-behavior" class="section-name selfRef">Shared Ingress Behavior</a>
+          </h4>
+<p id="section-3.3.3-1">Equal SRV priorities and weights give roughly balanced relay selection
+across connection attempts (<span>[<a href="#RFC2782" class="cite xref">RFC2782</a>]</span>).  They neither guarantee equal
+traffic volume nor indicate current relay load.<a href="#section-3.3.3-1" class="pilcrow">¶</a></p>
+<p id="section-3.3.3-2">The three destinations share relay endpoints, not identities.  Each
+bundle keeps its destination EID.  After accepting it, the relay uses
+the agency's routes and contact arrangements.  A connection to the
+relay does not imply that a spacecraft is currently reachable.<a href="#section-3.3.3-2" class="pilcrow">¶</a></p>
+<p id="section-3.3.3-3">The agency uses one public DNS view and needs no internal DNS
+overrides.  Its records expose the advertised FQNNs, their association
+with the ingress service, and the relay addresses, but not the internal
+routes or contacts (<a href="#privacy" class="auto internal xref">Section 5.4</a>).<a href="#section-3.3.3-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="dns-constraints">
+<section id="section-3.4">
+        <h3 id="name-dns-constraints">
+<a href="#section-3.4" class="section-number selfRef">3.4. </a><a href="#name-dns-constraints" class="section-name selfRef">DNS Constraints</a>
+        </h3>
+<p id="section-3.4-1">A CNAME redirects only its owner name (<span><a href="https://rfc-editor.org/rfc/rfc1034#section-3.6.2" class="relref">Section 3.6.2</a> of [<a href="#RFC1034" class="cite xref">RFC1034</a>]</span>).
+In Example B the CNAME is at the full service name.  A CNAME at
+<code>2.978879.ipn.arpa.</code> would not redirect the SRV lookup.  A CNAME
+record and an SRV RRset cannot coexist at the same owner name.<a href="#section-3.4-1" class="pilcrow">¶</a></p>
+<p id="section-3.4-2">The SRV lookup can follow a CNAME or DNAME.  In contrast, an SRV
+Target other than <code>.</code> must have address records at that name, without
+CNAME or DNAME redirection (<span>[<a href="#RFC2782" class="cite xref">RFC2782</a>]</span>; <span><a href="https://rfc-editor.org/rfc/rfc6672#section-5.1" class="relref">Section 5.1</a> of [<a href="#RFC6672" class="cite xref">RFC6672</a>]</span>).<a href="#section-3.4-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="other-cls">
+<section id="section-3.5">
+        <h3 id="name-other-convergence-layers">
+<a href="#section-3.5" class="section-number selfRef">3.5. </a><a href="#name-other-convergence-layers" class="section-name selfRef">Other Convergence Layers</a>
+        </h3>
+<p id="section-3.5-1">Other CLs can define bindings that use the same DNS base name.  For
+SVCB, <span>[<a href="#RFC9460" class="cite xref">RFC9460</a>]</span> and the applicable binding govern AliasMode,
+ServiceMode, parameter compatibility, endpoint selection, and fallback.
+SRV rules do not carry over: in ServiceMode, an SVCB TargetName of
+<code>.</code> denotes the record's owner name in the response, not service
+unavailability (<span><a href="https://rfc-editor.org/rfc/rfc9460#section-2.5.2" class="relref">Section 2.5.2</a> of [<a href="#RFC9460" class="cite xref">RFC9460</a>]</span>).<a href="#section-3.5-1" class="pilcrow">¶</a></p>
+<p id="section-3.5-2">A BP Agent need not query for every CL it supports.  This document
+specifies no order in which to try them.<a href="#section-3.5-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="operational-considerations">
+<section id="section-4">
+      <h2 id="name-operational-considerations">
+<a href="#section-4" class="section-number selfRef">4. </a><a href="#name-operational-considerations" class="section-name selfRef">Operational Considerations</a>
+      </h2>
+<div id="discovery-results">
+<section id="section-4.1">
+        <h3 id="name-discovery-results-and-failu">
+<a href="#section-4.1" class="section-number selfRef">4.1. </a><a href="#name-discovery-results-and-failu" class="section-name selfRef">Discovery Results and Failures</a>
+        </h3>
+<p id="section-4.1-1">Discovery succeeds when a BP Agent obtains usable connection
+information.  A valid DNS answer need not contain a usable candidate:
+the discovery binding and the record-type specification determine
+compatibility and candidate selection (<a href="#tcpcl-binding" class="auto internal xref">Section 3.2</a>,
+<a href="#other-cls" class="auto internal xref">Section 3.5</a>).  A candidate is an endpoint at the destination or at a
+relay.  Discovery does not guarantee current reachability, acceptance
+of a session or bundle, or eventual delivery.<a href="#section-4.1-1" class="pilcrow">¶</a></p>
+<p id="section-4.1-2">Negative answers concern the name at the end of any alias chain
+(<span><a href="https://rfc-editor.org/rfc/rfc2308#section-2" class="relref">Section 2</a> of [<a href="#RFC2308" class="cite xref">RFC2308</a>]</span>):<a href="#section-4.1-2" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-4.1-3">
+          <dt id="section-4.1-3.1">NXDOMAIN:</dt>
+          <dd style="margin-left: 1.5em" id="section-4.1-3.2">
+            <p id="section-4.1-3.2.1">That name does not exist.<a href="#section-4.1-3.2.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-4.1-3.3">NODATA:</dt>
+          <dd style="margin-left: 1.5em" id="section-4.1-3.4">
+            <p id="section-4.1-3.4.1">That name exists, but has no RRset of the requested type.  The
+response code is NOERROR; the answer can still contain aliases.<a href="#section-4.1-3.4.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+</dl>
+<p id="section-4.1-4">A SERVFAIL response, a timeout, or another resolution failure gives no
+answer about service availability.  None of these outcomes makes the
+FQNN invalid.  Absence of one CL's records does not rule out another
+CL's service.<a href="#section-4.1-4" class="pilcrow">¶</a></p>
+<p id="section-4.1-5">An unsuccessful lookup does not invalidate independently obtained
+forwarding information or require deletion of a bundle.  The BP
+Agent's existing policies govern retries and route precedence.<a href="#section-4.1-5" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="caching">
+<section id="section-4.2">
+        <h3 id="name-caching-and-operation-durin">
+<a href="#section-4.2" class="section-number selfRef">4.2. </a><a href="#name-caching-and-operation-durin" class="section-name selfRef">Caching and Operation During Disruption</a>
+        </h3>
+<p id="section-4.2-1">Resolvers cache positive answers (<span>[<a href="#RFC1034" class="cite xref">RFC1034</a>]</span>), negative answers
+(<span>[<a href="#RFC2308" class="cite xref">RFC2308</a>]</span>), and resolution failures (<span>[<a href="#RFC9520" class="cite xref">RFC9520</a>]</span>).  A negative
+answer to a refresh is a completed lookup, not a resolution failure.<a href="#section-4.2-1" class="pilcrow">¶</a></p>
+<p id="section-4.2-2">A BP Agent need not repeat discovery for each bundle.  For a retained
+candidate, the first TTL to expire among the RRsets used to obtain it
+limits its freshness.  These can include alias, service, and address
+RRsets.  Copying the candidate into a forwarding table does not
+refresh it.  TTL expiry does not require closing an established CL
+session or deleting a bundle; refreshed data informs later connections.<a href="#section-4.2-2" class="pilcrow">¶</a></p>
+<p id="section-4.2-3">If the BP Agent cannot refresh an expired result, explicit operational
+policy governs its continued use.  Endpoints, aliases, or administrative
+control may have changed.  This differs from a resolver serving stale
+DNS data under <span>[<a href="#RFC8767" class="cite xref">RFC8767</a>]</span>.<a href="#section-4.2-3" class="pilcrow">¶</a></p>
+<p id="section-4.2-4">TTL expiry also differs from signature expiry.  DNSSEC validation
+checks the RRSIG validity period (<span><a href="https://rfc-editor.org/rfc/rfc4035#section-5.3.1" class="relref">Section 5.3.1</a> of [<a href="#RFC4035" class="cite xref">RFC4035</a>]</span>); the
+signature expiration time limits the TTL of authenticated data
+(<span><a href="https://rfc-editor.org/rfc/rfc4035#section-5.3.3" class="relref">Section 5.3.3</a> of [<a href="#RFC4035" class="cite xref">RFC4035</a>]</span>).  Retaining a candidate does not extend
+that validity period (<a href="#bpa-validation" class="auto internal xref">Section 5.2.1</a>).<a href="#section-4.2-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="locally-served">
+<section id="section-4.3">
+        <h3 id="name-locally-served-namespaces">
+<a href="#section-4.3" class="section-number selfRef">4.3. </a><a href="#name-locally-served-namespaces" class="section-name selfRef">Locally Served Namespaces</a>
+        </h3>
+<p id="section-4.3-1">Local discovery under <code>0.ipn.arpa.</code> or an Experimental Use allocator
+subtree (<a href="#publication-restrictions" class="auto internal xref">Section 7.2</a>) requires explicit DNS
+configuration.  A resolver can serve the local zone itself or send
+queries to a configured server for that subtree.  This document
+requests neither automatic resolver behavior nor additions to the
+IANA "Locally-Served DNS Zones" registry <span>[<a href="#RFC6303" class="cite xref">RFC6303</a>]</span>.<a href="#section-4.3-1" class="pilcrow">¶</a></p>
+<p id="section-4.3-2">The signed public hierarchy can authenticate the absence of a name in
+public DNS, but not a conflicting local answer.  A validator can
+authenticate a signed local zone with a configured local trust anchor
+(<span><a href="https://rfc-editor.org/rfc/rfc6303#section-7" class="relref">Section 7</a> of [<a href="#RFC6303" class="cite xref">RFC6303</a>]</span>; for nested anchors, see
+<span><a href="https://rfc-editor.org/rfc/rfc6840#section-5.10" class="relref">Section 5.10</a> of [<a href="#RFC6840" class="cite xref">RFC6840</a>]</span>).  The trust configuration belongs where
+validation takes place: at the trusted resolver (<a href="#bpa-validation" class="auto internal xref">Section 5.2.1</a>)
+or at a BP Agent that validates independently.<a href="#section-4.3-2" class="pilcrow">¶</a></p>
+<p id="section-4.3-3">A deployment can accept unsigned local data under explicit policy;
+that is not successful DNSSEC validation.  Administrators should scope
+local resolution and trust settings to the relevant subtrees, not to
+all of ipn.arpa.  Queries should stay within that scope even when local
+resolution fails.  Public fallback cannot supply the local data and
+can disclose the queried identifiers (<span>[<a href="#RFC6303" class="cite xref">RFC6303</a>]</span>; <a href="#privacy" class="auto internal xref">Section 5.4</a>).<a href="#section-4.3-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="managing-allocator-ranges">
+<section id="section-4.4">
+        <h3 id="name-managing-allocator-ranges">
+<a href="#section-4.4" class="section-number selfRef">4.4. </a><a href="#name-managing-allocator-ranges" class="section-name selfRef">Managing Allocator Ranges</a>
+        </h3>
+<p id="section-4.4-1">An Allocator can hold a range of Allocator Identifiers
+(<span><a href="https://rfc-editor.org/rfc/rfc9758#section-3.2.1" class="relref">Section 3.2.1</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>).  Each identifier has a separate name
+under <code>ipn.arpa.</code>; DNS has no numeric-range syntax.  An agency that
+wants to keep discovery records in its existing zone can request one
+parent-side DNAME per identifier (<a href="#provisioning-alternatives" class="auto internal xref">Section 7.3.2</a>).<a href="#section-4.4-1" class="pilcrow">¶</a></p>
+<p id="section-4.4-2">For example, the agency in <a href="#examples" class="auto internal xref">Section 3.3</a> also holds identifiers 974848
+and 974849.  The <code>ipn.arpa.</code> operator publishes:<a href="#section-4.4-2" class="pilcrow">¶</a></p>
+<div class="lang-dns sourcecode" id="section-4.4-3">
+<pre>
+$ORIGIN ipn.arpa.
+$TTL 3600
+974848 IN DNAME 974848.space-agency.example.
+974849 IN DNAME 974849.space-agency.example.
+</pre><a href="#section-4.4-3" class="pilcrow">¶</a>
+</div>
+<p id="section-4.4-4">The agency publishes both sets of records in its existing
+<code>space-agency.example.</code> zone.  Neither DNAME target needs to be a
+zone cut.  The relay names below are relative to the agency's zone
+(<a href="#relay-addresses" class="auto internal xref">Figure 1</a>).<a href="#section-4.4-4" class="pilcrow">¶</a></p>
+<div class="lang-dns sourcecode" id="section-4.4-5">
+<pre>
+$ORIGIN space-agency.example.
+$TTL 3600
+; ipn:974848.2.345
+_dtn-bundle._tcp.2.974848 IN SRV 10 1 4556 relay-a
+_dtn-bundle._tcp.2.974848 IN SRV 10 1 4556 relay-b
+; ipn:974849.2.345
+_dtn-bundle._tcp.2.974849 IN SRV 10 1 4556 relay-a
+_dtn-bundle._tcp.2.974849 IN SRV 10 1 4556 relay-b
+</pre><a href="#section-4.4-5" class="pilcrow">¶</a>
+</div>
+<p id="section-4.4-6">For <code>ipn:974848.2.345</code>, the BP Agent queries for SRV at
+<code>_dtn-bundle._tcp.2.974848.ipn.arpa.</code> (<a href="#tcpcl-binding" class="auto internal xref">Section 3.2</a>).  DNS
+substitutes <code>974848.space-agency.example.</code> for the matching suffix and
+continues the lookup at
+<code>_dtn-bundle._tcp.2.974848.space-agency.example.</code>.  A DNAME redirects
+descendants of its owner; it does not redirect the owner itself
+(<span>[<a href="#RFC6672" class="cite xref">RFC6672</a>]</span>).<a href="#section-4.4-6" class="pilcrow">¶</a></p>
+<p id="section-4.4-7">Distinct target names keep node 2 in each allocator space distinct,
+even though both use the same relays.  Using the allocator number as a
+label is a convenience.  If both DNAMEs had the same target, both
+queries would reach the same SRV owner.<a href="#section-4.4-7" class="pilcrow">¶</a></p>
+<p id="section-4.4-8">Tools such as BIND's <code>$GENERATE</code> directive <span>[<a href="#BIND-ARM" class="cite xref">BIND-ARM</a>]</span> can abbreviate
+repetitive zone-file entries.  They produce ordinary DNS records.<a href="#section-4.4-8" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="security-considerations">
+<section id="section-5">
+      <h2 id="name-security-considerations">
+<a href="#section-5" class="section-number selfRef">5. </a><a href="#name-security-considerations" class="section-name selfRef">Security Considerations</a>
+      </h2>
+<div id="forwarding-policy">
+<section id="section-5.1">
+        <h3 id="name-authentication-and-forwardi">
+<a href="#section-5.1" class="section-number selfRef">5.1. </a><a href="#name-authentication-and-forwardi" class="section-name selfRef">Authentication and Forwarding Policy</a>
+        </h3>
+<p id="section-5.1-1">DNSSEC authenticates DNS data (<a href="#dnssec" class="auto internal xref">Section 5.2</a>), not the live session peer.
+The CL specification and configured security policy govern peer
+authentication (<a href="#cl-peer-identity" class="auto internal xref">Section 5.3</a>).<a href="#section-5.1-1" class="pilcrow">¶</a></p>
+<p id="section-5.1-2">A BP Agent uses DNS-derived forwarding information according to its
+configured forwarding policy.  That policy may permit automatic use
+of authenticated discovery mappings, subject to the security
+requirements of the applicable CL.<a href="#section-5.1-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="dnssec">
+<section id="section-5.2">
+        <h3 id="name-dnssec">
+<a href="#section-5.2" class="section-number selfRef">5.2. </a><a href="#name-dnssec" class="section-name selfRef">DNSSEC</a>
+        </h3>
+<p id="section-5.2-1">Forged discovery information can redirect connection attempts and
+bundle transfers to an endpoint an attacker selects.  DNSSEC
+<span>[<a href="#RFC9364" class="cite xref">RFC9364</a>]</span> provides data origin authentication and integrity, not a
+guarantee of service availability (see also <span><a href="https://rfc-editor.org/rfc/rfc6116#section-7.1" class="relref">Section 7.1</a> of [<a href="#RFC6116" class="cite xref">RFC6116</a>]</span>
+on ENUM).<a href="#section-5.2-1" class="pilcrow">¶</a></p>
+<p id="section-5.2-2">Operators publishing discovery data for this mechanism in the public
+DNS <span class="bcp14">SHOULD</span> provide DNSSEC authentication of that data, including the
+necessary chain of trust.  This includes every RRset used for discovery,
+even outside ipn.arpa: aliases and redirections (CNAME, DNAME, or SVCB
+AliasMode), service and connection parameters (such as SRV or SVCB
+ServiceMode), and addresses.<a href="#section-5.2-2" class="pilcrow">¶</a></p>
+<p id="section-5.2-3">Signing ipn.arpa (<a href="#creation-of-ipn-arpa" class="auto internal xref">Section 7.1</a>) does not authenticate data
+in delegated zones or external target namespaces.  Likewise, validating
+a service RRset does not authenticate address RRsets supplied with it.
+A CNAME synthesized from a validated DNAME needs no signature of its
+own.  The validator checks the substitution
+(<span><a href="https://rfc-editor.org/rfc/rfc6672#section-5.3.1" class="relref">Section 5.3.1</a> of [<a href="#RFC6672" class="cite xref">RFC6672</a>]</span>).<a href="#section-5.2-3" class="pilcrow">¶</a></p>
+<div id="bpa-validation">
+<section id="section-5.2.1">
+          <h4 id="name-validation-by-bp-agents">
+<a href="#section-5.2.1" class="section-number selfRef">5.2.1. </a><a href="#name-validation-by-bp-agents" class="section-name selfRef">Validation by BP Agents</a>
+          </h4>
+<p id="section-5.2.1-1">BP Agents using public DNS discovery <span class="bcp14">SHOULD</span> use DNSSEC validation,
+either locally or through a trusted validating resolver.  When a BP
+Agent relies on validation by another resolver, the resolver and the
+channel to it need to satisfy the trust requirements of
+<span><a href="https://rfc-editor.org/rfc/rfc4035#section-4.9.3" class="relref">Section 4.9.3</a> of [<a href="#RFC4035" class="cite xref">RFC4035</a>]</span>.<a href="#section-5.2.1-1" class="pilcrow">¶</a></p>
+<p id="section-5.2.1-2"><span><a href="https://rfc-editor.org/rfc/rfc4035#section-4.3" class="relref">Section 4.3</a> of [<a href="#RFC4035" class="cite xref">RFC4035</a>]</span> distinguishes secure, insecure, bogus, and
+indeterminate RRsets.  Insecure means the validator has established
+that no chain of trust reaches the RRset from any configured trust
+anchor, for example through proof of an unsigned delegation.  An
+insecure RRset can still have signatures.  Missing signatures where
+a secure chain requires them can make the result bogus.  If the
+validator cannot determine whether to expect signatures, the status
+is indeterminate.<a href="#section-5.2.1-2" class="pilcrow">¶</a></p>
+<p id="section-5.2.1-3">A BP Agent may not know the resolver's validation result.  A missing
+authentication indication does not establish that an RRset is insecure.
+The BP Agent's configured policy governs acceptance of insecure results
+and results whose status it does not know.<a href="#section-5.2.1-3" class="pilcrow">¶</a></p>
+<p id="section-5.2.1-4">A known validation failure is a failure of that discovery path
+(<a href="#discovery-results" class="auto internal xref">Section 4.1</a>).  It should not trigger automatic acceptance
+of the same data through an unvalidated path.  The BP Agent can still
+retrieve DNSSEC data for independent validation.  For local trust
+configuration, see <a href="#locally-served" class="auto internal xref">Section 4.3</a>.<a href="#section-5.2.1-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="cl-peer-identity">
+<section id="section-5.3">
+        <h3 id="name-convergence-layer-peer-iden">
+<a href="#section-5.3" class="section-number selfRef">5.3. </a><a href="#name-convergence-layer-peer-iden" class="section-name selfRef">Convergence-Layer Peer Identity</a>
+        </h3>
+<p id="section-5.3-1">For TCPCLv4, <span><a href="https://rfc-editor.org/rfc/rfc9174#section-4.4" class="relref">Section 4.4</a> of [<a href="#TCPCL" class="cite xref">TCPCL</a>]</span> specifies session security.  In
+Example A (<a href="#examples" class="auto internal xref">Section 3.3</a>), three identifiers have different roles:<a href="#section-5.3-1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-5.3-2.1">
+            <p id="section-5.3-2.1.1"><code>_dtn-bundle._tcp.2.978879.ipn.arpa.</code> is the SRV query name.  It
+comes from the destination FQNN.<a href="#section-5.3-2.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-5.3-2.2">
+            <p id="section-5.3-2.2.1">If the BP Agent selects <code>relay-a.space-agency.example.</code>, it resolves
+that SRV Target to establish the TCP connection.  When policy calls
+for network-level authentication, that host name is the DNS-ID
+reference identifier (<span><a href="https://rfc-editor.org/rfc/rfc9174#section-4.4.4.2" class="relref">Section 4.4.4.2</a> of [<a href="#TCPCL" class="cite xref">TCPCL</a>]</span>).  If the TLS
+client sends the server_name extension, it uses the relay host name,
+not the query name (<span><a href="https://rfc-editor.org/rfc/rfc9174#section-4.4.3" class="relref">Section 4.4.3</a> of [<a href="#TCPCL" class="cite xref">TCPCL</a>]</span>).<a href="#section-5.3-2.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-5.3-2.3">
+            <p id="section-5.3-2.3.1">The relay can supply its own Node ID in SESS_INIT.  The DNS-ID check
+does not authenticate that Node ID, and discovery supplies no
+expected peer Node ID.  <span><a href="https://rfc-editor.org/rfc/rfc9174#section-4.6" class="relref">Section 4.6</a> of [<a href="#TCPCL" class="cite xref">TCPCL</a>]</span> specifies how to
+handle absent, unexpected, or unauthenticated peer Node IDs.<a href="#section-5.3-2.3.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-5.3-3">The bundle's destination EID remains <code>ipn:978879.2.345</code>.<a href="#section-5.3-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="privacy">
+<section id="section-5.4">
+        <h3 id="name-privacy">
+<a href="#section-5.4" class="section-number selfRef">5.4. </a><a href="#name-privacy" class="section-name selfRef">Privacy</a>
+        </h3>
+<p id="section-5.4-1">Public records can associate destination identifiers with services,
+relays, and addresses (<a href="#shared-ingress" class="auto internal xref">Section 3.3.3</a>).  Queries can reveal to
+resolvers and other observers which destinations a BP Agent tries to
+reach and when.  DNSSEC does not provide confidentiality.  <span>[<a href="#RFC9076" class="cite xref">RFC9076</a>]</span>
+discusses resolver selection and encrypted DNS transports;
+<a href="#locally-served" class="auto internal xref">Section 4.3</a> covers containment of local queries.<a href="#section-5.4-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="resource-consumption">
+<section id="section-5.5">
+        <h3 id="name-resource-consumption">
+<a href="#section-5.5" class="section-number selfRef">5.5. </a><a href="#name-resource-consumption" class="section-name selfRef">Resource Consumption</a>
+        </h3>
+<p id="section-5.5-1">Traffic for many distinct FQNNs can consume resolver, memory, and
+connection resources.  Implementations <span class="bcp14">SHOULD</span> bound outstanding
+discovery work, retained discovery state, and connection attempts,
+for example with resolver, queue, and connection limits.<a href="#section-5.5-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="iab-considerations">
+<section id="section-6">
+      <h2 id="name-iab-considerations">
+<a href="#section-6" class="section-number selfRef">6. </a><a href="#name-iab-considerations" class="section-name selfRef">IAB Considerations</a>
+      </h2>
+<p id="section-6-1">This document requests IAB approval for ipn.arpa as an infrastructure
+namespace under <span><a href="https://rfc-editor.org/rfc/rfc3172#section-3" class="relref">Section 3</a> of [<a href="#RFC3172" class="cite xref">RFC3172</a>]</span>.  The two 32-bit components
+of an FQNN, the Allocator Identifier and Node Number, determine the
+DNS base name for discovery (<a href="#discovery-model" class="auto internal xref">Section 3.1</a>).  The precedent is
+e164.arpa: an ENUM client derives a name from an E.164 telephone
+number and queries it for NAPTR records <span>[<a href="#RFC6116" class="cite xref">RFC6116</a>]</span>.<a href="#section-6-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="iana-considerations">
+<section id="section-7">
+      <h2 id="name-iana-considerations">
+<a href="#section-7" class="section-number selfRef">7. </a><a href="#name-iana-considerations" class="section-name selfRef">IANA Considerations</a>
+      </h2>
+<div id="creation-of-ipn-arpa">
+<section id="section-7.1">
+        <h3 id="name-creation-of-ipnarpa">
+<a href="#section-7.1" class="section-number selfRef">7.1. </a><a href="#name-creation-of-ipnarpa" class="section-name selfRef">Creation of ipn.arpa</a>
+        </h3>
+<p id="section-7.1-1">Following IAB approval under <span><a href="https://rfc-editor.org/rfc/rfc3172#section-3" class="relref">Section 3</a> of [<a href="#RFC3172" class="cite xref">RFC3172</a>]</span>, IANA is
+requested to add ipn.arpa to the arpa domain for names derived from
+FQNNs (<a href="#discovery-model" class="auto internal xref">Section 3.1</a>).<a href="#section-7.1-1" class="pilcrow">¶</a></p>
+<p id="section-7.1-2">IANA is requested to arrange ongoing administration, including request
+processing (<a href="#allocator-dns-provisioning" class="auto internal xref">Section 7.3</a>), as approved by the IAB.
+The ipn.arpa operator provisions and operates the zone; IANA need not
+operate the authoritative servers itself.<a href="#section-7.1-2" class="pilcrow">¶</a></p>
+<p id="section-7.1-3">The ipn.arpa operator <span class="bcp14">MUST</span> sign the public ipn.arpa zone using DNSSEC
+and maintain a chain of trust through the arpa zone.  For the
+recommendation to operators of delegated zones and other namespaces,
+see <a href="#dnssec" class="auto internal xref">Section 5.2</a>.<a href="#section-7.1-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="publication-restrictions">
+<section id="section-7.2">
+        <h3 id="name-publication-restrictions">
+<a href="#section-7.2" class="section-number selfRef">7.2. </a><a href="#name-publication-restrictions" class="section-name selfRef">Publication Restrictions</a>
+        </h3>
+<p id="section-7.2-1">This document excludes two sets of names from public DNS discovery.
+The restrictions do not change any allocation or its Bundle Protocol
+semantics under <span>[<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>.  At or beneath each restricted name,
+they cover discovery records, NS delegations to servers that publish
+such records, and CNAME or DNAME redirections that expose discovery
+data elsewhere in the global DNS.<a href="#section-7.2-1" class="pilcrow">¶</a></p>
+<p id="section-7.2-2">The public ipn.arpa zone omits these allocator names and their
+descendants.  Queries for them receive ordinary DNS negative answers
+with normal DNSSEC processing.  For home.arpa, an insecure
+public delegation accommodates validators without local trust
+configuration (<span><a href="https://rfc-editor.org/rfc/rfc8375#section-6.2" class="relref">Section 6.2</a> of [<a href="#RFC8375" class="cite xref">RFC8375</a>]</span>; <span><a href="https://rfc-editor.org/rfc/rfc8375#section-7" class="relref">Section 7</a> of [<a href="#RFC8375" class="cite xref">RFC8375</a>]</span>);
+this document requests no such delegation.  See <a href="#locally-served" class="auto internal xref">Section 4.3</a>
+for local resolution and trust configuration.<a href="#section-7.2-2" class="pilcrow">¶</a></p>
+<div id="allocator-zero">
+<section id="section-7.2.1">
+          <h4 id="name-allocator-identifier-zero">
+<a href="#section-7.2.1" class="section-number selfRef">7.2.1. </a><a href="#name-allocator-identifier-zero" class="section-name selfRef">Allocator Identifier Zero</a>
+          </h4>
+<p id="section-7.2.1-1">Allocator Identifier zero denotes the Default Allocator
+(<span><a href="https://rfc-editor.org/rfc/rfc9758#section-3.2.2" class="relref">Section 3.2.2</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>).  Public DNS discovery for its FQNNs is
+outside this document's scope.  A populated <code>0.ipn.arpa.</code> zone
+<span class="bcp14">MUST NOT</span> be published in the public ipn.arpa hierarchy.  Local
+resolvers or servers <span class="bcp14">MAY</span> serve it authoritatively, as with the reverse
+zones for <span>[<a href="#RFC1918" class="cite xref">RFC1918</a>]</span> private address space
+(<span><a href="https://rfc-editor.org/rfc/rfc6303#section-4.1" class="relref">Section 4.1</a> of [<a href="#RFC6303" class="cite xref">RFC6303</a>]</span>).<a href="#section-7.2.1-1" class="pilcrow">¶</a></p>
+<p id="section-7.2.1-2">The restriction covers assigned Node Numbers as well as Private Use
+Node Numbers 1 through 16383 (<span><a href="https://rfc-editor.org/rfc/rfc9758#section-3.4.3" class="relref">Section 3.4.3</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>) and Node
+Numbers 2097152 through 268435455 reserved for Private or Experimental
+Use (<span><a href="https://rfc-editor.org/rfc/rfc7116#section-3.2.1" class="relref">Section 3.2.1</a> of [<a href="#RFC7116" class="cite xref">RFC7116</a>]</span>; <span><a href="https://rfc-editor.org/rfc/rfc9758#section-9.2" class="relref">Section 9.2</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>).
+Public support would require administration and delegation procedures
+for existing assignments and a way to handle private ranges and
+locally served data.<a href="#section-7.2.1-2" class="pilcrow">¶</a></p>
+<p id="section-7.2.1-3">Note to the Working Group (to be removed before publication as an
+RFC): The working group can reconsider public DNS support for
+Allocator Identifier zero if it chooses to take on that scope.<a href="#section-7.2.1-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="experimental-allocators">
+<section id="section-7.2.2">
+          <h4 id="name-experimental-use-allocator-">
+<a href="#section-7.2.2" class="section-number selfRef">7.2.2. </a><a href="#name-experimental-use-allocator-" class="section-name selfRef">Experimental Use Allocator Identifiers</a>
+          </h4>
+<p id="section-7.2.2-1"><span><a href="https://rfc-editor.org/rfc/rfc9758#section-9.1" class="relref">Section 9.1</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span> designates Allocator Identifiers 1073741824
+through 2147483647 (0x40000000 through 0x7FFFFFFF) as Experimental
+Use.  Independent experiments can reuse these identifiers
+(<span><a href="https://rfc-editor.org/rfc/rfc8126#section-4.2" class="relref">Section 4.2</a> of [<a href="#RFC8126" class="cite xref">RFC8126</a>]</span>), so no single public mapping can
+represent them all.<a href="#section-7.2.2-1" class="pilcrow">¶</a></p>
+<p id="section-7.2.2-2">For each Experimental Use Allocator Identifier A, a populated subtree
+beneath <code>A.ipn.arpa.</code> <span class="bcp14">MUST NOT</span> be published in the public ipn.arpa
+hierarchy.  Local DNS resolvers or servers <span class="bcp14">MAY</span> serve names beneath
+<code>A.ipn.arpa.</code> within the scope of an experiment.<a href="#section-7.2.2-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="allocator-dns-provisioning">
+<section id="section-7.3">
+        <h3 id="name-allocator-dns-provisioning">
+<a href="#section-7.3" class="section-number selfRef">7.3. </a><a href="#name-allocator-dns-provisioning" class="section-name selfRef">Allocator DNS Provisioning</a>
+        </h3>
+<p id="section-7.3-1">IANA and the ipn.arpa operator are requested to maintain a procedure
+that links each provisioning request for <code>A.ipn.arpa.</code> to the entry
+for Allocator Identifier A in the "'ipn' Scheme URI Allocator
+Identifiers" registry
+(<span><a href="https://rfc-editor.org/rfc/rfc9758#section-9.1" class="relref">Section 9.1</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>).  They determine the request interface,
+storage format, and presentation of provisioning information.<a href="#section-7.3-1" class="pilcrow">¶</a></p>
+<p id="section-7.3-2">A requester can seek DNS provisioning at assignment or later.  An
+allocator assignment remains valid and usable without a DNS entry.
+Only Allocator Identifiers assigned for operational use are eligible
+for public provisioning.  This excludes Allocator Identifier zero
+(<a href="#allocator-zero" class="auto internal xref">Section 7.2.1</a>), Experimental Use Allocator Identifiers
+(<a href="#experimental-allocators" class="auto internal xref">Section 7.2.2</a>), unassigned or reserved identifiers,
+and the Example Range, 974848 through 978943
+(<span><a href="https://rfc-editor.org/rfc/rfc9758#section-9.1" class="relref">Section 9.1</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>).<a href="#section-7.3-2" class="pilcrow">¶</a></p>
+<p id="section-7.3-3">The allocator's authorized DNS administrators manage node-level records
+and further delegations.  Neither IANA nor the ipn.arpa operator needs
+to provision individual Node Numbers.<a href="#section-7.3-3" class="pilcrow">¶</a></p>
+<div id="request-authorization">
+<section id="section-7.3.1">
+          <h4 id="name-request-authorization">
+<a href="#section-7.3.1" class="section-number selfRef">7.3.1. </a><a href="#name-request-authorization" class="section-name selfRef">Request Authorization</a>
+          </h4>
+<p id="section-7.3.1-1">Requests to create, update, or remove NS, DNAME, or DS records for an
+eligible Allocator Identifier are subject to the same administrative
+authority and requester-verification procedures that IANA applies to
+changes to the corresponding entry in the "'ipn' Scheme URI Allocator
+Identifiers" registry.  DNS provisioning changes do not themselves
+require a new review of the numeric allocation.  The same procedures
+apply to a conversion between NS delegation and DNAME redirection.<a href="#section-7.3.1-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="provisioning-alternatives">
+<section id="section-7.3.2">
+          <h4 id="name-provisioning-alternatives">
+<a href="#section-7.3.2" class="section-number selfRef">7.3.2. </a><a href="#name-provisioning-alternatives" class="section-name selfRef">Provisioning Alternatives</a>
+          </h4>
+<p id="section-7.3.2-1">A requester chooses one parent-zone configuration for <code>A.ipn.arpa.</code>:<a href="#section-7.3.2-1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-7.3.2-2">
+            <dt id="section-7.3.2-2.1">NS delegation:</dt>
+            <dd style="margin-left: 1.5em" id="section-7.3.2-2.2">
+              <p id="section-7.3.2-2.2.1">The requester supplies the domain names of the authoritative
+nameservers, any addresses needed for glue, and any DS records
+(<a href="#ds-management" class="auto internal xref">Section 7.3.3</a>).<a href="#section-7.3.2-2.2.1" class="pilcrow">¶</a></p>
+</dd>
+            <dd class="break"></dd>
+<dt id="section-7.3.2-2.3">DNAME redirection:</dt>
+            <dd style="margin-left: 1.5em" id="section-7.3.2-2.4">
+              <p id="section-7.3.2-2.4.1">The requester supplies the fully qualified target domain name
+(<a href="#managing-allocator-ranges" class="auto internal xref">Section 4.4</a>).<a href="#section-7.3.2-2.4.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+</dl>
+<p id="section-7.3.2-3">A parent-side DNAME cannot coexist with a delegation NS RRset or its
+DS records at the same name (<span><a href="https://rfc-editor.org/rfc/rfc6672#section-2.3" class="relref">Section 2.3</a> of [<a href="#RFC6672" class="cite xref">RFC6672</a>]</span>).<a href="#section-7.3.2-3" class="pilcrow">¶</a></p>
+<p id="section-7.3.2-4">One request can cover several identifiers in the requester's
+allocation.  It specifies the configuration for each identifier;
+each allocator name has its own parent-zone records.<a href="#section-7.3.2-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="ds-management">
+<section id="section-7.3.3">
+          <h4 id="name-ds-records-for-delegated-al">
+<a href="#section-7.3.3" class="section-number selfRef">7.3.3. </a><a href="#name-ds-records-for-delegated-al" class="section-name selfRef">DS Records for Delegated Allocator Zones</a>
+          </h4>
+<p id="section-7.3.3-1">The ipn.arpa operator <span class="bcp14">MUST</span> support authenticated requests to add,
+update, and remove DS records for delegated allocator zones.
+<a href="#request-authorization" class="auto internal xref">Section 7.3.1</a> applies to these requests.  The child-zone
+operator coordinates signing-key changes that affect a parent DS
+record with updates to that record.  Support for DS does not require
+every delegated zone to be signed.<a href="#section-7.3.3-1" class="pilcrow">¶</a></p>
+<p id="section-7.3.3-2">DS records apply to NS delegations, not parent-side DNAMEs.  The
+ipn.arpa operator signs a DNAME as data in ipn.arpa.  Authentication
+of data at its target depends on the target namespace's own chain of
+trust.<a href="#section-7.3.3-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="request-validation">
+<section id="section-7.3.4">
+          <h4 id="name-request-validation-and-allo">
+<a href="#section-7.3.4" class="section-number selfRef">7.3.4. </a><a href="#name-request-validation-and-allo" class="section-name selfRef">Request Validation and Allocation Review</a>
+          </h4>
+<p id="section-7.3.4-1"><span><a href="https://rfc-editor.org/rfc/rfc9758#section-9.1" class="relref">Section 9.1</a> of [<a href="#RFC9758" class="cite xref">RFC9758</a>]</span> governs numeric assignments, including
+Expert Review.  The ipn.arpa operator checks DNS provisioning requests
+under its published technical procedures.  IANA's requirements for
+delegations <span>[<a href="#IANA-NS-REQS" class="cite xref">IANA-NS-REQS</a>]</span> provide background for NS requests;
+<span>[<a href="#RFC6672" class="cite xref">RFC6672</a>]</span> specifies the DNS requirements for DNAME redirection.<a href="#section-7.3.4-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+</section>
+</div>
+<div id="sec-combined-references">
+<section id="section-8">
+      <h2 id="name-references">
+<a href="#section-8" class="section-number selfRef">8. </a><a href="#name-references" class="section-name selfRef">References</a>
+      </h2>
+<div id="sec-normative-references">
+<section id="section-8.1">
+        <h3 id="name-normative-references">
+<a href="#section-8.1" class="section-number selfRef">8.1. </a><a href="#name-normative-references" class="section-name selfRef">Normative References</a>
+        </h3>
+<dl class="references">
+<dt id="RFC1034">[RFC1034]</dt>
+        <dd>
+<span class="refAuthor">Mockapetris, P.</span>, <span class="refTitle">"Domain names - concepts and facilities"</span>, <span class="seriesInfo">STD 13</span>, <span class="seriesInfo">RFC 1034</span>, <span class="seriesInfo">DOI 10.17487/RFC1034</span>, <time datetime="1987-11" class="refDate">November 1987</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc1034">https://www.rfc-editor.org/rfc/rfc1034</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC2119">[RFC2119]</dt>
+        <dd>
+<span class="refAuthor">Bradner, S.</span>, <span class="refTitle">"Key words for use in RFCs to Indicate Requirement Levels"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 2119</span>, <span class="seriesInfo">DOI 10.17487/RFC2119</span>, <time datetime="1997-03" class="refDate">March 1997</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc2119">https://www.rfc-editor.org/rfc/rfc2119</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC2782">[RFC2782]</dt>
+        <dd>
+<span class="refAuthor">Gulbrandsen, A.</span>, <span class="refAuthor">Vixie, P.</span>, and <span class="refAuthor">L. Esibov</span>, <span class="refTitle">"A DNS RR for specifying the location of services (DNS SRV)"</span>, <span class="seriesInfo">RFC 2782</span>, <span class="seriesInfo">DOI 10.17487/RFC2782</span>, <time datetime="2000-02" class="refDate">February 2000</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc2782">https://www.rfc-editor.org/rfc/rfc2782</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC3172">[RFC3172]</dt>
+        <dd>
+<span class="refAuthor">Huston, G., Ed.</span>, <span class="refTitle">"Management Guidelines &amp; Operational Requirements for the Address and Routing Parameter Area Domain ("arpa")"</span>, <span class="seriesInfo">BCP 52</span>, <span class="seriesInfo">RFC 3172</span>, <span class="seriesInfo">DOI 10.17487/RFC3172</span>, <time datetime="2001-09" class="refDate">September 2001</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc3172">https://www.rfc-editor.org/rfc/rfc3172</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC4035">[RFC4035]</dt>
+        <dd>
+<span class="refAuthor">Arends, R.</span>, <span class="refAuthor">Austein, R.</span>, <span class="refAuthor">Larson, M.</span>, <span class="refAuthor">Massey, D.</span>, and <span class="refAuthor">S. Rose</span>, <span class="refTitle">"Protocol Modifications for the DNS Security Extensions"</span>, <span class="seriesInfo">RFC 4035</span>, <span class="seriesInfo">DOI 10.17487/RFC4035</span>, <time datetime="2005-03" class="refDate">March 2005</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc4035">https://www.rfc-editor.org/rfc/rfc4035</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC6672">[RFC6672]</dt>
+        <dd>
+<span class="refAuthor">Rose, S.</span> and <span class="refAuthor">W. Wijngaards</span>, <span class="refTitle">"DNAME Redirection in the DNS"</span>, <span class="seriesInfo">RFC 6672</span>, <span class="seriesInfo">DOI 10.17487/RFC6672</span>, <time datetime="2012-06" class="refDate">June 2012</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc6672">https://www.rfc-editor.org/rfc/rfc6672</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC8174">[RFC8174]</dt>
+        <dd>
+<span class="refAuthor">Leiba, B.</span>, <span class="refTitle">"Ambiguity of Uppercase vs Lowercase in RFC 2119 Key Words"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 8174</span>, <span class="seriesInfo">DOI 10.17487/RFC8174</span>, <time datetime="2017-05" class="refDate">May 2017</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8174">https://www.rfc-editor.org/rfc/rfc8174</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC9364">[RFC9364]</dt>
+        <dd>
+<span class="refAuthor">Hoffman, P.</span>, <span class="refTitle">"DNS Security Extensions (DNSSEC)"</span>, <span class="seriesInfo">BCP 237</span>, <span class="seriesInfo">RFC 9364</span>, <span class="seriesInfo">DOI 10.17487/RFC9364</span>, <time datetime="2023-02" class="refDate">February 2023</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9364">https://www.rfc-editor.org/rfc/rfc9364</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC9460">[RFC9460]</dt>
+        <dd>
+<span class="refAuthor">Schwartz, B.</span>, <span class="refAuthor">Bishop, M.</span>, and <span class="refAuthor">E. Nygren</span>, <span class="refTitle">"Service Binding and Parameter Specification via the DNS (SVCB and HTTPS Resource Records)"</span>, <span class="seriesInfo">RFC 9460</span>, <span class="seriesInfo">DOI 10.17487/RFC9460</span>, <time datetime="2023-11" class="refDate">November 2023</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9460">https://www.rfc-editor.org/rfc/rfc9460</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC9758">[RFC9758]</dt>
+        <dd>
+<span class="refAuthor">Taylor, R.</span> and <span class="refAuthor">E. Birrane III</span>, <span class="refTitle">"Updates to the 'ipn' URI Scheme"</span>, <span class="seriesInfo">RFC 9758</span>, <span class="seriesInfo">DOI 10.17487/RFC9758</span>, <time datetime="2025-05" class="refDate">May 2025</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9758">https://www.rfc-editor.org/rfc/rfc9758</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="TCPCL">[TCPCL]</dt>
+      <dd>
+<span class="refAuthor">Sipos, B.</span>, <span class="refAuthor">Demmer, M.</span>, <span class="refAuthor">Ott, J.</span>, and <span class="refAuthor">S. Perreault</span>, <span class="refTitle">"Delay-Tolerant Networking TCP Convergence-Layer Protocol Version 4"</span>, <span class="seriesInfo">RFC 9174</span>, <span class="seriesInfo">DOI 10.17487/RFC9174</span>, <time datetime="2022-01" class="refDate">January 2022</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9174">https://www.rfc-editor.org/rfc/rfc9174</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+</dl>
+</section>
+</div>
+<div id="sec-informative-references">
+<section id="section-8.2">
+        <h3 id="name-informative-references">
+<a href="#section-8.2" class="section-number selfRef">8.2. </a><a href="#name-informative-references" class="section-name selfRef">Informative References</a>
+        </h3>
+<dl class="references">
+<dt id="BIND-ARM">[BIND-ARM]</dt>
+        <dd>
+<span class="refAuthor">Internet Systems Consortium</span>, <span class="refTitle">"BIND 9 Administrator Reference Manual"</span>, <span>&lt;<a href="https://bind9.readthedocs.io/en/latest/chapter3.html">https://bind9.readthedocs.io/en/latest/chapter3.html</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="IANA-NS-REQS">[IANA-NS-REQS]</dt>
+        <dd>
+<span class="refAuthor">IANA</span>, <span class="refTitle">"Technical requirements for authoritative name servers"</span>, <span>&lt;<a href="https://www.iana.org/help/nameserver-requirements">https://www.iana.org/help/nameserver-requirements</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC1918">[RFC1918]</dt>
+        <dd>
+<span class="refAuthor">Rekhter, Y.</span>, <span class="refAuthor">Moskowitz, B.</span>, <span class="refAuthor">Karrenberg, D.</span>, <span class="refAuthor">de Groot, G. J.</span>, and <span class="refAuthor">E. Lear</span>, <span class="refTitle">"Address Allocation for Private Internets"</span>, <span class="seriesInfo">BCP 5</span>, <span class="seriesInfo">RFC 1918</span>, <span class="seriesInfo">DOI 10.17487/RFC1918</span>, <time datetime="1996-02" class="refDate">February 1996</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc1918">https://www.rfc-editor.org/rfc/rfc1918</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC2308">[RFC2308]</dt>
+        <dd>
+<span class="refAuthor">Andrews, M.</span>, <span class="refTitle">"Negative Caching of DNS Queries (DNS NCACHE)"</span>, <span class="seriesInfo">RFC 2308</span>, <span class="seriesInfo">DOI 10.17487/RFC2308</span>, <time datetime="1998-03" class="refDate">March 1998</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc2308">https://www.rfc-editor.org/rfc/rfc2308</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC6116">[RFC6116]</dt>
+        <dd>
+<span class="refAuthor">Bradner, S.</span>, <span class="refAuthor">Conroy, L.</span>, and <span class="refAuthor">K. Fujiwara</span>, <span class="refTitle">"The E.164 to Uniform Resource Identifiers (URI) Dynamic Delegation Discovery System (DDDS) Application (ENUM)"</span>, <span class="seriesInfo">RFC 6116</span>, <span class="seriesInfo">DOI 10.17487/RFC6116</span>, <time datetime="2011-03" class="refDate">March 2011</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc6116">https://www.rfc-editor.org/rfc/rfc6116</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC6303">[RFC6303]</dt>
+        <dd>
+<span class="refAuthor">Andrews, M.</span>, <span class="refTitle">"Locally Served DNS Zones"</span>, <span class="seriesInfo">BCP 163</span>, <span class="seriesInfo">RFC 6303</span>, <span class="seriesInfo">DOI 10.17487/RFC6303</span>, <time datetime="2011-07" class="refDate">July 2011</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc6303">https://www.rfc-editor.org/rfc/rfc6303</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC6840">[RFC6840]</dt>
+        <dd>
+<span class="refAuthor">Weiler, S., Ed.</span> and <span class="refAuthor">D. Blacka, Ed.</span>, <span class="refTitle">"Clarifications and Implementation Notes for DNS Security (DNSSEC)"</span>, <span class="seriesInfo">RFC 6840</span>, <span class="seriesInfo">DOI 10.17487/RFC6840</span>, <time datetime="2013-02" class="refDate">February 2013</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc6840">https://www.rfc-editor.org/rfc/rfc6840</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC7116">[RFC7116]</dt>
+        <dd>
+<span class="refAuthor">Scott, K.</span> and <span class="refAuthor">M. Blanchet</span>, <span class="refTitle">"Licklider Transmission Protocol (LTP), Compressed Bundle Header Encoding (CBHE), and Bundle Protocol IANA Registries"</span>, <span class="seriesInfo">RFC 7116</span>, <span class="seriesInfo">DOI 10.17487/RFC7116</span>, <time datetime="2014-02" class="refDate">February 2014</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc7116">https://www.rfc-editor.org/rfc/rfc7116</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC8126">[RFC8126]</dt>
+        <dd>
+<span class="refAuthor">Cotton, M.</span>, <span class="refAuthor">Leiba, B.</span>, and <span class="refAuthor">T. Narten</span>, <span class="refTitle">"Guidelines for Writing an IANA Considerations Section in RFCs"</span>, <span class="seriesInfo">BCP 26</span>, <span class="seriesInfo">RFC 8126</span>, <span class="seriesInfo">DOI 10.17487/RFC8126</span>, <time datetime="2017-06" class="refDate">June 2017</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8126">https://www.rfc-editor.org/rfc/rfc8126</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC8375">[RFC8375]</dt>
+        <dd>
+<span class="refAuthor">Pfister, P.</span> and <span class="refAuthor">T. Lemon</span>, <span class="refTitle">"Special-Use Domain 'home.arpa.'"</span>, <span class="seriesInfo">RFC 8375</span>, <span class="seriesInfo">DOI 10.17487/RFC8375</span>, <time datetime="2018-05" class="refDate">May 2018</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8375">https://www.rfc-editor.org/rfc/rfc8375</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC8767">[RFC8767]</dt>
+        <dd>
+<span class="refAuthor">Lawrence, D.</span>, <span class="refAuthor">Kumari, W.</span>, and <span class="refAuthor">P. Sood</span>, <span class="refTitle">"Serving Stale Data to Improve DNS Resiliency"</span>, <span class="seriesInfo">RFC 8767</span>, <span class="seriesInfo">DOI 10.17487/RFC8767</span>, <time datetime="2020-03" class="refDate">March 2020</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8767">https://www.rfc-editor.org/rfc/rfc8767</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC9076">[RFC9076]</dt>
+        <dd>
+<span class="refAuthor">Wicinski, T., Ed.</span>, <span class="refTitle">"DNS Privacy Considerations"</span>, <span class="seriesInfo">RFC 9076</span>, <span class="seriesInfo">DOI 10.17487/RFC9076</span>, <time datetime="2021-07" class="refDate">July 2021</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9076">https://www.rfc-editor.org/rfc/rfc9076</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC9171">[RFC9171]</dt>
+        <dd>
+<span class="refAuthor">Burleigh, S.</span>, <span class="refAuthor">Fall, K.</span>, and <span class="refAuthor">E. Birrane, III</span>, <span class="refTitle">"Bundle Protocol Version 7"</span>, <span class="seriesInfo">RFC 9171</span>, <span class="seriesInfo">DOI 10.17487/RFC9171</span>, <time datetime="2022-01" class="refDate">January 2022</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9171">https://www.rfc-editor.org/rfc/rfc9171</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC9520">[RFC9520]</dt>
+      <dd>
+<span class="refAuthor">Wessels, D.</span>, <span class="refAuthor">Carroll, W.</span>, and <span class="refAuthor">M. Thomas</span>, <span class="refTitle">"Negative Caching of DNS Resolution Failures"</span>, <span class="seriesInfo">RFC 9520</span>, <span class="seriesInfo">DOI 10.17487/RFC9520</span>, <time datetime="2023-12" class="refDate">December 2023</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9520">https://www.rfc-editor.org/rfc/rfc9520</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+</dl>
+</section>
+</div>
+</section>
+</div>
+<div id="authors-addresses">
+<section id="appendix-A">
+      <h2 id="name-authors-address">
+<a href="#name-authors-address" class="section-name selfRef">Author's Address</a>
+      </h2>
+<address class="vcard">
+        <div dir="auto" class="left"><span class="fn nameRole">Erik Kline</span></div>
+<div dir="auto" class="left"><span class="org">Aalyria Technologies, LLC</span></div>
+<div class="email">
+<span>Email:</span>
+<a href="mailto:ek.ietf@gmail.com" class="email">ek.ietf@gmail.com</a>
+</div>
+</address>
+</section>
+</div>
+<script>const toc = document.getElementById("toc");
+toc.querySelector("h2").addEventListener("click", e => {
+  toc.classList.toggle("active");
+});
+toc.querySelector("nav").addEventListener("click", e => {
+  toc.classList.remove("active");
+});
+</script>
+</body>
+</html>
