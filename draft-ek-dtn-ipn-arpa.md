@@ -553,105 +553,52 @@ general to recognize these namespaces.
 ## Managing Allocator Ranges {#managing-allocator-ranges}
 
 An Allocator can hold a range of Allocator Identifiers
-({{Section 3.2.1 of RFC9758}}).  A numeric range does not map to one
-DNS subtree: each Allocator Identifier A has its own name,
-`A.ipn.arpa.`, directly beneath ipn.arpa.  An operator that administers
-several identifiers can delegate a zone for each identifier.
-Alternatively, it can use DNAME records {{RFC6672}} to redirect each
-allocator subtree into one zone that it manages.
+({{Section 3.2.1 of RFC9758}}).  Each identifier has a separate name
+under `ipn.arpa.`; DNS has no numeric-range syntax.  An agency that
+wants to keep discovery records in its existing zone can request one
+parent-side DNAME per identifier ({{provisioning-alternatives}}).
 
-In the following example, the agency of {{examples}} also administers
-Allocator Identifiers 974848 and 974849.  The relay address records
-are those in {{relay-addresses}}.
+For example, the agency in {{examples}} also holds identifiers 974848
+and 974849.  The `ipn.arpa.` operator publishes:
 
 ~~~ dns
 $ORIGIN ipn.arpa.
 $TTL 3600
-
-974848 IN DNAME 974848.allocators.space-agency.example.
-974849 IN DNAME 974849.allocators.space-agency.example.
+974848 IN DNAME 974848.space-agency.example.
+974849 IN DNAME 974849.space-agency.example.
 ~~~
+
+The agency publishes both sets of records in its existing
+`space-agency.example.` zone.  Neither DNAME target needs to be a
+zone cut.  The relay names below are relative to the agency's zone
+({{relay-addresses}}).
 
 ~~~ dns
-$ORIGIN 974848.allocators.space-agency.example.
+$ORIGIN space-agency.example.
 $TTL 3600
-
-_dtn-bundle._tcp.2 IN SRV 10 1 4556 relay-a.space-agency.example.
-_dtn-bundle._tcp.2 IN SRV 10 1 4556 relay-b.space-agency.example.
-
-$ORIGIN 974849.allocators.space-agency.example.
-
-_dtn-bundle._tcp.2 IN SRV 10 1 4556 relay-a.space-agency.example.
-_dtn-bundle._tcp.2 IN SRV 10 1 4556 relay-b.space-agency.example.
+; ipn:974848.2.345
+_dtn-bundle._tcp.2.974848 IN SRV 10 1 4556 relay-a
+_dtn-bundle._tcp.2.974848 IN SRV 10 1 4556 relay-b
+; ipn:974849.2.345
+_dtn-bundle._tcp.2.974849 IN SRV 10 1 4556 relay-a
+_dtn-bundle._tcp.2.974849 IN SRV 10 1 4556 relay-b
 ~~~
 
-A BP Agent that discovers TCPCLv4 service for `ipn:974848.2.345`
-constructs the usual query name ({{tcpcl-binding}}):
+For `ipn:974848.2.345`, the BP Agent queries for SRV at
+`_dtn-bundle._tcp.2.974848.ipn.arpa.` ({{tcpcl-binding}}).  DNS
+substitutes `974848.space-agency.example.` for the matching suffix and
+continues the lookup at
+`_dtn-bundle._tcp.2.974848.space-agency.example.`.  A DNAME redirects
+descendants of its owner; it does not redirect the owner itself
+({{RFC6672}}).
 
-~~~
-_dtn-bundle._tcp.2.974848.ipn.arpa.
-~~~
+Distinct target names keep node 2 in each allocator space distinct,
+even though both use the same relays.  Using the allocator number as a
+label is a convenience.  If both DNAMEs had the same target, both
+queries would reach the same SRV owner.
 
-The DNAME at `974848.ipn.arpa.` redirects the query to:
-
-~~~
-_dtn-bundle._tcp.2.974848.allocators.space-agency.example.
-~~~
-
-There, the BP Agent finds the same relay SRV records as in
-{{examples}}.  Ordinary DNS processing does the redirection
-({{Section 3 of RFC6672}}).  The BP Agent does not construct names in
-the agency's zone.
-
-Each target subtree keeps its Allocator Identifier label.  Thus
-(974848,2) and (974849,2) stay distinct, although their SRV records
-select the same relays.  Both FQNNs are also distinct from (978879,2),
-the mars-orbiter.  If both DNAMEs pointed to the same target, queries
-for (974848,2) and (974849,2) would reach the same records.  Distinct
-target subtrees are therefore necessary when the allocator namespaces
-must stay distinct.  The decimal allocator label in the target is a
-convenient convention, not a DNS requirement.
-
-One zone can contain all of these subtrees.  Each redirected Allocator
-Identifier still needs its own DNAME in ipn.arpa.  The technique
-reduces the number of child zones to administer, not the number of
-allocator entries in the parent.
-
-The following DNAME constraints apply:
-
-* A DNAME redirects the descendants of its owner name, not the owner
-  name itself ({{Section 2.3 of RFC6672}}).
-
-* The source zone cannot contain records beneath the DNAME owner
-  ({{Section 2.4 of RFC6672}}).  The data for names beneath
-  `974848.ipn.arpa.` is in the target subtree.
-
-* A DNAME rewrites names beneath its owner, but an NS delegation
-  creates a zone cut.  A parent-side DNAME cannot coexist with a
-  delegation NS RRset at the same owner name
-  ({{Section 2.3 of RFC6672}}).  A delegated allocator zone can
-  instead publish a DNAME at its own apex, with its SOA and NS records.
-  This arrangement keeps separate child-zone administration.
-
-{{Section 5.3 of RFC6672}} describes DNSSEC considerations for DNAME.
-Locally served instances ({{locally-served}}) can use DNAMEs in the
-same way, for example at `N.0.ipn.arpa.`, if the administrator of that
-namespace authorizes them.
-
-Implementation-specific tools, such as the `$GENERATE` directive of
-BIND {{BIND-ARM}}, can produce repetitive records.  For example, this
-BIND input produces the two DNAME records above:
-
-~~~ dns
-$ORIGIN ipn.arpa.
-$TTL 3600
-
-$GENERATE 974848-974849 $ DNAME $.allocators.space-agency.example.
-~~~
-
-The directive expands into ordinary records.  It adds no numeric-range
-matching to DNS, and resolvers need no support for it.  The use of
-such tools is optional.
+Tools such as BIND's `$GENERATE` directive {{BIND-ARM}} can abbreviate
+repetitive zone-file entries.  They produce ordinary DNS records.
 
 # Security Considerations
 
